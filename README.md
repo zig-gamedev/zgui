@@ -1,4 +1,4 @@
-# zgui
+# [zgui](https://github.com/zig-gamedev/zgui)
 
 Zig build package and bindings for [Dear Imgui](https://github.com/ocornut/imgui) & extras.
 
@@ -24,14 +24,7 @@ Easy to use, hand-crafted API with default arguments, named parameters and Zig s
 
 ## Getting started
 
-Copy `zgui` to a subdirectory in your project and add the following to your `build.zig.zon` .dependencies:
-```zig
-    .zgui = .{ .path = "libs/zgui" },
-```
-
-To get glfw/wgpu rendering backend working also copy `zglfw`, `system-sdk`, `zgpu` and `zpool` folders and add the depenency paths (see [zgpu](https://github.com/zig-gamedev/zig-gamedev/tree/main/libs/zgpu) for the details).
-
-Then in your `build.zig` add:
+Example `build.zig`:
 ```zig
 
 pub fn build(b: *std.Build) void {

@@ -1,0 +1,34 @@
+.{
+    .name = "zgui",
+    .version = "0.6.0-dev",
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "libs",
+        "src",
+        "README.md",
+        "LICENSE",
+    },
+    .dependencies = .{
+        .@"system-sdk" = .{
+            .url = "https://github.com/zig-gamedev/system-sdk/archive/refs/heads/main.tar.gz",
+            .hash = "1220f94cae247d9249ded5372571d54f2d6dd303ab116ef02b748725c917a04351a6",
+            .lazy = true,
+        },
+        .zglfw = .{
+            .url = "https://github.com/zig-gamedev/zglfw/archive/refs/heads/main.tar.gz",
+            .hash = "1220fe373c672a7a3e0f65a94e1747ea7703e9aacf6211aadaf70759f5266f844bf9",
+            .lazy = true,
+        },
+        .zgpu = .{
+            .url = "https://github.com/zig-gamedev/zgpu/archive/refs/heads/main.tar.gz",
+            .hash = "1220106599d3d6d5141b50d0a7c933385ce86165f6d27f3baaca2d8edeb4ffa9ad64",
+            .lazy = true,
+        },
+        .freetype = .{
+            .url = "https://github.com/hexops/freetype/archive/e8c5b37f320db03acba410d993441815bc809606.tar.gz",
+            .hash = "1220babb7939707ca390b934657dfd3c8c3a6a78cc9442e4cbd43e3f9ffd49daec9e",
+            .lazy = true,
+        },
+    },
+}

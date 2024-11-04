@@ -11,18 +11,18 @@
     },
     .dependencies = .{
         .system_sdk = .{
-            .url = "https://github.com/zig-gamedev/system-sdk/archive/refs/tags/v0.2.0.tar.gz",
-            .hash = "122035336d7535f655fe0ece31cea0fbf8ad2f1e42f64b073995050a425ca8f8fbdc",
+            .url = "https://github.com/zig-gamedev/system-sdk/archive/908f556c874e29392acfbbb21cc14923b0cd4e18.tar.gz",
+            .hash = "122071280f7f0852ef6d2cd74f7c6593511eb48ec3b1b88d1457cd2453eb8597d925",
             .lazy = true,
         },
         .zglfw = .{
-            .url = "https://github.com/zig-gamedev/zglfw/archive/refs/heads/main.tar.gz",
-            .hash = "1220fe373c672a7a3e0f65a94e1747ea7703e9aacf6211aadaf70759f5266f844bf9",
+            .url = "https://github.com/zig-gamedev/zglfw/archive/eeca90f3231dd690931962860f261a358653f458.tar.gz",
+            .hash = "122079d00669e935603922e7c5662b1528d86a7b41d2d78359ea8d448349383eada5",
             .lazy = true,
         },
         .zgpu = .{
-            .url = "https://github.com/zig-gamedev/zgpu/archive/refs/heads/main.tar.gz",
-            .hash = "1220106599d3d6d5141b50d0a7c933385ce86165f6d27f3baaca2d8edeb4ffa9ad64",
+            .url = "https://github.com/zig-gamedev/zgpu/archive/a846e706c70add37ed0507f0e254d4c0e4e61972.tar.gz",
+            .hash = "12203815191fac067f4f8ff84bd2f9347fbc03ee1309f1fbf6a293b4cb71768bd49a",
             .lazy = true,
         },
         .freetype = .{

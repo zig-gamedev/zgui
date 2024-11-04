@@ -10,7 +10,7 @@
         "LICENSE",
     },
     .dependencies = .{
-        .@"system-sdk" = .{
+        .system_sdk = .{
             .url = "https://github.com/zig-gamedev/system-sdk/archive/refs/heads/main.tar.gz",
             .hash = "1220f94cae247d9249ded5372571d54f2d6dd303ab116ef02b748725c917a04351a6",
             .lazy = true,

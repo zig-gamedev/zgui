@@ -975,9 +975,17 @@ pub const DockSpaceOverViewport = zguiDockSpaceOverViewport;
 // DockBuilder (Unstable internal imgui API, subject to change, use at own risk)
 //
 //--------------------------------------------------------------------------------------------------
+const DockNode = anyopaque;
+pub fn dockNodeRect(node: *const DockNode, out_rect: *[4]f32) void {
+    return zguiDockNodeRect(node, out_rect);
+}
+extern fn zguiDockNodeRect(node: *const DockNode, out_rect: *[4]f32) void;
+
 pub fn dockBuilderDockWindow(window_name: [:0]const u8, node_id: Ident) void {
     zguiDockBuilderDockWindow(window_name.ptr, node_id);
 }
+pub const dockBuilderGetNode = zguiDockBuilderGetNode;
+pub const dockBuilderGetCentralNode = zguiDockBuilderGetCentralNode;
 pub const dockBuilderAddNode = zguiDockBuilderAddNode;
 pub const dockBuilderRemoveNode = zguiDockBuilderRemoveNode;
 pub fn dockBuilderSetNodePos(node_id: Ident, pos: [2]f32) void {
@@ -990,6 +998,8 @@ pub const dockBuilderSplitNode = zguiDockBuilderSplitNode;
 pub const dockBuilderFinish = zguiDockBuilderFinish;
 
 extern fn zguiDockBuilderDockWindow(window_name: [*:0]const u8, node_id: Ident) void;
+extern fn zguiDockBuilderGetNode(node_id: Ident) ?*DockNode;
+extern fn zguiDockBuilderGetCentralNode(node_id: Ident) ?*DockNode;
 extern fn zguiDockBuilderAddNode(node_id: Ident, flags: DockNodeFlags) Ident;
 extern fn zguiDockBuilderRemoveNode(node_id: Ident) void;
 extern fn zguiDockBuilderSetNodePos(node_id: Ident, pos: *const [2]f32) void;

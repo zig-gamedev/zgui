@@ -2784,9 +2784,24 @@ extern "C"
     // DockBuilder (Unstable internal imgui API, subject to change, use at own risk)
     //
     //--------------------------------------------------------------------------------------------------
+    ZGUI_API void zguiDockNodeRect(const ImGuiDockNode* node, ImRect* out_rect)
+    {
+        *out_rect = node->Rect();
+    }
+
     ZGUI_API void zguiDockBuilderDockWindow(const char *window_name, ImGuiID node_id)
     {
         ImGui::DockBuilderDockWindow(window_name, node_id);
+    }
+
+    ZGUI_API ImGuiDockNode* zguiDockBuilderGetNode(ImGuiID node_id)
+    {
+        return ImGui::DockBuilderGetNode(node_id);
+    }
+
+    ZGUI_API ImGuiDockNode* zguiDockBuilderGetCentralNode(ImGuiID node_id)
+    {
+        return ImGui::DockBuilderGetCentralNode(node_id);
     }
 
     ZGUI_API ImGuiID zguiDockBuilderAddNode(ImGuiID node_id, ImGuiDockNodeFlags flags)

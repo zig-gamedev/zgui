@@ -24,17 +24,17 @@ pub fn build(b: *std.Build) void {
             bool,
             "with_implot",
             "Build with bundled implot source",
-        ) orelse true,
+        ) orelse false,
         .with_gizmo = b.option(
             bool,
             "with_gizmo",
             "Build with bundled ImGuizmo tool",
-        ) orelse true,
+        ) orelse false,
         .with_node_editor = b.option(
             bool,
             "with_node_editor",
             "Build with bundled ImGui node editor",
-        ) orelse true,
+        ) orelse false,
         .with_te = b.option(
             bool,
             "with_te",

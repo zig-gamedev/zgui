@@ -50,6 +50,11 @@ pub fn build(b: *std.Build) void {
             "use_wchar32",
             "Extended unicode support",
         ) orelse false,
+        .use_32bit_draw_idx = b.option(
+            bool,
+            "use_32bit_draw_idx",
+            "Use 32-bit draw index",
+        ) orelse false,
     };
 
     const options_step = b.addOptions();
@@ -66,7 +71,12 @@ pub fn build(b: *std.Build) void {
         },
     });
 
-    const cflags = &.{ "-fno-sanitize=undefined", "-Wno-elaborated-enum-base", "-Wno-error=date-time" };
+    const cflags = &.{
+        "-fno-sanitize=undefined",
+        "-Wno-elaborated-enum-base",
+        "-Wno-error=date-time",
+        if (options.use_32bit_draw_idx) "-DIMGUI_USE_32BIT_DRAW_INDEX" else "",
+    };
 
     const imgui = if (options.shared) blk: {
         const lib = b.addSharedLibrary(.{

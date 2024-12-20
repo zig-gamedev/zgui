@@ -25,6 +25,10 @@
             .hash = "1220af0752814ec0a3438aa3ca3e33661885ec134c5e7b794247381b0fbe90c21012",
             .lazy = true,
         },
+        .zsdl = .{
+            .path = "../zsdl",
+            .lazy = true,
+        },
         .freetype = .{
             .url = "https://github.com/hexops/freetype/archive/e8c5b37f320db03acba410d993441815bc809606.tar.gz",
             .hash = "1220babb7939707ca390b934657dfd3c8c3a6a78cc9442e4cbd43e3f9ffd49daec9e",

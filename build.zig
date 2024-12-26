@@ -86,9 +86,9 @@ pub fn build(b: *std.Build) void {
         });
 
         if (target.result.os.tag == .windows) {
-            lib.defineCMacro("IMGUI_API", "__declspec(dllexport)");
-            lib.defineCMacro("IMPLOT_API", "__declspec(dllexport)");
-            lib.defineCMacro("ZGUI_API", "__declspec(dllexport)");
+            lib.root_module.addCMacro("IMGUI_API", "__declspec(dllexport)");
+            lib.root_module.addCMacro("IMPLOT_API", "__declspec(dllexport)");
+            lib.root_module.addCMacro("ZGUI_API", "__declspec(dllexport)");
         }
 
         if (target.result.os.tag == .macos) {
@@ -106,10 +106,10 @@ pub fn build(b: *std.Build) void {
 
     const emscripten = target.result.os.tag == .emscripten;
     if (emscripten) {
-        imgui.defineCMacro("__EMSCRIPTEN__", null);
+        imgui.root_module.addCMacro("__EMSCRIPTEN__", "");
         // TODO: read from enviroment or `emcc --version`
-        imgui.defineCMacro("__EMSCRIPTEN_major__", "3");
-        imgui.defineCMacro("__EMSCRIPTEN_minor__", "1");
+        imgui.root_module.addCMacro("__EMSCRIPTEN_major__", "3");
+        imgui.root_module.addCMacro("__EMSCRIPTEN_minor__", "1");
         imgui.root_module.stack_protector = false;
         //imgui.root_module.disable_stack_probing = true;
     }
@@ -147,11 +147,11 @@ pub fn build(b: *std.Build) void {
             .file = b.path("libs/imgui/misc/freetype/imgui_freetype.cpp"),
             .flags = cflags,
         });
-        imgui.defineCMacro("IMGUI_ENABLE_FREETYPE", "1");
+        imgui.root_module.addCMacro("IMGUI_ENABLE_FREETYPE", "1");
     }
 
     if (options.use_wchar32) {
-        imgui.defineCMacro("IMGUI_USE_WCHAR32", "1");
+        imgui.root_module.addCMacro("IMGUI_USE_WCHAR32", "1");
     }
 
     if (options.with_implot) {
@@ -206,8 +206,8 @@ pub fn build(b: *std.Build) void {
             .flags = cflags,
         });
 
-        imgui.defineCMacro("IMGUI_ENABLE_TEST_ENGINE", null);
-        imgui.defineCMacro("IMGUI_TEST_ENGINE_ENABLE_COROUTINE_STDTHREAD_IMPL", "1");
+        imgui.root_module.addCMacro("IMGUI_ENABLE_TEST_ENGINE", "");
+        imgui.root_module.addCMacro("IMGUI_TEST_ENGINE_ENABLE_COROUTINE_STDTHREAD_IMPL", "1");
 
         imgui.addIncludePath(b.path("libs/imgui_test_engine/"));
 
@@ -254,7 +254,7 @@ pub fn build(b: *std.Build) void {
                 "-Wall",
                 "-Wextra",
             } });
-            winpthreads.defineCMacro("__USE_MINGW_ANSI_STDIO", "1");
+            winpthreads.root_module.addCMacro("__USE_MINGW_ANSI_STDIO", "1");
             winpthreads.addIncludePath(b.path("libs/winpthreads/include"));
             winpthreads.addIncludePath(b.path("libs/winpthreads/src"));
             winpthreads.linkLibC();

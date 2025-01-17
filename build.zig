@@ -362,13 +362,12 @@ pub fn build(b: *std.Build) void {
             imgui.linkFramework("Foundation");
             imgui.linkFramework("Metal");
             imgui.linkFramework("Cocoa");
-            imgui.linkFramework("GameController");
+            imgui.linkFramework("QuartzCore");
             imgui.addCSourceFiles(.{
                 .files = &.{
                     "libs/imgui/backends/imgui_impl_osx.mm",
                     "libs/imgui/backends/imgui_impl_metal.mm",
                 },
-                // .flags = &(objcflags.* ++ .{"-DIMGUI_IMPL_METAL_CPP", "-DIMGUI_IMPL_METAL_CPP_EXTENSIONS"}),
                 .flags = objcflags,
             });
         },

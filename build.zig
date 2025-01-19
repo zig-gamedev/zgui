@@ -8,6 +8,7 @@ pub const Backend = enum {
     win32_dx12,
     glfw,
     sdl2_opengl3,
+    osx_metal,
 };
 
 pub fn build(b: *std.Build) void {
@@ -77,6 +78,12 @@ pub fn build(b: *std.Build) void {
         "-Wno-elaborated-enum-base",
         "-Wno-error=date-time",
         if (options.use_32bit_draw_idx) "-DIMGUI_USE_32BIT_DRAW_INDEX" else "",
+    };
+
+    const objcflags = &.{
+        "-Wno-deprecated",
+        "-Wno-pedantic",
+        "-Wno-availability",
     };
 
     const imgui = if (options.shared) blk: {
@@ -349,6 +356,19 @@ pub fn build(b: *std.Build) void {
                     "libs/imgui/backends/imgui_impl_opengl3.cpp",
                 },
                 .flags = &(cflags.* ++ .{"-DIMGUI_IMPL_OPENGL_LOADER_CUSTOM"}),
+            });
+        },
+        .osx_metal => {
+            imgui.linkFramework("Foundation");
+            imgui.linkFramework("Metal");
+            imgui.linkFramework("Cocoa");
+            imgui.linkFramework("QuartzCore");
+            imgui.addCSourceFiles(.{
+                .files = &.{
+                    "libs/imgui/backends/imgui_impl_osx.mm",
+                    "libs/imgui/backends/imgui_impl_metal.mm",
+                },
+                .flags = objcflags,
             });
         },
         .no_backend => {},

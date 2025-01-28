@@ -34,6 +34,11 @@ extern "C"
         ImGui::SetAllocatorFunctions(alloc_func, free_func, nullptr);
     }
 
+    ZGUI_API void zguiSetNextWindowViewport(ImGuiID viewport_id)
+    {
+        ImGui::SetNextWindowViewport(viewport_id);
+    }
+
     ZGUI_API void zguiSetNextWindowPos(float x, float y, ImGuiCond cond, float pivot_x, float pivot_y)
     {
         ImGui::SetNextWindowPos({x, y}, cond, {pivot_x, pivot_y});
@@ -2533,6 +2538,11 @@ extern "C"
     ZGUI_API ImGuiViewport *zguiGetMainViewport(void)
     {
         return ImGui::GetMainViewport();
+    }
+
+    ZGUI_API ImGuiID zguiViewport_GetId(ImGuiViewport *viewport)
+    {
+        return viewport->ID;
     }
 
     ZGUI_API void zguiViewport_GetPos(ImGuiViewport *viewport, float p[2])

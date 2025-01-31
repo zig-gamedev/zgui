@@ -4,6 +4,7 @@ pub const Backend = enum {
     no_backend,
     glfw_wgpu,
     glfw_opengl3,
+    glfw_vulkan,
     glfw_dx12,
     win32_dx12,
     glfw,
@@ -327,6 +328,19 @@ pub fn build(b: *std.Build) void {
                 .gnu => imgui.linkSystemLibrary("gdi32"),
                 else => {},
             }
+        },
+        .glfw_vulkan => {
+            if (b.lazyDependency("zglfw", .{})) |zglfw| {
+                imgui.addIncludePath(zglfw.path("libs/glfw/include"));
+            }
+
+            imgui.addCSourceFiles(.{
+                .files = &.{
+                    "libs/imgui/backends/imgui_impl_glfw.cpp",
+                    "libs/imgui/backends/imgui_impl_vulkan.cpp",
+                },
+                .flags = &(cflags.* ++ .{ "-DVK_NO_PROTOTYPES", "-DZGUI_DEGAMMA" }),
+            });
         },
         .glfw => {
             if (b.lazyDependency("zglfw", .{})) |zglfw| {

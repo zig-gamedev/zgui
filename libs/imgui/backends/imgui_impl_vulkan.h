@@ -64,6 +64,17 @@
 #define IMGUI_IMPL_VULKAN_HAS_DYNAMIC_RENDERING
 #endif
 
+// FIX(zig-gamedev) - Match PipelineRenderingCreateInfo structure for compatibility
+typedef struct unusedVkPipelineRenderingCreateInfo {
+    uint32_t           sType;
+    const void*        pNext;
+    uint32_t           viewMask;
+    uint32_t           colorAttachmentCount;
+    const uint32_t*    pColorAttachmentFormats;
+    uint32_t           depthAttachmentFormat;
+    uint32_t           stencilAttachmentFormat;
+} unusedVkPipelineRenderingCreateInfo;
+
 // Initialization data, for ImGui_ImplVulkan_Init()
 // - VkDescriptorPool should be created with VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
 //   and must contain a pool size large enough to hold an ImGui VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER descriptor.
@@ -91,6 +102,8 @@ struct ImGui_ImplVulkan_InitInfo
     bool                            UseDynamicRendering;
 #ifdef IMGUI_IMPL_VULKAN_HAS_DYNAMIC_RENDERING
     VkPipelineRenderingCreateInfoKHR PipelineRenderingCreateInfo;
+#else
+    unusedVkPipelineRenderingCreateInfo PipelineRenderingCreateInfo;
 #endif
 
     // (Optional) Allocation, Debugging

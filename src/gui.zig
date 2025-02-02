@@ -667,6 +667,11 @@ extern fn zguiShowMetricsWindow(popen: ?*bool) void;
 // Windows
 //
 //--------------------------------------------------------------------------------------------------
+pub fn setNextWindowViewport(viewport_id: Ident) void {
+    zguiSetNextWindowViewport(viewport_id);
+}
+extern fn zguiSetNextWindowViewport(viewport_id: Ident) void;
+//--------------------------------------------------------------------------------------------------
 const SetNextWindowPos = struct {
     x: f32,
     y: f32,
@@ -3636,6 +3641,11 @@ extern fn zguiSetTabItemClosed(tab_or_docked_window_label: [*:0]const u8) void;
 //
 //--------------------------------------------------------------------------------------------------
 pub const Viewport = *opaque {
+    pub fn getId(viewport: Viewport) Ident {
+        return zguiViewport_GetId(viewport);
+    }
+    extern fn zguiViewport_GetId(viewport: Viewport) Ident;
+
     pub fn getPos(viewport: Viewport) [2]f32 {
         var pos: [2]f32 = undefined;
         zguiViewport_GetPos(viewport, &pos);

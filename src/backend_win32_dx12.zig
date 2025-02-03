@@ -5,22 +5,10 @@ const backend_dx12 = @import("backend_dx12.zig");
 
 pub fn init(
     hwnd: *const anyopaque, // HWND
-    d3d12_device: *const anyopaque, // ID3D12Device*
-    num_frames_in_flight: u16,
-    rtv_format: u32, // DXGI_FORMAT
-    cbv_srv_heap: *const anyopaque, // ID3D12DescriptorHeap*
-    font_srv_cpu_desc_handle: backend_dx12.D3D12_CPU_DESCRIPTOR_HANDLE,
-    font_srv_gpu_desc_handle: backend_dx12.D3D12_GPU_DESCRIPTOR_HANDLE,
+    init_info: backend_dx12.ImGui_ImplDX12_InitInfo,
 ) void {
     std.debug.assert(ImGui_ImplWin32_Init(hwnd));
-    backend_dx12.init(
-        d3d12_device,
-        num_frames_in_flight,
-        rtv_format,
-        cbv_srv_heap,
-        font_srv_cpu_desc_handle,
-        font_srv_gpu_desc_handle,
-    );
+    backend_dx12.init(init_info);
 }
 
 pub fn deinit() void {

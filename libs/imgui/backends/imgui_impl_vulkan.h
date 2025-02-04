@@ -110,6 +110,8 @@ struct ImGui_ImplVulkan_InitInfo
     bool                            UseDynamicRendering;
 #ifdef IMGUI_IMPL_VULKAN_HAS_DYNAMIC_RENDERING
     VkPipelineRenderingCreateInfoKHR PipelineRenderingCreateInfo;
+#else
+    unusedVkPipelineRenderingCreateInfo PipelineRenderingCreateInfo;
 #endif
 
     // (Optional) Allocation, Debugging

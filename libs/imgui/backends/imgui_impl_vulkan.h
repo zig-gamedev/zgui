@@ -111,6 +111,7 @@ struct ImGui_ImplVulkan_InitInfo
 #ifdef IMGUI_IMPL_VULKAN_HAS_DYNAMIC_RENDERING
     VkPipelineRenderingCreateInfoKHR PipelineRenderingCreateInfo;
 #else
+    // FIX(zig-gamedev) - Match PipelineRenderingCreateInfo structure for compatibility
     unusedVkPipelineRenderingCreateInfo PipelineRenderingCreateInfo;
 #endif
 

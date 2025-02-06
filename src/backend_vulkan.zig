@@ -27,6 +27,7 @@ pub const ImGui_ImplVulkan_InitInfo = extern struct {
     // Optional fields
     pipeline_cache: VkHandle = 0, // VkPipelineCache
     subpass: u32 = 0,
+    descriptor_pool_size: u32 = 0,
 
     use_dynamic_rendering: bool = false,
     pipeline_rendering_create_info: VkPipelineRenderingCreateInfo = .{},

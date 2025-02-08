@@ -18,6 +18,7 @@ pub const backend = switch (@import("zgui_options").backend) {
     .win32_dx12 => @import("backend_win32_dx12.zig"),
     .sdl2_opengl3 => @import("backend_sdl2_opengl.zig"),
     .osx_metal => @import("backend_osx_metal.zig"),
+    .sdl3_gpu => @import("backend_sdl3_gpu.zig"),
     .no_backend => .{},
 };
 const te_enabled = @import("zgui_options").with_te;

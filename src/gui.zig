@@ -3853,6 +3853,8 @@ pub const DrawCmd = extern struct {
     elem_count: c_uint,
     user_callback: ?DrawCallback,
     user_callback_data: ?*anyopaque,
+    user_callback_data_size: c_int,
+    user_callback_data_offset: c_int,
 };
 
 pub const DrawCallback = *const fn (*const anyopaque, *const DrawCmd) callconv(.C) void;

@@ -372,10 +372,10 @@ pub fn build(b: *std.Build) void {
             });
         },
         .osx_metal => {
-            mod.linkFramework("Foundation");
-            mod.linkFramework("Metal");
-            mod.linkFramework("Cocoa");
-            mod.linkFramework("QuartzCore");
+            mod.linkFramework("Foundation", .{});
+            mod.linkFramework("Metal", .{});
+            mod.linkFramework("Cocoa", .{});
+            mod.linkFramework("QuartzCore", .{});
             mod.addCSourceFiles(.{
                 .files = &.{
                     "libs/imgui/backends/imgui_impl_osx.mm",

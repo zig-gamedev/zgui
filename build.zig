@@ -317,7 +317,7 @@ pub fn build(b: *std.Build) void {
                 },
                 .flags = cflags,
             });
-            mod.linkSystemLibrary("d3dcompiler_47");
+            mod.linkSystemLibrary("d3dcompiler_47", .{});
         },
         .win32_dx12 => {
             mod.addCSourceFiles(.{
@@ -327,11 +327,11 @@ pub fn build(b: *std.Build) void {
                 },
                 .flags = cflags,
             });
-            mod.linkSystemLibrary("d3dcompiler_47");
-            mod.linkSystemLibrary("dwmapi");
+            mod.linkSystemLibrary("d3dcompiler_47", .{});
+            mod.linkSystemLibrary("dwmapi", .{});
             switch (target.result.abi) {
-                .msvc => mod.linkSystemLibrary("Gdi32"),
-                .gnu => mod.linkSystemLibrary("gdi32"),
+                .msvc => mod.linkSystemLibrary("Gdi32", .{}),
+                .gnu => mod.linkSystemLibrary("gdi32", .{}),
                 else => {},
             }
         },

@@ -19,6 +19,7 @@ pub const backend = switch (@import("zgui_options").backend) {
     .sdl2_opengl3 => @import("backend_sdl2_opengl.zig"),
     .osx_metal => @import("backend_osx_metal.zig"),
     .sdl2 => @import("backend_sdl2.zig"),
+    .sdl3_gpu => @import("backend_sdl3_gpu.zig"),
     .no_backend => .{},
 };
 const te_enabled = @import("zgui_options").with_te;
@@ -3854,6 +3855,8 @@ pub const DrawCmd = extern struct {
     elem_count: c_uint,
     user_callback: ?DrawCallback,
     user_callback_data: ?*anyopaque,
+    user_callback_data_size: c_int,
+    user_callback_data_offset: c_int,
 };
 
 pub const DrawCallback = *const fn (*const anyopaque, *const DrawCmd) callconv(.C) void;

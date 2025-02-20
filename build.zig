@@ -87,45 +87,16 @@ pub fn build(b: *std.Build) void {
         "-Wno-availability",
     };
 
-    const imgui = if (options.shared) blk: {
-        const lib = b.addSharedLibrary(.{
-            .name = "imgui",
-            .target = target,
-            .optimize = optimize,
-        });
-
-        if (target.result.os.tag == .windows) {
-            lib.root_module.addCMacro("IMGUI_API", "__declspec(dllexport)");
-            lib.root_module.addCMacro("IMPLOT_API", "__declspec(dllexport)");
-            lib.root_module.addCMacro("ZGUI_API", "__declspec(dllexport)");
-        }
-
-        if (target.result.os.tag == .macos) {
-            lib.linker_allow_shlib_undefined = true;
-        }
-
-        break :blk lib;
-    } else b.addStaticLibrary(.{
-        .name = "imgui",
-        .target = target,
-        .optimize = optimize,
-    });
-
-    mod.linkLibrary(imgui);
-
-    const emscripten = target.result.os.tag == .emscripten;
-    if (emscripten) {
-        mod.addCMacro("__EMSCRIPTEN__", "");
-        // TODO: read from enviroment or `emcc --version`
-        mod.addCMacro("__EMSCRIPTEN_major__", "3");
-        mod.addCMacro("__EMSCRIPTEN_minor__", "1");
-        mod.stack_protector = false;
-        //mod.disable_stack_probing = true;
+    if (target.result.os.tag == .windows) {
+        mod.addCMacro("IMGUI_API", "__declspec(dllexport)");
+        mod.addCMacro("IMPLOT_API", "__declspec(dllexport)");
+        mod.addCMacro("ZGUI_API", "__declspec(dllexport)");
     }
 
     mod.addIncludePath(b.path("libs"));
     mod.addIncludePath(b.path("libs/imgui"));
 
+    const emscripten = target.result.os.tag == .emscripten;
     if (!emscripten) {
         mod.link_libc = true;
         if (target.result.abi != .msvc)
@@ -405,7 +376,7 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(tests);
 
     tests.root_module.addImport("zgui_options", options_module);
-    tests.linkLibrary(imgui);
+    tests.root_module.addImport("zgui", mod);
 
     test_step.dependOn(&b.addRunArtifact(tests).step);
 }

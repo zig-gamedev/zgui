@@ -249,6 +249,13 @@ pub fn build(b: *std.Build) void {
                 mod.addSystemIncludePath(.{
                     .cwd_relative = b.pathJoin(&.{ b.sysroot.?, "include" }),
                 });
+                mod.addCSourceFiles(.{
+                    .files = &.{
+                        "libs/imgui/backends/imgui_impl_glfw.cpp",
+                        "libs/imgui/backends/imgui_impl_wgpu.cpp",
+                    },
+                    .flags = cflags,
+                });
             } else {
                 if (b.lazyDependency("zglfw", .{})) |zglfw| {
                     mod.addIncludePath(zglfw.path("libs/glfw/include"));
@@ -256,14 +263,14 @@ pub fn build(b: *std.Build) void {
                 if (b.lazyDependency("zgpu", .{})) |zgpu| {
                     mod.addIncludePath(zgpu.path("libs/dawn/include"));
                 }
+                mod.addCSourceFiles(.{
+                    .files = &.{
+                        "libs/imgui/backends/imgui_impl_glfw.cpp",
+                        "libs/imgui/backends/imgui_impl_wgpu.cpp",
+                    },
+                    .flags = &(cflags.* ++ .{"-DIMGUI_IMPL_WEBGPU_BACKEND_WGPU"}),
+                });
             }
-            mod.addCSourceFiles(.{
-                .files = &.{
-                    "libs/imgui/backends/imgui_impl_glfw.cpp",
-                    "libs/imgui/backends/imgui_impl_wgpu.cpp",
-                },
-                .flags = cflags,
-            });
         },
         .glfw_opengl3 => {
             if (b.lazyDependency("zglfw", .{})) |zglfw| {

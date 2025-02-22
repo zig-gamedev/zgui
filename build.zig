@@ -67,7 +67,7 @@ pub fn build(b: *std.Build) void {
 
     const options_module = options_step.createModule();
 
-    const mod = b.addModule("root", .{
+    const imgui = b.addModule("root", .{
         .root_source_file = b.path("src/gui.zig"),
         .imports = &.{
             .{ .name = "zgui_options", .module = options_module },
@@ -88,27 +88,27 @@ pub fn build(b: *std.Build) void {
     };
 
     if (target.result.os.tag == .windows) {
-        mod.addCMacro("IMGUI_API", "__declspec(dllexport)");
-        mod.addCMacro("IMPLOT_API", "__declspec(dllexport)");
-        mod.addCMacro("ZGUI_API", "__declspec(dllexport)");
+        imgui.addCMacro("IMGUI_API", "__declspec(dllexport)");
+        imgui.addCMacro("IMPLOT_API", "__declspec(dllexport)");
+        imgui.addCMacro("ZGUI_API", "__declspec(dllexport)");
     }
 
-    mod.addIncludePath(b.path("libs"));
-    mod.addIncludePath(b.path("libs/imgui"));
+    imgui.addIncludePath(b.path("libs"));
+    imgui.addIncludePath(b.path("libs/imgui"));
 
     const emscripten = target.result.os.tag == .emscripten;
     if (!emscripten) {
-        mod.link_libc = true;
+        imgui.link_libc = true;
         if (target.result.abi != .msvc)
-            mod.link_libcpp = true;
+            imgui.link_libcpp = true;
     }
 
-    mod.addCSourceFile(.{
+    imgui.addCSourceFile(.{
         .file = b.path("src/zgui.cpp"),
         .flags = cflags,
     });
 
-    mod.addCSourceFiles(.{
+    imgui.addCSourceFiles(.{
         .files = &.{
             "libs/imgui/imgui.cpp",
             "libs/imgui/imgui_widgets.cpp",
@@ -121,28 +121,28 @@ pub fn build(b: *std.Build) void {
 
     if (options.with_freetype) {
         if (b.lazyDependency("freetype", .{})) |freetype| {
-            mod.linkLibrary(freetype.artifact("freetype"));
+            imgui.linkLibrary(freetype.artifact("freetype"));
         }
-        mod.addCSourceFile(.{
+        imgui.addCSourceFile(.{
             .file = b.path("libs/imgui/misc/freetype/imgui_freetype.cpp"),
             .flags = cflags,
         });
-        mod.addCMacro("IMGUI_ENABLE_FREETYPE", "1");
+        imgui.addCMacro("IMGUI_ENABLE_FREETYPE", "1");
     }
 
     if (options.use_wchar32) {
-        mod.addCMacro("IMGUI_USE_WCHAR32", "1");
+        imgui.addCMacro("IMGUI_USE_WCHAR32", "1");
     }
 
     if (options.with_implot) {
-        mod.addIncludePath(b.path("libs/implot"));
+        imgui.addIncludePath(b.path("libs/implot"));
 
-        mod.addCSourceFile(.{
+        imgui.addCSourceFile(.{
             .file = b.path("src/zplot.cpp"),
             .flags = cflags,
         });
 
-        mod.addCSourceFiles(.{
+        imgui.addCSourceFiles(.{
             .files = &.{
                 "libs/implot/implot_demo.cpp",
                 "libs/implot/implot.cpp",
@@ -153,14 +153,14 @@ pub fn build(b: *std.Build) void {
     }
 
     if (options.with_gizmo) {
-        mod.addIncludePath(b.path("libs/imguizmo/"));
+        imgui.addIncludePath(b.path("libs/imguizmo/"));
 
-        mod.addCSourceFile(.{
+        imgui.addCSourceFile(.{
             .file = b.path("src/zgizmo.cpp"),
             .flags = cflags,
         });
 
-        mod.addCSourceFiles(.{
+        imgui.addCSourceFiles(.{
             .files = &.{
                 "libs/imguizmo/ImGuizmo.cpp",
             },
@@ -169,36 +169,36 @@ pub fn build(b: *std.Build) void {
     }
 
     if (options.with_node_editor) {
-        mod.addCSourceFile(.{
+        imgui.addCSourceFile(.{
             .file = b.path("src/znode_editor.cpp"),
             .flags = cflags,
         });
 
-        mod.addCSourceFile(.{ .file = b.path("libs/node_editor/crude_json.cpp"), .flags = cflags });
-        mod.addCSourceFile(.{ .file = b.path("libs/node_editor/imgui_canvas.cpp"), .flags = cflags });
-        mod.addCSourceFile(.{ .file = b.path("libs/node_editor/imgui_node_editor_api.cpp"), .flags = cflags });
-        mod.addCSourceFile(.{ .file = b.path("libs/node_editor/imgui_node_editor.cpp"), .flags = cflags });
+        imgui.addCSourceFile(.{ .file = b.path("libs/node_editor/crude_json.cpp"), .flags = cflags });
+        imgui.addCSourceFile(.{ .file = b.path("libs/node_editor/imgui_canvas.cpp"), .flags = cflags });
+        imgui.addCSourceFile(.{ .file = b.path("libs/node_editor/imgui_node_editor_api.cpp"), .flags = cflags });
+        imgui.addCSourceFile(.{ .file = b.path("libs/node_editor/imgui_node_editor.cpp"), .flags = cflags });
     }
 
     if (options.with_te) {
-        mod.addCSourceFile(.{
+        imgui.addCSourceFile(.{
             .file = b.path("src/zte.cpp"),
             .flags = cflags,
         });
 
-        mod.addCMacro("IMGUI_ENABLE_TEST_ENGINE", "");
-        mod.addCMacro("IMGUI_TEST_ENGINE_ENABLE_COROUTINE_STDTHREAD_IMPL", "1");
+        imgui.addCMacro("IMGUI_ENABLE_TEST_ENGINE", "");
+        imgui.addCMacro("IMGUI_TEST_ENGINE_ENABLE_COROUTINE_STDTHREAD_IMPL", "1");
 
-        mod.addIncludePath(b.path("libs/imgui_test_engine/"));
+        imgui.addIncludePath(b.path("libs/imgui_test_engine/"));
 
-        mod.addCSourceFile(.{ .file = b.path("libs/imgui_test_engine/imgui_capture_tool.cpp"), .flags = cflags });
-        mod.addCSourceFile(.{ .file = b.path("libs/imgui_test_engine/imgui_te_context.cpp"), .flags = cflags });
-        mod.addCSourceFile(.{ .file = b.path("libs/imgui_test_engine/imgui_te_coroutine.cpp"), .flags = cflags });
-        mod.addCSourceFile(.{ .file = b.path("libs/imgui_test_engine/imgui_te_engine.cpp"), .flags = cflags });
-        mod.addCSourceFile(.{ .file = b.path("libs/imgui_test_engine/imgui_te_exporters.cpp"), .flags = cflags });
-        mod.addCSourceFile(.{ .file = b.path("libs/imgui_test_engine/imgui_te_perftool.cpp"), .flags = cflags });
-        mod.addCSourceFile(.{ .file = b.path("libs/imgui_test_engine/imgui_te_ui.cpp"), .flags = cflags });
-        mod.addCSourceFile(.{ .file = b.path("libs/imgui_test_engine/imgui_te_utils.cpp"), .flags = cflags });
+        imgui.addCSourceFile(.{ .file = b.path("libs/imgui_test_engine/imgui_capture_tool.cpp"), .flags = cflags });
+        imgui.addCSourceFile(.{ .file = b.path("libs/imgui_test_engine/imgui_te_context.cpp"), .flags = cflags });
+        imgui.addCSourceFile(.{ .file = b.path("libs/imgui_test_engine/imgui_te_coroutine.cpp"), .flags = cflags });
+        imgui.addCSourceFile(.{ .file = b.path("libs/imgui_test_engine/imgui_te_engine.cpp"), .flags = cflags });
+        imgui.addCSourceFile(.{ .file = b.path("libs/imgui_test_engine/imgui_te_exporters.cpp"), .flags = cflags });
+        imgui.addCSourceFile(.{ .file = b.path("libs/imgui_test_engine/imgui_te_perftool.cpp"), .flags = cflags });
+        imgui.addCSourceFile(.{ .file = b.path("libs/imgui_test_engine/imgui_te_ui.cpp"), .flags = cflags });
+        imgui.addCSourceFile(.{ .file = b.path("libs/imgui_test_engine/imgui_te_utils.cpp"), .flags = cflags });
 
         // TODO: Workaround because zig on win64 doesn have phtreads
         // TODO: Implement corutine in zig can solve this
@@ -238,18 +238,18 @@ pub fn build(b: *std.Build) void {
             winpthreads.addIncludePath(b.path("libs/winpthreads/include"));
             winpthreads.addIncludePath(b.path("libs/winpthreads/src"));
             winpthreads.linkLibC();
-            mod.linkLibrary(winpthreads);
-            mod.addSystemIncludePath(b.path("libs/winpthreads/include"));
+            imgui.linkLibrary(winpthreads);
+            imgui.addSystemIncludePath(b.path("libs/winpthreads/include"));
         }
     }
 
     switch (options.backend) {
         .glfw_wgpu => {
             if (emscripten) {
-                mod.addSystemIncludePath(.{
+                imgui.addSystemIncludePath(.{
                     .cwd_relative = b.pathJoin(&.{ b.sysroot.?, "include" }),
                 });
-                mod.addCSourceFiles(.{
+                imgui.addCSourceFiles(.{
                     .files = &.{
                         "libs/imgui/backends/imgui_impl_glfw.cpp",
                         "libs/imgui/backends/imgui_impl_wgpu.cpp",
@@ -258,12 +258,12 @@ pub fn build(b: *std.Build) void {
                 });
             } else {
                 if (b.lazyDependency("zglfw", .{})) |zglfw| {
-                    mod.addIncludePath(zglfw.path("libs/glfw/include"));
+                    imgui.addIncludePath(zglfw.path("libs/glfw/include"));
                 }
                 if (b.lazyDependency("zgpu", .{})) |zgpu| {
-                    mod.addIncludePath(zgpu.path("libs/dawn/include"));
+                    imgui.addIncludePath(zgpu.path("libs/dawn/include"));
                 }
-                mod.addCSourceFiles(.{
+                imgui.addCSourceFiles(.{
                     .files = &.{
                         "libs/imgui/backends/imgui_impl_glfw.cpp",
                         "libs/imgui/backends/imgui_impl_wgpu.cpp",
@@ -274,9 +274,9 @@ pub fn build(b: *std.Build) void {
         },
         .glfw_opengl3 => {
             if (b.lazyDependency("zglfw", .{})) |zglfw| {
-                mod.addIncludePath(zglfw.path("libs/glfw/include"));
+                imgui.addIncludePath(zglfw.path("libs/glfw/include"));
             }
-            mod.addCSourceFiles(.{
+            imgui.addCSourceFiles(.{
                 .files = &.{
                     "libs/imgui/backends/imgui_impl_glfw.cpp",
                     "libs/imgui/backends/imgui_impl_opengl3.cpp",
@@ -286,39 +286,39 @@ pub fn build(b: *std.Build) void {
         },
         .glfw_dx12 => {
             if (b.lazyDependency("zglfw", .{})) |zglfw| {
-                mod.addIncludePath(zglfw.path("libs/glfw/include"));
+                imgui.addIncludePath(zglfw.path("libs/glfw/include"));
             }
-            mod.addCSourceFiles(.{
+            imgui.addCSourceFiles(.{
                 .files = &.{
                     "libs/imgui/backends/imgui_impl_glfw.cpp",
                     "libs/imgui/backends/imgui_impl_dx12.cpp",
                 },
                 .flags = cflags,
             });
-            mod.linkSystemLibrary("d3dcompiler_47", .{});
+            imgui.linkSystemLibrary("d3dcompiler_47", .{});
         },
         .win32_dx12 => {
-            mod.addCSourceFiles(.{
+            imgui.addCSourceFiles(.{
                 .files = &.{
                     "libs/imgui/backends/imgui_impl_win32.cpp",
                     "libs/imgui/backends/imgui_impl_dx12.cpp",
                 },
                 .flags = cflags,
             });
-            mod.linkSystemLibrary("d3dcompiler_47", .{});
-            mod.linkSystemLibrary("dwmapi", .{});
+            imgui.linkSystemLibrary("d3dcompiler_47", .{});
+            imgui.linkSystemLibrary("dwmapi", .{});
             switch (target.result.abi) {
-                .msvc => mod.linkSystemLibrary("Gdi32", .{}),
-                .gnu => mod.linkSystemLibrary("gdi32", .{}),
+                .msvc => imgui.linkSystemLibrary("Gdi32", .{}),
+                .gnu => imgui.linkSystemLibrary("gdi32", .{}),
                 else => {},
             }
         },
         .glfw_vulkan => {
             if (b.lazyDependency("zglfw", .{})) |zglfw| {
-                mod.addIncludePath(zglfw.path("libs/glfw/include"));
+                imgui.addIncludePath(zglfw.path("libs/glfw/include"));
             }
 
-            mod.addCSourceFiles(.{
+            imgui.addCSourceFiles(.{
                 .files = &.{
                     "libs/imgui/backends/imgui_impl_glfw.cpp",
                     "libs/imgui/backends/imgui_impl_vulkan.cpp",
@@ -328,9 +328,9 @@ pub fn build(b: *std.Build) void {
         },
         .glfw => {
             if (b.lazyDependency("zglfw", .{})) |zglfw| {
-                mod.addIncludePath(zglfw.path("libs/glfw/include"));
+                imgui.addIncludePath(zglfw.path("libs/glfw/include"));
             }
-            mod.addCSourceFiles(.{
+            imgui.addCSourceFiles(.{
                 .files = &.{
                     "libs/imgui/backends/imgui_impl_glfw.cpp",
                 },
@@ -339,9 +339,9 @@ pub fn build(b: *std.Build) void {
         },
         .sdl2_opengl3 => {
             if (b.lazyDependency("zsdl", .{})) |zsdl| {
-                mod.addIncludePath(zsdl.path("libs/sdl2/include"));
+                imgui.addIncludePath(zsdl.path("libs/sdl2/include"));
             }
-            mod.addCSourceFiles(.{
+            imgui.addCSourceFiles(.{
                 .files = &.{
                     "libs/imgui/backends/imgui_impl_sdl2.cpp",
                     "libs/imgui/backends/imgui_impl_opengl3.cpp",
@@ -350,11 +350,11 @@ pub fn build(b: *std.Build) void {
             });
         },
         .osx_metal => {
-            mod.linkFramework("Foundation", .{});
-            mod.linkFramework("Metal", .{});
-            mod.linkFramework("Cocoa", .{});
-            mod.linkFramework("QuartzCore", .{});
-            mod.addCSourceFiles(.{
+            imgui.linkFramework("Foundation", .{});
+            imgui.linkFramework("Metal", .{});
+            imgui.linkFramework("Cocoa", .{});
+            imgui.linkFramework("QuartzCore", .{});
+            imgui.addCSourceFiles(.{
                 .files = &.{
                     "libs/imgui/backends/imgui_impl_osx.mm",
                     "libs/imgui/backends/imgui_impl_metal.mm",
@@ -367,8 +367,8 @@ pub fn build(b: *std.Build) void {
 
     if (target.result.os.tag == .macos) {
         if (b.lazyDependency("system_sdk", .{})) |system_sdk| {
-            mod.addSystemIncludePath(system_sdk.path("macos12/usr/include"));
-            mod.addFrameworkPath(system_sdk.path("macos12/System/Library/Frameworks"));
+            imgui.addSystemIncludePath(system_sdk.path("macos12/usr/include"));
+            imgui.addFrameworkPath(system_sdk.path("macos12/System/Library/Frameworks"));
         }
     }
 
@@ -383,7 +383,7 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(tests);
 
     tests.root_module.addImport("zgui_options", options_module);
-    tests.root_module.addImport("zgui", mod);
+    tests.root_module.addImport("zgui", imgui);
 
     test_step.dependOn(&b.addRunArtifact(tests).step);
 }

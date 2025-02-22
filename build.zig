@@ -87,11 +87,15 @@ pub fn build(b: *std.Build) void {
         "-Wno-availability",
     };
 
-    if (target.result.os.tag == .windows) {
-        imgui.addCMacro("IMGUI_API", "__declspec(dllexport)");
-        imgui.addCMacro("IMPLOT_API", "__declspec(dllexport)");
-        imgui.addCMacro("ZGUI_API", "__declspec(dllexport)");
-    }
+    //Shared Library details
+    //if (target.result.os.tag == .macos) {
+    //    lib.linker_allow_shlib_undefined = true;
+    //}
+    //if (target.result.os.tag == .windows) {
+    //    imgui.addCMacro("IMGUI_API", "__declspec(dllexport)");
+    //    imgui.addCMacro("IMPLOT_API", "__declspec(dllexport)");
+    //    imgui.addCMacro("ZGUI_API", "__declspec(dllexport)");
+    //}
 
     imgui.addIncludePath(b.path("libs"));
     imgui.addIncludePath(b.path("libs/imgui"));

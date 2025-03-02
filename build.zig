@@ -368,10 +368,11 @@ pub fn build(b: *std.Build) void {
             }
             imgui.addCSourceFiles(.{
                 .files = &.{
+                    "libs/imgui/backends/imgui_impl_opengl3_loader.h",
                     "libs/imgui/backends/imgui_impl_sdl2.cpp",
                     "libs/imgui/backends/imgui_impl_opengl3.cpp",
                 },
-                .flags = &(cflags.* ++ .{"-DIMGUI_IMPL_OPENGL_LOADER_CUSTOM"}),
+                .flags = &(cflags.* ++ .{"-DIMGUI_IMPL_OPENGL_LOADER_IMGL3W"}),
             });
         },
         .osx_metal => {

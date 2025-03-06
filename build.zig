@@ -230,49 +230,6 @@ pub fn build(b: *std.Build) void {
         imgui.addCSourceFile(.{ .file = b.path("libs/imgui_test_engine/imgui_te_perftool.cpp"), .flags = cflags });
         imgui.addCSourceFile(.{ .file = b.path("libs/imgui_test_engine/imgui_te_ui.cpp"), .flags = cflags });
         imgui.addCSourceFile(.{ .file = b.path("libs/imgui_test_engine/imgui_te_utils.cpp"), .flags = cflags });
-
-        // TODO: Workaround because zig on win64 doesn have phtreads
-        // TODO: Implement corutine in zig can solve this
-        if (target.result.os.tag == .windows) {
-            const src: []const []const u8 = &.{
-                "libs/winpthreads/src/nanosleep.c",
-                "libs/winpthreads/src/cond.c",
-                "libs/winpthreads/src/barrier.c",
-                "libs/winpthreads/src/misc.c",
-                "libs/winpthreads/src/clock.c",
-                "libs/winpthreads/src/libgcc/dll_math.c",
-                "libs/winpthreads/src/spinlock.c",
-                "libs/winpthreads/src/thread.c",
-                "libs/winpthreads/src/mutex.c",
-                "libs/winpthreads/src/sem.c",
-                "libs/winpthreads/src/sched.c",
-                "libs/winpthreads/src/ref.c",
-                "libs/winpthreads/src/rwlock.c",
-            };
-
-            const winpthreads = b.addStaticLibrary(.{
-                .name = "winpthreads",
-                .optimize = optimize,
-                .target = target,
-            });
-            winpthreads.want_lto = false;
-            winpthreads.root_module.sanitize_c = false;
-            if (optimize == .Debug or optimize == .ReleaseSafe)
-                winpthreads.bundle_compiler_rt = true
-            else
-                winpthreads.root_module.strip = true;
-            winpthreads.addCSourceFiles(.{ .files = src, .flags = &.{
-                "-Wall",
-                "-Wextra",
-            } });
-            winpthreads.root_module.addCMacro("__USE_MINGW_ANSI_STDIO", "1");
-            winpthreads.addIncludePath(b.path("libs/winpthreads/include"));
-            winpthreads.addIncludePath(b.path("libs/winpthreads/src"));
-            winpthreads.linkLibC();
-            b.installArtifact(winpthreads);
-            imgui.linkLibrary(winpthreads);
-            imgui.addSystemIncludePath(b.path("libs/winpthreads/include"));
-        }
     }
 
     switch (options.backend) {

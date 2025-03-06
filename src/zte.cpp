@@ -25,7 +25,6 @@ extern "C"
         ImGuiTestEngine *e = ImGuiTestEngine_CreateContext();
 
         ImGuiTestEngine_Start(e, ImGui::GetCurrentContext());
-        ImGuiTestEngine_InstallDefaultCrashHandler();
 
         return e;
     }

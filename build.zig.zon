@@ -1,5 +1,6 @@
 .{
-    .name = "zgui",
+    .name = .zgui,
+    .fingerprint = 0xe78160e64acbef8,
     .version = "0.6.0-dev",
     .paths = .{
         "build.zig",

@@ -1801,10 +1801,10 @@ pub fn comboFromEnum(
 
     var item: i32 =
         switch (@typeInfo(EnumType)) {
-        .optional => if (current_item.*) |tag| field_name_to_index.get(@tagName(tag)) orelse -1 else -1,
-        .@"enum" => field_name_to_index.get(@tagName(current_item.*)) orelse -1,
-        else => unreachable,
-    };
+            .optional => if (current_item.*) |tag| field_name_to_index.get(@tagName(tag)) orelse -1 else -1,
+            .@"enum" => field_name_to_index.get(@tagName(current_item.*)) orelse -1,
+            else => unreachable,
+        };
 
     const result = combo(label, .{
         .items_separated_by_zeros = item_names,
@@ -3697,6 +3697,12 @@ pub const Viewport = *opaque {
 };
 pub const getMainViewport = zguiGetMainViewport;
 extern fn zguiGetMainViewport() Viewport;
+
+pub const updatePlatformWindows = zguiUpdatePlatformWindows;
+extern fn zguiUpdatePlatformWindows() void;
+
+pub const renderPlatformWindowsDefault = zguiRenderPlatformWindowsDefault;
+extern fn zguiRenderPlatformWindowsDefault() void;
 //--------------------------------------------------------------------------------------------------
 //
 // Mouse Input

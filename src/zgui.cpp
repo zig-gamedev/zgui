@@ -2573,6 +2573,14 @@ extern "C"
         p[1] = sz.y;
     }
 
+    ZGUI_API void zguiUpdatePlatformWindows() {
+        ImGui::UpdatePlatformWindows();
+    }
+
+    ZGUI_API void zguiRenderPlatformWindowsDefault() {
+        ImGui::RenderPlatformWindowsDefault();
+    }
+
     //--------------------------------------------------------------------------------------------------
     //
     // Docking

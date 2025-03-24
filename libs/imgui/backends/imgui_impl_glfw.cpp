@@ -169,7 +169,7 @@ bool     ImGui_ImplGlfw_InitForOpenGL(GLFWwindow* window, bool install_callbacks
 bool     ImGui_ImplGlfw_InitForVulkan(GLFWwindow* window, bool install_callbacks);
 bool     ImGui_ImplGlfw_InitForOther(GLFWwindow* window, bool install_callbacks);
 void     ImGui_ImplGlfw_Shutdown();
-void     ImGui_ImplGlfw_NewFrame();
+void     ImGui_ImplGlfw_NewFrame(float scale_x, float scale_y);
 
 // GLFW callbacks install
 // - When calling Init with 'install_callbacks=true': ImGui_ImplGlfw_InstallCallbacks() is called. GLFW callbacks will be installed for you. They will chain-call user's previously installed callbacks, if any.
@@ -993,7 +993,7 @@ static void ImGui_ImplGlfw_UpdateMonitors()
     }
 }
 
-void ImGui_ImplGlfw_NewFrame()
+extern "C" void ImGui_ImplGlfw_NewFrame(float scale_x,float scale_y)
 {
     ImGuiIO& io = ImGui::GetIO();
     ImGui_ImplGlfw_Data* bd = ImGui_ImplGlfw_GetBackendData();
@@ -1009,8 +1009,8 @@ void ImGui_ImplGlfw_NewFrame()
         io.DisplayFramebufferScale = ImVec2((float)display_w / (float)w, (float)display_h / (float)h);
 
     // fix(zig-gamedev)
-    bd->DpiScale.x = ceil(io.DisplayFramebufferScale.x);
-    bd->DpiScale.y = ceil(io.DisplayFramebufferScale.y);
+    bd->DpiScale.x = scale_x;
+    bd->DpiScale.y = scale_y;
 
     if (bd->WantUpdateMonitors)
         ImGui_ImplGlfw_UpdateMonitors();

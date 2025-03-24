@@ -31,8 +31,8 @@ pub fn deinit() void {
     ImGui_ImplGlfw_Shutdown();
 }
 
-pub fn newFrame() void {
-    ImGui_ImplGlfw_NewFrame();
+pub fn newFrame(scale_x: f32, scale_y: f32) void {
+    ImGui_ImplGlfw_NewFrame(scale_x, scale_y);
 }
 
 // Those functions are defined in `imgui_impl_glfw.cpp`
@@ -40,5 +40,5 @@ pub fn newFrame() void {
 extern fn ImGui_ImplGlfw_InitForOther(window: *const anyopaque, install_callbacks: bool) bool;
 extern fn ImGui_ImplGlfw_InitForOpenGL(window: *const anyopaque, install_callbacks: bool) bool;
 extern fn ImGui_ImplGlfw_InitForVulkan(window: *const anyopaque, install_callbacks: bool) bool;
-extern fn ImGui_ImplGlfw_NewFrame() void;
+extern fn ImGui_ImplGlfw_NewFrame(scale_x: f32, scale_y: f32) void;
 extern fn ImGui_ImplGlfw_Shutdown() void;

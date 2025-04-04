@@ -2240,6 +2240,29 @@ extern "C"
         draw_list->AddCircleFilled({center[0], center[1]}, radius, col, num_segments);
     }
 
+    ZGUI_API void zguiDrawList_AddEllipse(
+        ImDrawList *draw_list,
+        const float center[2],
+        const float radius[2],
+        ImU32 col,
+		float rot,
+        int num_segments,
+        float thickness)
+    {
+        draw_list->AddEllipse({center[0], center[1]}, {radius[0], radius[1]}, col, rot, num_segments, thickness);
+    }
+
+    ZGUI_API void zguiDrawList_AddEllipseFilled(
+        ImDrawList *draw_list,
+        const float center[2],
+        const float radius[2],
+        ImU32 col,
+		float rot,
+        int num_segments)
+    {
+        draw_list->AddEllipseFilled({center[0], center[1]}, {radius[0], radius[1]}, col, rot, num_segments);
+    }
+
     ZGUI_API void zguiDrawList_AddNgon(
         ImDrawList *draw_list,
         const float center[2],
@@ -2289,6 +2312,15 @@ extern "C"
         ImU32 col)
     {
         draw_list->AddConvexPolyFilled((const ImVec2 *)&points[0][0], num_points, col);
+    }
+
+    ZGUI_API void zguiDrawList_AddConcavePolyFilled(
+        ImDrawList *draw_list,
+        const float points[][2],
+        int num_points,
+        ImU32 col)
+    {
+        draw_list->AddConcavePolyFilled((const ImVec2 *)&points[0][0], num_points, col);
     }
 
     ZGUI_API void zguiDrawList_AddBezierCubic(
@@ -2404,6 +2436,11 @@ extern "C"
         draw_list->PathFillConvex(col);
     }
 
+    ZGUI_API void zguiDrawList_PathFillConcave(ImDrawList *draw_list, ImU32 col)
+    {
+        draw_list->PathFillConcave(col);
+    }
+
     ZGUI_API void zguiDrawList_PathStroke(ImDrawList *draw_list, ImU32 col, ImDrawFlags flags, float thickness)
     {
         draw_list->PathStroke(col, flags, thickness);
@@ -2428,6 +2465,18 @@ extern "C"
         int a_max_of_12)
     {
         draw_list->PathArcToFast({center[0], center[1]}, radius, a_min_of_12, a_max_of_12);
+    }
+
+    ZGUI_API void zguiDrawList_PathEllipticalArcTo(
+        ImDrawList *draw_list,
+        const float center[2],
+        const float radius[2],
+		float rot,
+        int a_min,
+        int a_max,
+        int num_segments)
+    {
+        draw_list->PathEllipticalArcTo({center[0], center[1]}, {radius[0], radius[1]}, rot, a_min, a_max, num_segments);
     }
 
     ZGUI_API void zguiDrawList_PathBezierCubicCurveTo(

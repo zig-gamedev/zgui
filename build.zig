@@ -116,23 +116,13 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(imgui);
 
     const emscripten = target.result.os.tag == .emscripten;
-    if (emscripten) {
-        imgui.root_module.addCMacro("__EMSCRIPTEN__", "");
-        // TODO: read from enviroment or `emcc --version`
-        imgui.root_module.addCMacro("__EMSCRIPTEN_major__", "3");
-        imgui.root_module.addCMacro("__EMSCRIPTEN_minor__", "1");
-        imgui.root_module.stack_protector = false;
-        //imgui.root_module.disable_stack_probing = true;
-    }
 
     imgui.addIncludePath(b.path("libs"));
     imgui.addIncludePath(b.path("libs/imgui"));
 
-    if (!emscripten) {
-        imgui.linkLibC();
-        if (target.result.abi != .msvc)
-            imgui.linkLibCpp();
-    }
+    imgui.linkLibC();
+    if (target.result.abi != .msvc)
+        imgui.linkLibCpp();
 
     imgui.addCSourceFile(.{
         .file = b.path("src/zgui.cpp"),

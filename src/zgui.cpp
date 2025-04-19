@@ -1993,6 +1993,14 @@ extern "C"
     {
         return ImGui::IsKeyDown(key);
     }
+    ZGUI_API bool zguiIsKeyPressed(ImGuiKey key, bool repeat)
+    {
+        return ImGui::IsKeyPressed(key, repeat);
+    }
+    ZGUI_API bool zguiIsKeyReleased(ImGuiKey key)
+    {
+        return ImGui::IsKeyReleased(key);
+    }
     //--------------------------------------------------------------------------------------------------
     //
     // DrawList

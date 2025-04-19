@@ -3449,10 +3449,14 @@ pub fn isKeyPressed(key: Key, repeat: bool) bool {
 pub fn isKeyReleased(key: Key) bool {
     return zguiIsKeyReleased(key);
 }
+pub fn setNextFrameWantCaptureKeyboard(want_capture_keyboard: bool) void {
+    zguiSetNextFrameWantCaptureKeyboard(want_capture_keyboard);
+}
 
 extern fn zguiIsKeyDown(key: Key) bool;
 extern fn zguiIsKeyPressed(key: Key, repeat: bool) bool;
 extern fn zguiIsKeyReleased(key: Key) bool;
+extern fn zguiSetNextFrameWantCaptureKeyboard(want_capture_keyboard: bool) void;
 //--------------------------------------------------------------------------------------------------
 //
 // Helpers

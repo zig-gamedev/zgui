@@ -2001,6 +2001,10 @@ extern "C"
     {
         return ImGui::IsKeyReleased(key);
     }
+    ZGUI_API void zguiSetNextFrameWantCaptureKeyboard(bool want_capture_keyboard) 
+    {
+        ImGui::SetNextFrameWantCaptureKeyboard(want_capture_keyboard);
+    }
     //--------------------------------------------------------------------------------------------------
     //
     // DrawList

@@ -1993,6 +1993,18 @@ extern "C"
     {
         return ImGui::IsKeyDown(key);
     }
+    ZGUI_API bool zguiIsKeyPressed(ImGuiKey key, bool repeat)
+    {
+        return ImGui::IsKeyPressed(key, repeat);
+    }
+    ZGUI_API bool zguiIsKeyReleased(ImGuiKey key)
+    {
+        return ImGui::IsKeyReleased(key);
+    }
+    ZGUI_API void zguiSetNextFrameWantCaptureKeyboard(bool want_capture_keyboard) 
+    {
+        ImGui::SetNextFrameWantCaptureKeyboard(want_capture_keyboard);
+    }
     //--------------------------------------------------------------------------------------------------
     //
     // DrawList

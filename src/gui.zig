@@ -3443,8 +3443,20 @@ extern fn zguiColorConvertHSVtoRGB(h: f32, s: f32, v: f32, out_r: *f32, out_g: *
 pub fn isKeyDown(key: Key) bool {
     return zguiIsKeyDown(key);
 }
+pub fn isKeyPressed(key: Key, repeat: bool) bool {
+    return zguiIsKeyPressed(key, repeat);
+}
+pub fn isKeyReleased(key: Key) bool {
+    return zguiIsKeyReleased(key);
+}
+pub fn setNextFrameWantCaptureKeyboard(want_capture_keyboard: bool) void {
+    zguiSetNextFrameWantCaptureKeyboard(want_capture_keyboard);
+}
 
 extern fn zguiIsKeyDown(key: Key) bool;
+extern fn zguiIsKeyPressed(key: Key, repeat: bool) bool;
+extern fn zguiIsKeyReleased(key: Key) bool;
+extern fn zguiSetNextFrameWantCaptureKeyboard(want_capture_keyboard: bool) void;
 //--------------------------------------------------------------------------------------------------
 //
 // Helpers

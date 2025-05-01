@@ -731,6 +731,9 @@ pub fn setWindowFocus(name: ?[:0]const u8) void {
 }
 extern fn zguiSetWindowFocus(name: ?[*:0]const u8) void;
 //-------------------------------------------------------------------------------------------------
+extern fn zguiSetWindowFontScale(scale: f32) void;
+pub const setWindowFontScale = zguiSetWindowFontScale;
+//-------------------------------------------------------------------------------------------------
 pub fn setKeyboardFocusHere(offset: i32) void {
     zguiSetKeyboardFocusHere(offset);
 }

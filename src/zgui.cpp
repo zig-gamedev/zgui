@@ -79,6 +79,11 @@ extern "C"
         ImGui::SetWindowFocus(name);
     }
 
+    ZGUI_API void zguiSetWindowFontScale(float scale) 
+    {
+        ImGui::SetWindowFontScale(scale);
+    }
+
     ZGUI_API void zguiSetKeyboardFocusHere(int offset)
     {
         ImGui::SetKeyboardFocusHere(offset);

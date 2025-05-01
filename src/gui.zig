@@ -206,6 +206,11 @@ pub const FontConfig = extern struct {
 };
 
 pub const io = struct {
+    pub fn addFontDefault(config: ?FontConfig) Font {
+        return zguiIoAddFontDefault(if (config) |c| &c else null);
+    }
+    extern fn zguiIoAddFontDefault(config: ?*const FontConfig) Font;
+
     pub fn addFontFromFile(filename: [:0]const u8, size_pixels: f32) Font {
         return zguiIoAddFontFromFile(filename, size_pixels);
     }
@@ -1317,6 +1322,19 @@ pub fn popStyleVar(args: struct {
 extern fn zguiPopStyleVar(count: c_int) void;
 
 //--------------------------------------------------------------------------------------------------
+pub const ItemFlag = enum(c_int) {
+    none = 0,
+    no_tab_stop = 1 << 0,
+    no_nav = 1 << 1,
+    no_nav_default_focus = 1 << 2,
+    button_repeat = 1 << 3,
+    auto_close_popups = 1 << 4,
+    allow_duplicate_id = 1 << 5,
+};
+/// `void pushItemFlag(item_flag: ItemFlag, enabled: bool) void`
+pub const pushItemFlag = zguiPushItemFlag;
+/// `void popItemFlag() void`
+pub const popItemFlag = zguiPopItemFlag;
 /// `void pushItemWidth(item_width: f32) void`
 pub const pushItemWidth = zguiPushItemWidth;
 /// `void popItemWidth() void`
@@ -1325,6 +1343,8 @@ pub const popItemWidth = zguiPopItemWidth;
 pub const setNextItemWidth = zguiSetNextItemWidth;
 /// `void setItemDefaultFocus() void`
 pub const setItemDefaultFocus = zguiSetItemDefaultFocus;
+extern fn zguiPushItemFlag(item_flag: ItemFlag, enabled: bool) void;
+extern fn zguiPopItemFlag() void;
 extern fn zguiPushItemWidth(item_width: f32) void;
 extern fn zguiPopItemWidth() void;
 extern fn zguiSetNextItemWidth(item_width: f32) void;

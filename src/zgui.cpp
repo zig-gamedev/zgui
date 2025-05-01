@@ -362,7 +362,7 @@ extern "C"
         ImGui::SetMouseCursor(cursor);
     }
 
-    ZGUI_API void zguiSetNextFrameWantCaptureMouse(bool want_capture_mouse) 
+    ZGUI_API void zguiSetNextFrameWantCaptureMouse(bool want_capture_mouse)
     {
         ImGui::SetNextFrameWantCaptureMouse(want_capture_mouse);
     }
@@ -1314,6 +1314,16 @@ extern "C"
         ImGui::PopStyleVar(count);
     }
 
+    ZGUI_API void zguiPushItemFlag(int item_flag, bool enabled)
+    {
+        ImGui::PushItemFlag(item_flag, enabled);
+    }
+
+    ZGUI_API void zguiPopItemFlag()
+    {
+        ImGui::PopItemFlag();
+    }
+
     ZGUI_API void zguiPushItemWidth(float item_width)
     {
         ImGui::PushItemWidth(item_width);
@@ -1490,6 +1500,11 @@ extern "C"
     ZGUI_API const char *zguiGetClipboardText(void)
     {
         return ImGui::GetClipboardText();
+    }
+
+    ZGUI_API ImFont *zguiIoAddFontDefault(const ImFontConfig *config)
+    {
+        return ImGui::GetIO().Fonts->AddFontDefault(config);
     }
 
     ZGUI_API ImFont *zguiIoAddFontFromFileWithConfig(

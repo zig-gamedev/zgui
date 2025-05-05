@@ -3350,10 +3350,7 @@ pub const tableSetColumnEnabled = zguiTableSetColumnEnabled;
 extern fn zguiTableSetColumnEnabled(column_n: i32, v: bool) void;
 
 extern fn zguiTableGetHoveredColumn() i32;
-pub fn tableGetHoveredColumn() ?i32 {
-    const index = zguiTableGetHoveredColumn();
-    if (index == -1) return null else return index;
-}
+pub const tableGetHoveredColumn = zguiTableGetHoveredColumn;
 
 pub fn tableSetBgColor(args: struct {
     target: TableBgTarget,
@@ -3380,22 +3377,14 @@ pub const nextColumn = zguiNextColumn;
 extern fn zguiGetColumnIndex() i32;
 pub const getColumnIndex = zguiGetColumnIndex;
 
-pub const ColumnArgs = struct {
-    column_index: i32 = -1,
-};
-
 extern fn zguiGetColumnWidth(column_index: i32) f32;
-pub fn getColumnWidth(args: ColumnArgs) f32 {
-    return zguiGetColumnWidth(args.column_index);
-}
+pub const getColumnWidth = zguiGetColumnWidth;
 
 extern fn zguiSetColumnWidth(column_index: i32, width: f32) void;
 pub const setColumnWidth = zguiSetColumnWidth;
 
 extern fn zguiGetColumnOffset(column_index: i32) f32;
-pub fn getColumnOffset(args: ColumnArgs) f32 {
-    return zguiGetColumnOffset(args.column_index);
-}
+pub const getColumnOffset = zguiGetColumnOffset;
 
 extern fn zguiSetColumnOffset(column_index: i32, offset_x: f32) void;
 pub const setColumnOffset = zguiSetColumnOffset;

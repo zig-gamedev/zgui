@@ -3840,7 +3840,7 @@ pub const DragDropFlags = packed struct(c_int) {
     pub const accept_peek_only = @This(){ .accept_before_delivery = true, .accept_no_draw_default_rect = true };
 };
 
-const Payload = extern struct {
+pub const Payload = extern struct {
     data: ?*anyopaque = null,
     data_size: c_int = 0,
     source_id: c_uint = 0,

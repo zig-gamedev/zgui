@@ -49,6 +49,11 @@ extern "C"
         ImGui::SetNextWindowSize({w, h}, cond);
     }
 
+    ZGUI_API void zguiSetNextWindowContentSize(float w, float h)
+    {
+        ImGui::SetNextWindowContentSize({w, h});
+    }
+
     ZGUI_API void zguiSetNextWindowCollapsed(bool collapsed, ImGuiCond cond)
     {
         ImGui::SetNextWindowCollapsed(collapsed, cond);
@@ -57,6 +62,11 @@ extern "C"
     ZGUI_API void zguiSetNextWindowFocus(void)
     {
         ImGui::SetNextWindowFocus();
+    }
+    
+    ZGUI_API void zguiSetNextWindowScroll(float scroll_x, float scroll_y)
+    {
+        ImGui::SetNextWindowScroll({scroll_x, scroll_y});
     }
 
     ZGUI_API void zguiSetNextWindowBgAlpha(float alpha)
@@ -69,9 +79,24 @@ extern "C"
         ImGui::SetWindowFocus(name);
     }
 
+    ZGUI_API void zguiSetWindowFontScale(float scale) 
+    {
+        ImGui::SetWindowFontScale(scale);
+    }
+
     ZGUI_API void zguiSetKeyboardFocusHere(int offset)
     {
         ImGui::SetKeyboardFocusHere(offset);
+    }
+
+    ZGUI_API void zguiSetNavCursorVisible(bool visible) 
+    {
+        ImGui::SetNavCursorVisible(visible);
+    }
+
+    ZGUI_API void zguiSetNextItemAllowOverlap() 
+    {
+        ImGui::SetNextItemAllowOverlap();
     }
 
     ZGUI_API bool zguiBegin(const char *name, bool *p_open, ImGuiWindowFlags flags)
@@ -335,6 +360,11 @@ extern "C"
     ZGUI_API void zguiSetMouseCursor(int cursor)
     {
         ImGui::SetMouseCursor(cursor);
+    }
+
+    ZGUI_API void zguiSetNextFrameWantCaptureMouse(bool want_capture_mouse) 
+    {
+        ImGui::SetNextFrameWantCaptureMouse(want_capture_mouse);
     }
 
     ZGUI_API void zguiGetMousePos(float pos[2])
@@ -617,6 +647,11 @@ extern "C"
     ZGUI_API void zguiEndListBox(void)
     {
         ImGui::EndListBox();
+    }
+
+    ZGUI_API bool zguiListBox(const char* label, int* current_item, const char* const items[], int items_count, int height_in_items) 
+    {
+        return ImGui::ListBox(label, current_item, items, items_count, height_in_items);
     }
 
     ZGUI_API bool zguiSelectable(const char *label, bool selected, ImGuiSelectableFlags flags, float w, float h)
@@ -1127,6 +1162,14 @@ extern "C"
         return ImGui::ProgressBar(fraction, {w, h}, overlay);
     }
 
+    ZGUI_API bool zguiTextLink(const char* label) {
+        return ImGui::TextLink(label) ;
+    }
+
+    ZGUI_API void zguiTextLinkOpenURL(const char* label, const char* url) {
+        ImGui::TextLinkOpenURL(label, url) ;
+    }
+
     ZGUI_API ImGuiContext *zguiCreateContext(ImFontAtlas *shared_font_atlas)
     {
         return ImGui::CreateContext(shared_font_atlas);
@@ -1382,6 +1425,11 @@ extern "C"
     ZGUI_API void zguiTreePushStrId(const char *str_id)
     {
         ImGui::TreePush(str_id);
+    }
+
+    ZGUI_API float zguiGetTreeNodeToLabelSpacing() 
+    {
+        return ImGui::GetTreeNodeToLabelSpacing();
     }
 
     ZGUI_API void zguiTreePushPtrId(const void *ptr_id)
@@ -1651,6 +1699,11 @@ extern "C"
         return ImGui::GetMouseClickedCount(button);
     }
 
+    ZGUI_API bool zguiIsAnyMouseDown() 
+    {
+        return ImGui::IsAnyMouseDown();
+    }
+
     ZGUI_API bool zguiIsMouseDragging(ImGuiMouseButton button, float lock_threshold)
     {
         return ImGui::IsMouseDragging(button, lock_threshold);
@@ -1762,6 +1815,11 @@ extern "C"
     ZGUI_API void zguiEndTabBar(void)
     {
         ImGui::EndTabBar();
+    }
+
+    ZGUI_API bool zguiTabItemButton(const char* label, ImGuiTabItemFlags flags ) 
+    {
+        return ImGui::TabItemButton(label, flags);
     }
 
     ZGUI_API void zguiSetTabItemClosed(const char *tab_or_docked_window_label)
@@ -1952,10 +2010,56 @@ extern "C"
         ImGui::TableSetColumnEnabled(column_n, v);
     }
 
+    ZGUI_API int zguiTableGetHoveredColumn() 
+    {
+        return ImGui::TableGetHoveredColumn();
+    }
+
     ZGUI_API void zguiTableSetBgColor(ImGuiTableBgTarget target, ImU32 color, int column_n)
     {
         ImGui::TableSetBgColor(target, color, column_n);
     }
+
+    ZGUI_API void zguiColumns(int count , const char* id , bool borders)
+    {
+        ImGui::Columns();
+    }
+
+    ZGUI_API void zguiNextColumn()
+    {
+        ImGui::NextColumn();
+    }
+
+    ZGUI_API int zguiGetColumnIndex()
+    {
+        return ImGui::GetColumnIndex();
+    }
+
+    ZGUI_API float zguiGetColumnWidth(int column_index) //-1
+    {
+        return ImGui::GetColumnWidth(column_index);
+    }
+
+    ZGUI_API void zguiSetColumnWidth(int column_index, float width)
+    {
+        ImGui::SetColumnWidth(column_index, width);
+    }
+
+    ZGUI_API float zguiGetColumnOffset(int column_index ) //-1
+    {
+        return ImGui::GetColumnOffset(column_index);
+    }
+
+    ZGUI_API void zguiSetColumnOffset(int column_index, float offset_x)
+    {
+        ImGui::SetColumnOffset(column_index, offset_x);
+    }
+
+    ZGUI_API int zguiGetColumnsCount()
+    {
+        return ImGui::GetColumnsCount();
+    }
+
     //--------------------------------------------------------------------------------------------------
     //
     // Color Utilities
@@ -1993,17 +2097,30 @@ extern "C"
     {
         return ImGui::IsKeyDown(key);
     }
+
     ZGUI_API bool zguiIsKeyPressed(ImGuiKey key, bool repeat)
     {
         return ImGui::IsKeyPressed(key, repeat);
     }
+
     ZGUI_API bool zguiIsKeyReleased(ImGuiKey key)
     {
         return ImGui::IsKeyReleased(key);
     }
+
     ZGUI_API void zguiSetNextFrameWantCaptureKeyboard(bool want_capture_keyboard) 
     {
         ImGui::SetNextFrameWantCaptureKeyboard(want_capture_keyboard);
+    }
+
+    ZGUI_API int zguiGetKeyPressedAmount(ImGuiKey key, float repeat_delay, float rate) 
+    {
+        return ImGui::GetKeyPressedAmount(key, repeat_delay, rate);
+    }
+
+    ZGUI_API void zguiSetItemKeyOwner(ImGuiKey key) 
+    {
+        ImGui::SetItemKeyOwner(key);
     }
     //--------------------------------------------------------------------------------------------------
     //
@@ -2013,6 +2130,11 @@ extern "C"
     ZGUI_API ImDrawList *zguiGetWindowDrawList(void)
     {
         return ImGui::GetWindowDrawList();
+    }
+
+    ZGUI_API float zguiGetWindowDpiScale(void)
+    {
+        return ImGui::GetWindowDpiScale();
     }
 
     ZGUI_API ImDrawList *zguiGetBackgroundDrawList(void)

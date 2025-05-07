@@ -1,6 +1,6 @@
 const gui = @import("gui.zig");
 
-pub const VkHandle = usize;
+pub const VkHandle = ?*const anyopaque;
 
 pub const VkPipelineRenderingCreateInfo = extern struct {
     s_type: u32 = 0,
@@ -25,7 +25,7 @@ pub const ImGui_ImplVulkan_InitInfo = extern struct {
     msaa_samples: u32 = 0, // vkSampleCountFlags
 
     // Optional fields
-    pipeline_cache: VkHandle = 0, // VkPipelineCache
+    pipeline_cache: VkHandle = null, // VkPipelineCache
     subpass: u32 = 0,
     descriptor_pool_size: u32 = 0,
 
@@ -33,7 +33,7 @@ pub const ImGui_ImplVulkan_InitInfo = extern struct {
     pipeline_rendering_create_info: VkPipelineRenderingCreateInfo = .{},
 
     allocator: ?*const anyopaque = null,
-    check_vk_result_fn: ?*const fn (err: u32) void = null,
+    check_vk_result_fn: ?*const fn (err: u32) callconv(.C) void = null,
     min_allocation_size: u64 = 0,
 };
 
@@ -65,7 +65,7 @@ pub fn render(
     command_buffer: VkHandle,
 ) void {
     gui.render();
-    ImGui_ImplVulkan_RenderDrawData(gui.getDrawData(), command_buffer, 0);
+    ImGui_ImplVulkan_RenderDrawData(gui.getDrawData(), command_buffer, null);
 }
 
 pub fn set_min_image_count(min_image_count: u32) void {

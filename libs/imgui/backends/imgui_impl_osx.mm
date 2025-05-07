@@ -28,7 +28,6 @@
 #import "imgui_impl_osx.h"
 #import <Cocoa/Cocoa.h>
 #import <Carbon/Carbon.h>
-#import <GameController/GameController.h>
 #import <time.h>
 
 // CHANGELOG
@@ -447,7 +446,7 @@ bool ImGui_ImplOSX_Init(NSView* view)
     bd->Observer = [ImGuiObserver new];
     bd->Window = view.window ?: NSApp.orderedWindows.firstObject;
     ImGuiViewport* main_viewport = ImGui::GetMainViewport();
-    main_viewport->PlatformHandle = main_viewport->PlatformHandleRaw = (__bridge_retained void*)bd->Window;
+    main_viewport->PlatformHandle = main_viewport->PlatformHandleRaw = (void*)bd->Window; //fix(zig-gamedev)
     ImGui_ImplOSX_UpdateMonitors();
     ImGui_ImplOSX_InitMultiViewportSupport();
 
@@ -883,12 +882,12 @@ static void ImGui_ImplOSX_CreateWindow(ImGuiViewport* viewport)
     data->Window = window;
     data->WindowOwned = true;
     viewport->PlatformRequestResize = false;
-    viewport->PlatformHandle = viewport->PlatformHandleRaw = (__bridge_retained void*)window;
+    viewport->PlatformHandle = viewport->PlatformHandleRaw = (void*)window; // fix(zig-gamedev)
 }
 
 static void ImGui_ImplOSX_DestroyWindow(ImGuiViewport* viewport)
 {
-    NSWindow* window = (__bridge_transfer NSWindow*)viewport->PlatformHandleRaw;
+    NSWindow* window = (NSWindow*)viewport->PlatformHandleRaw; // fix(zig-gamedev)
     window = nil;
 
     if (ImGuiViewportDataOSX* data = (ImGuiViewportDataOSX*)viewport->PlatformUserData)
@@ -1040,7 +1039,7 @@ static void ImGui_ImplOSX_UpdateMonitors()
         imgui_monitor.WorkPos = ImVec2(visibleFrame.origin.x, visibleFrame.origin.y);
         imgui_monitor.WorkSize = ImVec2(visibleFrame.size.width, visibleFrame.size.height);
         imgui_monitor.DpiScale = screen.backingScaleFactor;
-        imgui_monitor.PlatformHandle = (__bridge_retained void*)screen;
+        imgui_monitor.PlatformHandle = (void*)screen; // fix(zig-gamedev)
 
         platform_io.Monitors.push_back(imgui_monitor);
     }

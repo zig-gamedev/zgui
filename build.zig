@@ -11,7 +11,9 @@ pub const Backend = enum {
     sdl2_opengl3,
     osx_metal,
     sdl2,
+    sdl3,
     sdl3_gpu,
+    sdl3_opengl3,
 };
 
 pub fn build(b: *std.Build) void {
@@ -354,6 +356,29 @@ pub fn build(b: *std.Build) void {
                 .files = &.{
                     "libs/imgui/backends/imgui_impl_sdl3.cpp",
                     "libs/imgui/backends/imgui_impl_sdlgpu3.cpp",
+                },
+                .flags = cflags,
+            });
+        },
+        .sdl3_opengl3 => {
+            if (b.lazyDependency("zsdl", .{})) |zsdl| {
+                imgui.addIncludePath(zsdl.path("libs/sdl3/include/SDL3"));
+            }
+            imgui.addCSourceFiles(.{
+                .files = &.{
+                    "libs/imgui/backends/imgui_impl_sdl3.cpp",
+                    "libs/imgui/backends/imgui_impl_opengl3.cpp",
+                },
+                .flags = &(cflags.* ++ .{"-DIMGUI_IMPL_OPENGL_LOADER_IMGL3W"}),
+            });
+        },
+        .sdl3 => {
+            if (b.lazyDependency("zsdl", .{})) |zsdl| {
+                imgui.addIncludePath(zsdl.path("libs/sdl3/include/SDL3"));
+            }
+            imgui.addCSourceFiles(.{
+                .files = &.{
+                    "libs/imgui/backends/imgui_impl_sdl3.cpp",
                 },
                 .flags = cflags,
             });

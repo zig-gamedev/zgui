@@ -16,9 +16,11 @@ pub const backend = switch (@import("zgui_options").backend) {
     .glfw_vulkan => @import("backend_glfw_vulkan.zig"),
     .glfw => @import("backend_glfw.zig"),
     .win32_dx12 => @import("backend_win32_dx12.zig"),
-    .sdl2_opengl3 => @import("backend_sdl2_opengl.zig"),
     .osx_metal => @import("backend_osx_metal.zig"),
     .sdl2 => @import("backend_sdl2.zig"),
+    .sdl2_opengl3 => @import("backend_sdl2_opengl.zig"),
+    .sdl3 => @import("backend_sdl3.zig"),
+    .sdl3_opengl3 => @import("backend_sdl3_opengl.zig"),
     .sdl3_gpu => @import("backend_sdl3_gpu.zig"),
     .no_backend => .{},
 };

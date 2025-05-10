@@ -30,13 +30,9 @@ pub fn deinit() void {
     backend_glfw.deinit();
 }
 
-pub fn newFrame(fb_width: u32, fb_height: u32) void {
-    ImGui_ImplWGPU_NewFrame();
+pub fn newFrame() void {
     backend_glfw.newFrame();
-
-    gui.io.setDisplaySize(@floatFromInt(fb_width), @floatFromInt(fb_height));
-    gui.io.setDisplayFramebufferScale(1.0, 1.0);
-
+    ImGui_ImplWGPU_NewFrame();
     gui.newFrame();
 }
 

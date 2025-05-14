@@ -10,8 +10,6 @@ pub fn init(
     wgpu_swap_chain_format: u32, // wgpu.TextureFormat
     wgpu_depth_format: u32, // wgpu.TextureFormat
 ) void {
-    backend_glfw.init(window);
-
     var info = ImGui_ImplWGPU_InitInfo{
         .device = wgpu_device,
         .num_frames_in_flight = 1,
@@ -23,6 +21,8 @@ pub fn init(
     if (!ImGui_ImplWGPU_Init(&info)) {
         unreachable;
     }
+
+    backend_glfw.init(window);
 }
 
 pub fn deinit() void {
@@ -30,13 +30,18 @@ pub fn deinit() void {
     backend_glfw.deinit();
 }
 
-pub fn newFrame(fb_width: u32, fb_height: u32) void {
+var _width: u32 = 0;
+var _height: u32 = 0;
+pub fn newFrame(width: u32, height: u32) void {
+    if (width != _width or height != _height) {
+        ImGui_ImplWGPU_InvalidateDeviceObjects();
+        if (ImGui_ImplWGPU_CreateDeviceObjects()) {
+            _width = width;
+            _height = height;
+        }
+    }
     ImGui_ImplWGPU_NewFrame();
     backend_glfw.newFrame();
-
-    gui.io.setDisplaySize(@floatFromInt(fb_width), @floatFromInt(fb_height));
-    gui.io.setDisplayFramebufferScale(1.0, 1.0);
-
     gui.newFrame();
 }
 
@@ -61,7 +66,9 @@ pub const ImGui_ImplWGPU_InitInfo = extern struct {
 
 // Those functions are defined in 'imgui_impl_wgpu.cpp`
 // (they include few custom changes).
-extern fn ImGui_ImplWGPU_Init(init_info: *ImGui_ImplWGPU_InitInfo) bool;
-extern fn ImGui_ImplWGPU_NewFrame() void;
-extern fn ImGui_ImplWGPU_RenderDrawData(draw_data: *const anyopaque, pass_encoder: *const anyopaque) void;
-extern fn ImGui_ImplWGPU_Shutdown() void;
+extern fn ImGui_ImplWGPU_Init(init_info: *ImGui_ImplWGPU_InitInfo) callconv(.c) bool;
+extern fn ImGui_ImplWGPU_InvalidateDeviceObjects() callconv(.c) void;
+extern fn ImGui_ImplWGPU_CreateDeviceObjects() callconv(.c) bool;
+extern fn ImGui_ImplWGPU_NewFrame() callconv(.c) void;
+extern fn ImGui_ImplWGPU_RenderDrawData(draw_data: *const anyopaque, pass_encoder: *const anyopaque) callconv(.c) void;
+extern fn ImGui_ImplWGPU_Shutdown() callconv(.c) void;

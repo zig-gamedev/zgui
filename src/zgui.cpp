@@ -1573,6 +1573,52 @@ extern "C"
         return ImGui::GetIO().Fonts->TexID;
     }
 
+    // Glyph Ranges
+    ZGUI_API const ImWchar *zguiIoGetGlyphRangesDefault(void)
+    {
+        return ImGui::GetIO().Fonts->GetGlyphRangesDefault();
+    }
+
+    ZGUI_API const ImWchar *zguiIoGetGlyphRangesGreek(void)
+    {
+        return ImGui::GetIO().Fonts->GetGlyphRangesGreek();
+    }
+
+    ZGUI_API const ImWchar *zguiIoGetGlyphRangesKorean(void)
+    {
+        return ImGui::GetIO().Fonts->GetGlyphRangesKorean();
+    }
+
+    ZGUI_API const ImWchar *zguiIoGetGlyphRangesJapanese(void)
+    {
+        return ImGui::GetIO().Fonts->GetGlyphRangesJapanese();
+    }
+
+    ZGUI_API const ImWchar *zguiIoGetGlyphRangesChineseFull(void)
+    {
+        return ImGui::GetIO().Fonts->GetGlyphRangesChineseFull();
+    }
+
+    ZGUI_API const ImWchar *zguiIoGetGlyphRangesChineseSimplifiedCommon(void)
+    {
+        return ImGui::GetIO().Fonts->GetGlyphRangesChineseSimplifiedCommon();
+    }
+
+    ZGUI_API const ImWchar *zguiIoGetGlyphRangesCyrillic(void)
+    {
+        return ImGui::GetIO().Fonts->GetGlyphRangesCyrillic();
+    }
+
+    ZGUI_API const ImWchar *zguiIoGetGlyphRangesThai(void)
+    {
+        return ImGui::GetIO().Fonts->GetGlyphRangesThai();
+    }
+
+    ZGUI_API const ImWchar *zguiIoGetGlyphRangesVietnamese(void)
+    {
+        return ImGui::GetIO().Fonts->GetGlyphRangesVietnamese();
+    }
+
     ZGUI_API void zguiIoSetConfigWindowsMoveFromTitleBarOnly(bool enabled)
     {
         ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly = enabled;

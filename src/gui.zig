@@ -290,6 +290,33 @@ pub const io = struct {
     pub const getFontsTexId = zguiIoGetFontsTexId;
     extern fn zguiIoGetFontsTexId() TextureIdent;
 
+    pub const getGlyphRangesDefault = zguiIoGetGlyphRangesDefault;
+    extern fn zguiIoGetGlyphRangesDefault() [*]const Wchar;
+
+    pub const getGlyphRangesGreek = zguiIoGetGlyphRangesGreek;
+    extern fn zguiIoGetGlyphRangesGreek() [*]const Wchar;
+
+    pub const getGlyphRangesKorean = zguiIoGetGlyphRangesKorean;
+    extern fn zguiIoGetGlyphRangesKorean() [*]const Wchar;
+
+    pub const getGlyphRangesJapanese = zguiIoGetGlyphRangesJapanese;
+    extern fn zguiIoGetGlyphRangesJapanese() [*]const Wchar;
+
+    pub const getGlyphRangesChineseFull = zguiIoGetGlyphRangesChineseFull;
+    extern fn zguiIoGetGlyphRangesChineseFull() [*]const Wchar;
+
+    pub const getGlyphRangesChineseSimplifiedCommon = zguiIoGetGlyphRangesChineseSimplifiedCommon;
+    extern fn zguiIoGetGlyphRangesChineseSimplifiedCommon() [*]const Wchar;
+
+    pub const getGlyphRangesCyrillic = zguiIoGetGlyphRangesCyrillic;
+    extern fn zguiIoGetGlyphRangesCyrillic() [*]const Wchar;
+
+    pub const getGlyphRangesThai = zguiIoGetGlyphRangesThai;
+    extern fn zguiIoGetGlyphRangesThai() [*]const Wchar;
+
+    pub const getGlyphRangesVietnamese = zguiIoGetGlyphRangesVietnamese;
+    extern fn zguiIoGetGlyphRangesVietnamese() [*]const Wchar;
+
     /// `pub fn zguiIoSetConfigWindowsMoveFromTitleBarOnly(bool) void`
     pub const setConfigWindowsMoveFromTitleBarOnly = zguiIoSetConfigWindowsMoveFromTitleBarOnly;
     extern fn zguiIoSetConfigWindowsMoveFromTitleBarOnly(enabled: bool) void;

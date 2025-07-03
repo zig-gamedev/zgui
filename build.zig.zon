@@ -1,6 +1,8 @@
 .{
-    .name = "zgui",
+    .name = .zgui,
+    .fingerprint = 0xe78160e64acbef8,
     .version = "0.6.0-dev",
+    .minimum_zig_version = "0.14.0",
     .paths = .{
         "build.zig",
         "build.zig.zon",
@@ -11,28 +13,28 @@
     },
     .dependencies = .{
         .system_sdk = .{
-            .url = "https://github.com/zig-gamedev/system_sdk/archive/d1e724748d15cfcbf50c45ec7c7019688d45b16a.tar.gz",
-            .hash = "122047a9298c4c9dd43389d418d6826d469b192246ba0944102964cdc57f94c562df",
+            .url = "https://github.com/zig-gamedev/system_sdk/archive/c0dbf11cdc17da5904ea8a17eadc54dee26567ec.tar.gz",
+            .hash = "system_sdk-0.3.0-dev-alwUNnYaaAJAtIdE2fg4NQfDqEKs7QCXy_qYukAOBfmF",
             .lazy = true,
         },
         .zglfw = .{
-            .url = "https://github.com/zig-gamedev/zglfw/archive/4a5ec6186173a6ae4d71ad01b64dac5561ef0b16.tar.gz",
-            .hash = "1220fb278bcd5f1be0096c841c29de2374806f3980160aa3e409f551b1c242254b74",
+            .url = "https://github.com/zig-gamedev/zglfw/archive/c337cb3d3f984468ea7a386335937a5d555fc024.tar.gz",
+            .hash = "zglfw-0.10.0-dev-zgVDNMacIQA-k7kNSfwUc9Lfzx-bb_wklVm25K-p8Tr7",
             .lazy = true,
         },
         .zgpu = .{
-            .url = "https://github.com/zig-gamedev/zgpu/archive/987809eff7cb47901192a6d41dc67486e3211f21.tar.gz",
-            .hash = "1220777b1f964f666f5e990412f34c7dd36b6c399ff15920754f842df297425dffa5",
+            .url = "https://github.com/zig-gamedev/zgpu/archive/d860e2b4a333cacffb168fab49a233c5d2f1bca2.tar.gz",
+            .hash = "zgpu-0.12.0-dev-nqFT5EKgCADkhwAf97_pfSOmPWEguKmljSECs9ihpFS7",
             .lazy = true,
         },
         .zsdl = .{
-            .url = "https://github.com/zig-gamedev/zsdl/archive/360a5033010c71445ba42d1de3973abd50c6b128.tar.gz",
-            .hash = "1220b661c47496008c7b2717c06b7bc1f79b1cfc430c885222d5d49c91d3fc57cbde",
+            .url = "https://github.com/zig-gamedev/zsdl/archive/89c1fe2d7ef5020c68e71ac574195f09fc949cce.tar.gz",
+            .hash = "zsdl-0.4.0-dev-rFpjE5FXWQAHcbsSHDjFtbTkruSgvRVYOae6x8RXCnoM",
             .lazy = true,
         },
         .freetype = .{
             .url = "https://github.com/hexops/freetype/archive/972cd37bccecae2cc9f54cf0b562263a13209d02.tar.gz",
-            .hash = "12204cba3a237cd2c4ab983f5a28d9b54e7a9912d8c7c6e38e23140b0171d6e1ebf8",
+            .hash = "freetype-0.0.0-AAAAAA5JcwBMujojfNLEq5g_WijZtU56mRLYx8bjjiMU",
             .lazy = true,
         },
     },

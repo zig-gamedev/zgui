@@ -19572,6 +19572,8 @@ ImGuiID ImGui::DockSpaceOverViewport(ImGuiID dockspace_id, const ImGuiViewport* 
     host_window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
     if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
         host_window_flags |= ImGuiWindowFlags_NoBackground;
+    if (dockspace_flags & ImGuiDockNodeFlags_KeepAliveOnly)
+        host_window_flags |= ImGuiWindowFlags_NoMouseInputs;
 
     // FIXME-OPT: When using ImGuiDockNodeFlags_KeepAliveOnly with DockSpaceOverViewport() we might be able to spare submitting the window,
     // since DockSpace() with that flag doesn't need a window. We'd only need to compute the default ID accordingly.

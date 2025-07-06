@@ -21,12 +21,12 @@ pub fn deinit() void {
     backend_glfw.deinit();
 }
 
-pub fn newFrame(fb_width: u32, fb_height: u32) void {
-    backend_glfw.newFrame();
+pub fn newFrame(fb_width: u32, fb_height: u32, scale_x: f32, scale_y: f32) void {
+    backend_glfw.newFrame(scale_x, scale_y);
     ImGui_ImplOpenGL3_NewFrame();
 
     gui.io.setDisplaySize(@as(f32, @floatFromInt(fb_width)), @as(f32, @floatFromInt(fb_height)));
-    gui.io.setDisplayFramebufferScale(1.0, 1.0);
+    gui.io.setDisplayFramebufferScale(1, 1);
 
     gui.newFrame();
 }

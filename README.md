@@ -35,8 +35,7 @@ pub fn build(b: *std.Build) void {
         .with_implot = true,
     });
     exe.root_module.addImport("zgui", zgui.module("root"));
-    exe.linkLibrary(zgui.artifact("imgui"));
-    
+
     { // Needed for glfw/wgpu rendering backend
         const zglfw = b.dependency("zglfw", .{});
         exe.root_module.addImport("zglfw", zglfw.module("root"));

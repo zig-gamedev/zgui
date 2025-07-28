@@ -1830,24 +1830,64 @@ extern fn zguiTextLinkOpenURL(label: [*:0]const u8, url: ?[*:0]const u8) void;
 pub const textLinkOpenURL = zguiTextLinkOpenURL;
 //--------------------------------------------------------------------------------------------------
 const PlotNative = struct {
-    v: *f32,
+    v: [*]f32,
     v_count: c_int,
     v_offset: c_int = 0,
-    overlay_text: ?[:0]const u8 = null,
+    overlay: ?[:0]const u8 = null,
     scale_min: f32 = f32_max,
-    scale_max: f32 = f32_min,
+    scale_max: f32 = f32_max,
     graph_size: [2]f32 = .{ 0, 0 },
     stride: c_int = @sizeOf(f32),
 };
 pub fn plotLines(label: [*:0]const u8, args: PlotNative) void {
-    zguiPlotLines(label, args.v, args.v_count, args.v_offset, args.overlay_text, args.scale_min, args.scale_max, args.graph_size, args.graph_size);
+    zguiPlotLines(
+        label,
+        args.v,
+        args.v_count,
+        args.v_offset,
+        if (args.overlay) |o| o else null,
+        args.scale_min,
+        args.scale_max,
+        &args.graph_size,
+        args.stride,
+    );
 }
-extern fn zguiPlotLines(label: [*:0]const u8, v: *f32, v_count: c_int, v_offset: c_int, overlay_text: ?[:0]const u8, scale_min: f32, scale_max: f32, graph_size: [2]f32, stride: c_int) void;
+extern fn zguiPlotLines(
+    label: [*:0]const u8,
+    v: [*]f32,
+    v_count: c_int,
+    v_offset: c_int,
+    overlay: ?[*:0]const u8,
+    scale_min: f32,
+    scale_max: f32,
+    graph_size: *const [2]f32,
+    stride: c_int,
+) void;
 
 pub fn plotHistogram(label: [*:0]const u8, args: PlotNative) void {
-    zguiPlotHistogram(label, args.v, args.v_count, args.v_offset, args.overlay_text, args.scale_min, args.scale_max, args.graph_size, args.graph_size);
+    zguiPlotHistogram(
+        label,
+        args.v,
+        args.v_count,
+        args.v_offset,
+        if (args.overlay) |o| o else null,
+        args.scale_min,
+        args.scale_max,
+        &args.graph_size,
+        args.stride,
+    );
 }
-extern fn zguiPlotHistogram(label: [*:0]const u8, v: *f32, v_count: c_int, v_offset: c_int, overlay_text: ?[:0]const u8, scale_min: f32, scale_max: f32, graph_size: [2]f32, stride: c_int) void;
+extern fn zguiPlotHistogram(
+    label: [*:0]const u8,
+    v: [*]f32,
+    v_count: c_int,
+    v_offset: c_int,
+    overlay: ?[*:0]const u8,
+    scale_min: f32,
+    scale_max: f32,
+    graph_size: *const [2]f32,
+    stride: c_int,
+) void;
 
 //--------------------------------------------------------------------------------------------------
 //

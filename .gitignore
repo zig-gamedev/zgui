@@ -4,3 +4,6 @@ zig-out
 
 # Ignore some special OS files
 *.DS_Store
+
+# Ignore local example builds
+example/*

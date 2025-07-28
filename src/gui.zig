@@ -1829,7 +1829,7 @@ pub const textLink = zguiTextLink;
 extern fn zguiTextLinkOpenURL(label: [*:0]const u8, url: ?[*:0]const u8) void;
 pub const textLinkOpenURL = zguiTextLinkOpenURL;
 //--------------------------------------------------------------------------------------------------
-const PlotNative = struct {
+const PlotArgs = struct {
     v: [*]f32,
     v_count: c_int,
     v_offset: c_int = 0,
@@ -1839,7 +1839,7 @@ const PlotNative = struct {
     graph_size: [2]f32 = .{ 0, 0 },
     stride: c_int = @sizeOf(f32),
 };
-pub fn plotLines(label: [*:0]const u8, args: PlotNative) void {
+pub fn plotLines(label: [*:0]const u8, args: PlotArgs) void {
     zguiPlotLines(
         label,
         args.v,
@@ -1864,7 +1864,7 @@ extern fn zguiPlotLines(
     stride: c_int,
 ) void;
 
-pub fn plotHistogram(label: [*:0]const u8, args: PlotNative) void {
+pub fn plotHistogram(label: [*:0]const u8, args: PlotArgs) void {
     zguiPlotHistogram(
         label,
         args.v,

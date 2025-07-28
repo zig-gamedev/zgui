@@ -1977,6 +1977,36 @@ extern "C"
     {
         ImGui::CloseCurrentPopup();
     }
+
+    ZGUI_API void zguiPlotLines(
+        const char* label, 
+        const float* values, 
+        int values_count, 
+        int values_offset, 
+        const char* overlay_text, 
+        float scale_min, 
+        float scale_max, 
+        float graph_size[2], 
+        int stride)
+    {
+        ImGui::PlotLines(label, values, values_count, values_offset, overlay_text, scale_min, scale_max, ImVec2(graph_size[0], graph_size[1]), stride);
+    }  
+    
+
+    ZGUI_API void zguiPlotHistogram(
+        const char* label, 
+        const float* values, 
+        int values_count, 
+        int values_offset, 
+        const char* overlay_text, 
+        float scale_min, 
+        float scale_max, 
+        float graph_size[2], 
+        int stride)
+    {
+        ImGui::PlotHistogram(label, values, values_count, values_offset, overlay_text, scale_min, scale_max, ImVec2(graph_size[0], graph_size[1]), stride);
+    }
+
     //--------------------------------------------------------------------------------------------------
     //
     // Tables

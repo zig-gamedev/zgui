@@ -4552,10 +4552,10 @@ pub const DrawList = *opaque {
         text_end: [*]const u8,
     ) void;
     const AddTextArgs = struct {
-        font: Font,
+        font: ?Font,
         font_size: f32,
         wrap_width: f32 = 0,
-        cpu_fine_clip_rect: ?[]const [4]f32 = null,
+        cpu_fine_clip_rect: ?[*]const [4]f32 = null,
     };
     pub fn addTextExtended(
         draw_list: DrawList,
@@ -4596,7 +4596,7 @@ pub const DrawList = *opaque {
         text: [*]const u8,
         text_end: [*]const u8,
         wrap_width: f32,
-        cpu_fine_clip_rect: ?[]const [4]f32,
+        cpu_fine_clip_rect: ?[*]const [4]f32,
     ) void;
     //----------------------------------------------------------------------------------------------
     pub fn addPolyline(draw_list: DrawList, points: []const [2]f32, args: struct {

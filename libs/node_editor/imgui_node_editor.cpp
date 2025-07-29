@@ -4391,16 +4391,15 @@ ed::EditorAction::AcceptResult ed::ShortcutAction::Accept(const Control& control
     Action candidateAction = None;
 
     auto& io = ImGui::GetIO();
-    // FIX(zig-gamedev): ImGui::GetKeyIndex was removed from imgui since imgui-node-editor v0.9.3 was released.
-    if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGuiKey_X))
+    if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_X)))
         candidateAction = Cut;
-    if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGuiKey_C))
+    if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_C)))
         candidateAction = Copy;
-    if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGuiKey_V))
+    if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_V)))
         candidateAction = Paste;
     if (io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(GetKeyIndexForD()))
         candidateAction = Duplicate;
-    if (!io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGuiKey_Space))
+    if (!io.KeyCtrl && !io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Space)))
         candidateAction = CreateNode;
 
     if (candidateAction != None)
@@ -4954,8 +4953,7 @@ ed::EditorAction::AcceptResult ed::DeleteItemsAction::Accept(const Control& cont
         return False;
 
     auto& io = ImGui::GetIO();
-    // FIX(zig-gamedev): ImGui::GetKeyIndex was removed from imgui since imgui-node-editor v0.9.3 was released.
-    if (Editor->CanAcceptUserInput() && ImGui::IsKeyPressed(ImGuiKey_Delete) && Editor->AreShortcutsEnabled())
+    if (Editor->CanAcceptUserInput() && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete)) && Editor->AreShortcutsEnabled())
     {
         auto& selection = Editor->GetSelectedObjects();
         if (!selection.empty())

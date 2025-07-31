@@ -2519,6 +2519,21 @@ extern "C"
         draw_list->AddText({pos[0], pos[1]}, col, text_begin, text_end);
     }
 
+    ZGUI_API void zguiDrawList_AddTextExtended(
+        ImDrawList *draw_list,
+        ImFont* font, 
+        float font_size, 
+        const float pos[2], 
+        ImU32 col, 
+        const char* text_begin, 
+        const char* text_end, 
+        float wrap_width, 
+        const float cpu_fine_clip_rect[][4])
+    {   
+        const ImVec4* clip_rect = (cpu_fine_clip_rect != nullptr) ? (const ImVec4 *)&cpu_fine_clip_rect[0][0] : nullptr;
+        draw_list->AddText(font, font_size, {pos[0], pos[1]}, col, text_begin, text_end, wrap_width, clip_rect);
+    }
+
     ZGUI_API void zguiDrawList_AddPolyline(
         ImDrawList *draw_list,
         const float points[][2],

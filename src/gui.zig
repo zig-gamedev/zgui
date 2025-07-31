@@ -4551,6 +4551,53 @@ pub const DrawList = *opaque {
         text: [*]const u8,
         text_end: [*]const u8,
     ) void;
+    const AddTextArgs = struct {
+        font: ?Font,
+        font_size: f32,
+        wrap_width: f32 = 0,
+        cpu_fine_clip_rect: ?[*]const [4]f32 = null,
+    };
+    pub fn addTextExtended(
+        draw_list: DrawList,
+        pos: [2]f32,
+        col: u32,
+        comptime fmt: []const u8,
+        args: anytype,
+        add_text_args: AddTextArgs,
+    ) void {
+        const txt = format(fmt, args);
+        addTextExtendedUnformatted(draw_list, pos, col, txt, add_text_args);
+    }
+    pub fn addTextExtendedUnformatted(
+        draw_list: DrawList,
+        pos: [2]f32,
+        col: u32,
+        txt: []const u8,
+        add_text_args: AddTextArgs,
+    ) void {
+        zguiDrawList_AddTextExtended(
+            draw_list,
+            add_text_args.font,
+            add_text_args.font_size,
+            &pos,
+            col,
+            txt.ptr,
+            txt.ptr + txt.len,
+            add_text_args.wrap_width,
+            add_text_args.cpu_fine_clip_rect,
+        );
+    }
+    extern fn zguiDrawList_AddTextExtended(
+        draw_list: DrawList,
+        font: ?Font,
+        font_size: f32,
+        pos: *const [2]f32,
+        col: u32,
+        text: [*]const u8,
+        text_end: [*]const u8,
+        wrap_width: f32,
+        cpu_fine_clip_rect: ?[*]const [4]f32,
+    ) void;
     //----------------------------------------------------------------------------------------------
     pub fn addPolyline(draw_list: DrawList, points: []const [2]f32, args: struct {
         col: u32,

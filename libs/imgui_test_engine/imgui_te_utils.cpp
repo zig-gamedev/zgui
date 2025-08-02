@@ -1,6 +1,9 @@
 // dear imgui test engine
 // (helpers/utilities. do NOT use this as a general purpose library)
 
+// This file is governed by the "Dear ImGui Test Engine License".
+// Details of the license are provided in the LICENSE.txt file in the same directory.
+
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -837,6 +840,8 @@ const ImBuildInfo* ImBuildGetCompilationInfo()
         build_info.OS = "OSX";
 #elif defined(__ORBIS__)
         build_info.OS = "PS4";
+#elif defined(__PROSPERO__)
+        build_info.OS = "PS5";
 #elif defined(_DURANGO)
         build_info.OS = "XboxOne";
 #else
@@ -903,7 +908,7 @@ bool ImBuildFindGitBranchName(const char* git_repo_path, Str* branch_name)
 
 bool    ImOsCreateProcess(const char* cmd_line)
 {
-#ifdef _WIN32
+#if defined(_WIN32) && !IMGUI_TEST_ENGINE_IS_GAME_CONSOLE
     STARTUPINFOA siStartInfo;
     PROCESS_INFORMATION piProcInfo;
     ZeroMemory(&siStartInfo, sizeof(STARTUPINFOA));
@@ -918,6 +923,7 @@ bool    ImOsCreateProcess(const char* cmd_line)
     return ret != 0;
 #else
     IM_UNUSED(cmd_line);
+    IM_ASSERT(0);
     return false;
 #endif
 }
@@ -926,7 +932,7 @@ FILE*       ImOsPOpen(const char* cmd_line, const char* mode)
 {
     IM_ASSERT(cmd_line != nullptr && *cmd_line);
     IM_ASSERT(mode != nullptr && *mode);
-#if _WIN32
+#if defined(_WIN32) && !IMGUI_TEST_ENGINE_IS_GAME_CONSOLE
     ImVector<wchar_t> w_cmd_line;
     ImVector<wchar_t> w_mode;
     ImUtf8ToWideChar(cmd_line, &w_cmd_line);
@@ -934,28 +940,33 @@ FILE*       ImOsPOpen(const char* cmd_line, const char* mode)
     w_mode.resize(w_mode.Size + 1);
     wcscat(w_mode.Data, L"b");   // Windows requires 'b' mode while unixes do not support it and default to binary.
     return _wpopen(w_cmd_line.Data, w_mode.Data);
-#else
+#elif !IMGUI_TEST_ENGINE_IS_GAME_CONSOLE
     return popen(cmd_line, mode);
+#else
+    IM_ASSERT(0);
+    return NULL;
 #endif
 }
 
 void        ImOsPClose(FILE* fp)
 {
     IM_ASSERT(fp != nullptr);
-#if _WIN32
+#if defined(_WIN32) && !IMGUI_TEST_ENGINE_IS_GAME_CONSOLE
     _pclose(fp);
-#else
+#elif !IMGUI_TEST_ENGINE_IS_GAME_CONSOLE
     pclose(fp);
+#else
+    IM_ASSERT(0);
 #endif
 }
 
 void    ImOsOpenInShell(const char* path)
 {
     Str256 command(path);
-#ifdef _WIN32
+#if defined(_WIN32) && !IMGUI_TEST_ENGINE_IS_GAME_CONSOLE
     ImPathFixSeparatorsForCurrentOS(command.c_str());
     ::ShellExecuteA(nullptr, "open", command.c_str(), nullptr, nullptr, SW_SHOWDEFAULT);
-#else
+#elif !IMGUI_TEST_ENGINE_IS_GAME_CONSOLE
 #if __APPLE__
     const char* open_executable = "open";
 #else
@@ -964,12 +975,15 @@ void    ImOsOpenInShell(const char* path)
     command.setf("%s \"%s\"", open_executable, path);
     ImPathFixSeparatorsForCurrentOS(command.c_str());
     system(command.c_str());
+#else
+    IM_UNUSED(path);
+    IM_ASSERT(0);
 #endif
 }
 
 void    ImOsConsoleSetTextColor(ImOsConsoleStream stream, ImOsConsoleTextColor color)
 {
-#ifdef _WIN32
+#if defined(_WIN32) && !IMGUI_TEST_ENGINE_IS_GAME_CONSOLE
     HANDLE hConsole = 0;
     switch (stream)
     {
@@ -1012,6 +1026,9 @@ void    ImOsConsoleSetTextColor(ImOsConsoleStream stream, ImOsConsoleTextColor c
     }
 
     fprintf(handle, "%s", modifier);
+#else
+    IM_UNUSED(stream);
+    IM_UNUSED(color);
 #endif
 }
 
@@ -1206,7 +1223,13 @@ ImFont* ImGui::FindFontByPrefix(const char* prefix)
 {
     ImGuiContext& g = *GImGui;
     for (ImFont* font : g.IO.Fonts->Fonts)
+#if IMGUI_VERSION_NUM < 19184
         if (strncmp(font->ConfigData->Name, prefix, strlen(prefix)) == 0)
+#elif defined(IMGUI_HAS_TEXTURES)
+        if (strncmp(font->Sources[0]->Name, prefix, strlen(prefix)) == 0)
+#else
+        if (strncmp(font->Sources[0].Name, prefix, strlen(prefix)) == 0)
+#endif
             return font;
     return nullptr;
 }

@@ -93,6 +93,11 @@ extern "C"
         ImPlot::SetupFinish();
     }
 
+    ZGUI_API void zguiPlot_SetAxis(ImAxis axis)
+    {
+        ImPlot::SetAxis(axis);
+    }
+
     ZGUI_API bool zguiPlot_BeginPlot(const char *title_id, float width, float height, ImPlotFlags flags)
     {
         return ImPlot::BeginPlot(title_id, {width, height}, flags);

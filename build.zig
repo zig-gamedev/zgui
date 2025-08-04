@@ -14,6 +14,7 @@ pub const Backend = enum {
     sdl3,
     sdl3_gpu,
     sdl3_opengl3,
+    raylib,
 };
 
 pub fn build(b: *std.Build) void {
@@ -379,6 +380,17 @@ pub fn build(b: *std.Build) void {
             imgui.addCSourceFiles(.{
                 .files = &.{
                     "libs/imgui/backends/imgui_impl_sdl3.cpp",
+                },
+                .flags = cflags,
+            });
+        },
+        .raylib => {
+            const rl_imgui_path = b.path("src/backend_raylib/rlImGui/");
+            imgui.addIncludePath(rl_imgui_path);
+            imgui.addCSourceFiles(.{
+                .root = rl_imgui_path,
+                .files = &.{
+                    "rlImGui.cpp",
                 },
                 .flags = cflags,
             });

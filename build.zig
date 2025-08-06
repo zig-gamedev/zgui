@@ -11,9 +11,11 @@ pub const Backend = enum {
     sdl2_opengl3,
     osx_metal,
     sdl2,
+    sdl2_renderer,
     sdl3,
-    sdl3_gpu,
     sdl3_opengl3,
+    sdl3_renderer,
+    sdl3_gpu,
 };
 
 pub fn build(b: *std.Build) void {
@@ -348,6 +350,18 @@ pub fn build(b: *std.Build) void {
                 .flags = cflags,
             });
         },
+        .sdl2_renderer => {
+            if (b.lazyDependency("zsdl", .{})) |zsdl| {
+                imgui.addIncludePath(zsdl.path("libs/sdl2/include"));
+            }
+            imgui.addCSourceFiles(.{
+                .files = &.{
+                    "libs/imgui/backends/imgui_impl_sdl2.cpp",
+                    "libs/imgui/backends/imgui_impl_sdlrenderer2.cpp",
+                },
+                .flags = cflags,
+            });
+        },
         .sdl3_gpu => {
             if (b.lazyDependency("zsdl", .{})) |zsdl| {
                 imgui.addIncludePath(zsdl.path("libs/sdl3/include"));
@@ -356,6 +370,18 @@ pub fn build(b: *std.Build) void {
                 .files = &.{
                     "libs/imgui/backends/imgui_impl_sdl3.cpp",
                     "libs/imgui/backends/imgui_impl_sdlgpu3.cpp",
+                },
+                .flags = cflags,
+            });
+        },
+        .sdl3_renderer => {
+            if (b.lazyDependency("zsdl", .{})) |zsdl| {
+                imgui.addIncludePath(zsdl.path("libs/sdl3/include"));
+            }
+            imgui.addCSourceFiles(.{
+                .files = &.{
+                    "libs/imgui/backends/imgui_impl_sdl3.cpp",
+                    "libs/imgui/backends/imgui_impl_sdlrenderer3.cpp",
                 },
                 .flags = cflags,
             });

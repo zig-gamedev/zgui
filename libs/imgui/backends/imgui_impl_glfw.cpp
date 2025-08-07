@@ -90,8 +90,7 @@
 
 #include "imgui.h"
 #ifndef IMGUI_DISABLE
-// FIX(zig-gamedev):
-// #include "imgui_impl_glfw.h"
+#include "imgui_impl_glfw.h"
 
 // Clang warnings with -Weverything
 #if defined(__clang__)
@@ -101,8 +100,6 @@
 #endif
 
 // GLFW
-// FIX(zig-gamedev):
-#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
 #ifdef _WIN32
@@ -160,41 +157,6 @@
 #define GLFW_HAS_GAMEPAD_API            (GLFW_VERSION_COMBINED >= 3300) // 3.3+ glfwGetGamepadState() new api
 #define GLFW_HAS_GETKEYNAME             (GLFW_VERSION_COMBINED >= 3200) // 3.2+ glfwGetKeyName()
 #define GLFW_HAS_GETERROR               (GLFW_VERSION_COMBINED >= 3300) // 3.3+ glfwGetError()
-#include <math.h>
-
-// FIX(zig-gamedev):
-extern "C" {
-
-bool     ImGui_ImplGlfw_InitForOpenGL(GLFWwindow* window, bool install_callbacks);
-bool     ImGui_ImplGlfw_InitForVulkan(GLFWwindow* window, bool install_callbacks);
-bool     ImGui_ImplGlfw_InitForOther(GLFWwindow* window, bool install_callbacks);
-void     ImGui_ImplGlfw_Shutdown();
-void     ImGui_ImplGlfw_NewFrame();
-
-// GLFW callbacks install
-// - When calling Init with 'install_callbacks=true': ImGui_ImplGlfw_InstallCallbacks() is called. GLFW callbacks will be installed for you. They will chain-call user's previously installed callbacks, if any.
-// - When calling Init with 'install_callbacks=false': GLFW callbacks won't be installed. You will need to call individual function yourself from your own GLFW callbacks.
-void     ImGui_ImplGlfw_InstallCallbacks(GLFWwindow* window);
-void     ImGui_ImplGlfw_RestoreCallbacks(GLFWwindow* window);
-
-// GFLW callbacks options:
-// - Set 'chain_for_all_windows=true' to enable chaining callbacks for all windows (including secondary viewports created by backends or by user)
-void     ImGui_ImplGlfw_SetCallbacksChainForAllWindows(bool chain_for_all_windows);
-
-// GLFW callbacks (individual callbacks to call yourself if you didn't install callbacks)
-void     ImGui_ImplGlfw_WindowFocusCallback(GLFWwindow* window, int focused);        // Since 1.84
-void     ImGui_ImplGlfw_CursorEnterCallback(GLFWwindow* window, int entered);        // Since 1.84
-void     ImGui_ImplGlfw_CursorPosCallback(GLFWwindow* window, double x, double y);   // Since 1.87
-void     ImGui_ImplGlfw_MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
-void     ImGui_ImplGlfw_ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
-void     ImGui_ImplGlfw_KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-void     ImGui_ImplGlfw_CharCallback(GLFWwindow* window, unsigned int c);
-void     ImGui_ImplGlfw_MonitorCallback(GLFWmonitor* monitor, int event);
-
-// GLFW helpers
-void     ImGui_ImplGlfw_Sleep(int milliseconds);
-
-} // extern "C"
 
 // GLFW data
 enum GlfwClientApi
@@ -218,8 +180,6 @@ struct ImGui_ImplGlfw_Data
     bool                    InstalledCallbacks;
     bool                    CallbacksChainForAllWindows;
     bool                    WantUpdateMonitors;
-
-    ImVec2                  DpiScale; // fix(zig-gamedev)
 #ifdef EMSCRIPTEN_USE_EMBEDDED_GLFW3
     const char*             CanvasSelector;
 #endif
@@ -510,7 +470,7 @@ void ImGui_ImplGlfw_CursorPosCallback(GLFWwindow* window, double x, double y)
 {
     ImGui_ImplGlfw_Data* bd = ImGui_ImplGlfw_GetBackendData();
     if (bd->PrevUserCallbackCursorPos != nullptr && ImGui_ImplGlfw_ShouldChainCallback(window))
-        bd->PrevUserCallbackCursorPos(window, x * bd->DpiScale.x, y * bd->DpiScale.y); // fix(zig-gamedev)
+        bd->PrevUserCallbackCursorPos(window, x, y);
 
     ImGuiIO& io = ImGui::GetIO();
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -520,8 +480,8 @@ void ImGui_ImplGlfw_CursorPosCallback(GLFWwindow* window, double x, double y)
         x += window_x;
         y += window_y;
     }
-    io.AddMousePosEvent((float)x * bd->DpiScale.x, (float)y * bd->DpiScale.y); // fix(zig-gamedev)
-    bd->LastValidMousePos = ImVec2((float)x * bd->DpiScale.x, (float)y * bd->DpiScale.y); // fix(zig-gamedev)
+    io.AddMousePosEvent((float)x, (float)y);
+    bd->LastValidMousePos = ImVec2((float)x, (float)y);
 }
 
 // Workaround: X11 seems to send spurious Leave/Enter events which would make us lose our position,
@@ -667,8 +627,6 @@ static bool ImGui_ImplGlfw_Init(GLFWwindow* window, bool install_callbacks, Glfw
     bd->Window = window;
     bd->Time = 0.0;
     bd->WantUpdateMonitors = true;
-
-    bd->DpiScale = ImVec2{ 1.0f, 1.0f }; // fix(zig-gamedev)
 
     ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
     platform_io.Platform_SetClipboardTextFn = [](ImGuiContext*, const char* text) { glfwSetClipboardString(nullptr, text); };
@@ -837,8 +795,8 @@ static void ImGui_ImplGlfw_UpdateMouseData()
                     mouse_x += window_x;
                     mouse_y += window_y;
                 }
-                bd->LastValidMousePos = ImVec2((float)mouse_x * bd->DpiScale.x, (float)mouse_y * bd->DpiScale.y); // fix(zig-gamedev)
-                io.AddMousePosEvent((float)mouse_x * bd->DpiScale.x, (float)mouse_y * bd->DpiScale.y); // fix(zig-gamedev)
+                bd->LastValidMousePos = ImVec2((float)mouse_x, (float)mouse_y);
+                io.AddMousePosEvent((float)mouse_x, (float)mouse_y);
             }
         }
 
@@ -1007,11 +965,6 @@ void ImGui_ImplGlfw_NewFrame()
     io.DisplaySize = ImVec2((float)w, (float)h);
     if (w > 0 && h > 0)
         io.DisplayFramebufferScale = ImVec2((float)display_w / (float)w, (float)display_h / (float)h);
-
-    // fix(zig-gamedev)
-    bd->DpiScale.x = ceil(io.DisplayFramebufferScale.x);
-    bd->DpiScale.y = ceil(io.DisplayFramebufferScale.y);
-
     if (bd->WantUpdateMonitors)
         ImGui_ImplGlfw_UpdateMonitors();
 

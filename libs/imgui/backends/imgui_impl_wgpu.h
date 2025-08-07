@@ -8,9 +8,6 @@
 // This requirement will be removed once WebGPU stabilizes and backends converge on a unified interface.
 //#define IMGUI_IMPL_WEBGPU_BACKEND_DAWN
 
-// FIX(zig-gamedev)
-#define IMGUI_IMPL_WEBGPU_BACKEND_WGPU
-
 // Implemented features:
 //  [X] Renderer: User texture binding. Use 'WGPUTextureView' as ImTextureID. Read the FAQ about ImTextureID!
 //  [X] Renderer: Large meshes support (64k+ vertices) even with 16-bit indices (ImGuiBackendFlags_RendererHasVtxOffset).
@@ -31,6 +28,9 @@
 #ifndef IMGUI_DISABLE
 
 #include <webgpu/webgpu.h>
+
+// FIX(zig-gamedev)
+extern "C" {
 
 // Initialization data, for ImGui_ImplWGPU_Init()
 struct ImGui_ImplWGPU_InitInfo
@@ -67,5 +67,8 @@ struct ImGui_ImplWGPU_RenderState
     WGPUDevice                  Device;
     WGPURenderPassEncoder       RenderPassEncoder;
 };
+
+// FIX(zig-gamedev)
+} // extern "C"
 
 #endif // #ifndef IMGUI_DISABLE

@@ -400,7 +400,7 @@ pub fn build(b: *std.Build) void {
         },
         .sdl3 => {
             if (b.lazyDependency("zsdl", .{})) |zsdl| {
-                imgui.addIncludePath(zsdl.path("libs/sdl3/include/SDL3"));
+                imgui.addIncludePath(zsdl.path("libs/sdl3/include"));
             }
             imgui.addCSourceFiles(.{
                 .files = &.{

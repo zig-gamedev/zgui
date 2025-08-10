@@ -245,7 +245,11 @@ pub fn build(b: *std.Build) void {
                     "libs/imgui/backends/imgui_impl_glfw.cpp",
                     "libs/imgui/backends/imgui_impl_wgpu.cpp",
                 },
-                .flags = cflags,
+                .flags = &(cflags.* ++ .{
+                    "-DGLFW_INCLUDE_NONE",
+                    // TODO: This should be IMGUI_IMPL_WEBGPU_BACKEND_DAWN but we're using an old version of Dawn that looks more like wgpu_native
+                    "-DIMGUI_IMPL_WEBGPU_BACKEND_WGPU",
+                }),
             });
         },
         .glfw_opengl3 => {
@@ -269,7 +273,7 @@ pub fn build(b: *std.Build) void {
                     "libs/imgui/backends/imgui_impl_glfw.cpp",
                     "libs/imgui/backends/imgui_impl_dx12.cpp",
                 },
-                .flags = cflags,
+                .flags = &(cflags.* ++ .{"-DGLFW_INCLUDE_NONE"}),
             });
             imgui.linkSystemLibrary("d3dcompiler_47");
         },

@@ -45,9 +45,6 @@
 // When targeting native platforms (i.e. NOT emscripten), one of IMGUI_IMPL_WEBGPU_BACKEND_DAWN
 // or IMGUI_IMPL_WEBGPU_BACKEND_WGPU must be provided. See imgui_impl_wgpu.h for more details.
 
-// FIX(zig-gamedev)
-#define IMGUI_IMPL_WEBGPU_BACKEND_WGPU
-
 #ifndef __EMSCRIPTEN__
     #if defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN) == defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU)
     #error exactly one of IMGUI_IMPL_WEBGPU_BACKEND_DAWN or IMGUI_IMPL_WEBGPU_BACKEND_WGPU must be defined!
@@ -61,8 +58,7 @@
 #include "imgui.h"
 #ifndef IMGUI_DISABLE
 
-// FIX(zig-gamedev):
-// #include "imgui_impl_wgpu.h"
+#include "imgui_impl_wgpu.h"
 
 #include <limits.h>
 #include <webgpu/webgpu.h>
@@ -70,47 +66,6 @@
 // Dear ImGui prototypes from imgui_internal.h
 extern ImGuiID ImHashData(const void* data_p, size_t data_size, ImU32 seed = 0);
 #define MEMALIGN(_SIZE,_ALIGN)        (((_SIZE) + ((_ALIGN) - 1)) & ~((_ALIGN) - 1))    // Memory align (copied from IM_ALIGN() macro).
-
-// FIX(zig-gamedev): We removed header file and declare all our external functions here.
-extern "C" {
-
-// Initialization data, for ImGui_ImplWGPU_Init()
-struct ImGui_ImplWGPU_InitInfo
-{
-    WGPUDevice              Device;
-    int                     NumFramesInFlight = 3;
-    WGPUTextureFormat       RenderTargetFormat = WGPUTextureFormat_Undefined;
-    WGPUTextureFormat       DepthStencilFormat = WGPUTextureFormat_Undefined;
-    WGPUMultisampleState    PipelineMultisampleState = {};
-
-    ImGui_ImplWGPU_InitInfo()
-    {
-        PipelineMultisampleState.count = 1;
-        PipelineMultisampleState.mask = UINT32_MAX;
-        PipelineMultisampleState.alphaToCoverageEnabled = false;
-    }
-};
-
-// Follow "Getting Started" link and check examples/ folder to learn about using backends!
-IMGUI_IMPL_API bool ImGui_ImplWGPU_Init(ImGui_ImplWGPU_InitInfo* init_info);
-IMGUI_IMPL_API void ImGui_ImplWGPU_Shutdown();
-IMGUI_IMPL_API void ImGui_ImplWGPU_NewFrame();
-IMGUI_IMPL_API void ImGui_ImplWGPU_RenderDrawData(ImDrawData* draw_data, WGPURenderPassEncoder pass_encoder);
-
-// Use if you want to reset your rendering device without losing Dear ImGui state.
-IMGUI_IMPL_API bool ImGui_ImplWGPU_CreateDeviceObjects();
-IMGUI_IMPL_API void ImGui_ImplWGPU_InvalidateDeviceObjects();
-
-// [BETA] Selected render state data shared with callbacks.
-// This is temporarily stored in GetPlatformIO().Renderer_RenderState during the ImGui_ImplWGPU_RenderDrawData() call.
-// (Please open an issue if you feel you need access to more data)
-struct ImGui_ImplWGPU_RenderState
-{
-    WGPUDevice                  Device;
-    WGPURenderPassEncoder       RenderPassEncoder;
-};
-
-} // extern "C"
 
 // WebGPU data
 struct RenderResources
@@ -399,7 +354,8 @@ static void ImGui_ImplWGPU_SetupRenderState(ImDrawData* draw_data, WGPURenderPas
     }
 
     // Setup viewport
-    wgpuRenderPassEncoderSetViewport(ctx, 0, 0, draw_data->FramebufferScale.x * draw_data->DisplaySize.x, draw_data->FramebufferScale.y * draw_data->DisplaySize.y, 0, 1);
+    // FIX(zig-gamedev): Clamp bounds to workaround WGPU on Vulkan validation error
+    wgpuRenderPassEncoderSetViewport(ctx, 0, 0, (float)(int)(draw_data->FramebufferScale.x * draw_data->DisplaySize.x), (float)(int)(draw_data->FramebufferScale.y * draw_data->DisplaySize.y), 0, 1);
 
     // Bind shader and vertex buffers
     wgpuRenderPassEncoderSetVertexBuffer(ctx, 0, fr->VertexBuffer, 0, fr->VertexBufferSize * sizeof(ImDrawVert));

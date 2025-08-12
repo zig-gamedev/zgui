@@ -107,8 +107,11 @@ pub fn build(b: *std.Build) void {
     if (options.shared) {
         if (target.result.os.tag == .windows) {
             imgui.root_module.addCMacro("IMGUI_API", "__declspec(dllexport)");
+            imgui.root_module.addCMacro("IMGUI_IMPL_API", "extern \"C\" __declspec(dllexport)");
             imgui.root_module.addCMacro("IMPLOT_API", "__declspec(dllexport)");
             imgui.root_module.addCMacro("ZGUI_API", "__declspec(dllexport)");
+        } else {
+            imgui.root_module.addCMacro("IMGUI_IMPL_API", "extern \"C\"");
         }
 
         if (target.result.os.tag == .macos) {

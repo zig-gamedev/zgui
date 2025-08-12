@@ -1090,21 +1090,21 @@ extern "C"
     }
 
     ZGUI_API void zguiImage(
-        ImTextureID user_texture_id,
+        ImTextureRef user_texture_ref,
         float w,
         float h,
         const float uv0[2],
         const float uv1[2])
     {
         ImGui::Image(
-            user_texture_id,
+            user_texture_ref,
             {w, h},
             {uv0[0], uv0[1]},
             {uv1[0], uv1[1]});
     }
 
     ZGUI_API void zguiImageWithBg(
-        ImTextureID user_texture_id,
+        ImTextureRef user_texture_ref,
         float w,
         float h,
         const float uv0[2],
@@ -1113,7 +1113,7 @@ extern "C"
         const float tint_col[4])
     {
         ImGui::ImageWithBg(
-            user_texture_id,
+            user_texture_ref,
             {w, h},
             {uv0[0], uv0[1]},
             {uv1[0], uv1[1]},
@@ -1123,7 +1123,7 @@ extern "C"
 
     ZGUI_API bool zguiImageButton(
         const char *str_id,
-        ImTextureID user_texture_id,
+        ImTextureRef user_texture_ref,
         float w,
         float h,
         const float uv0[2],
@@ -1133,7 +1133,7 @@ extern "C"
     {
         return ImGui::ImageButton(
             str_id,
-            user_texture_id,
+            user_texture_ref,
             {w, h},
             {uv0[0], uv0[1]},
             {uv1[0], uv1[1]},
@@ -2529,7 +2529,7 @@ extern "C"
 
     ZGUI_API void zguiDrawList_AddImage(
         ImDrawList *draw_list,
-        ImTextureID user_texture_id,
+        ImTextureRef user_texture_ref,
         const float pmin[2],
         const float pmax[2],
         const float uvmin[2],
@@ -2537,7 +2537,7 @@ extern "C"
         ImU32 col)
     {
         draw_list->AddImage(
-            user_texture_id,
+            user_texture_ref,
             {pmin[0], pmin[1]},
             {pmax[0], pmax[1]},
             {uvmin[0], uvmin[1]},
@@ -2547,7 +2547,7 @@ extern "C"
 
     ZGUI_API void zguiDrawList_AddImageQuad(
         ImDrawList *draw_list,
-        ImTextureID user_texture_id,
+        ImTextureRef user_texture_ref,
         const float p1[2],
         const float p2[2],
         const float p3[2],
@@ -2559,7 +2559,7 @@ extern "C"
         ImU32 col)
     {
         draw_list->AddImageQuad(
-            user_texture_id,
+            user_texture_ref,
             {p1[0], p1[1]},
             {p2[0], p2[1]},
             {p3[0], p3[1]},
@@ -2573,7 +2573,7 @@ extern "C"
 
     ZGUI_API void zguiDrawList_AddImageRounded(
         ImDrawList *draw_list,
-        ImTextureID user_texture_id,
+        ImTextureRef user_texture_ref,
         const float pmin[2],
         const float pmax[2],
         const float uvmin[2],
@@ -2583,7 +2583,7 @@ extern "C"
         ImDrawFlags flags)
     {
         draw_list->AddImageRounded(
-            user_texture_id,
+            user_texture_ref,
             {pmin[0], pmin[1]},
             {pmax[0], pmax[1]},
             {uvmin[0], uvmin[1]},

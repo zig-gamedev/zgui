@@ -59,6 +59,27 @@ pub fn init(allocator: std.mem.Allocator) void {
         }
     }
 }
+/// Allows sharing a context across static/DLL boundaries. This is useful for
+/// hot-reloading mechanisms which rely on shared libraries.
+/// See "CONTEXT AND MEMORY ALLOCATORS" section of ImGui docs.
+pub fn initWithExistingContext(allocator: std.mem.Allocator, ctx: Context) void {
+    mem_allocator = allocator;
+    mem_allocations = std.AutoHashMap(usize, usize).init(allocator);
+    mem_allocations.?.ensureTotalCapacity(32) catch @panic("zgui: out of memory");
+    zguiSetAllocatorFunctions(zguiMemAlloc, zguiMemFree);
+
+    zguiSetCurrentContext(ctx);
+
+    temp_buffer = std.ArrayList(u8).init(allocator);
+    temp_buffer.?.resize(3 * 1024 + 1) catch unreachable;
+
+    if (te_enabled) {
+        te.init();
+    }
+}
+pub fn getCurrentContext() ?Context {
+    return zguiGetCurrentContext();
+}
 pub fn deinit() void {
     if (zguiGetCurrentContext() != null) {
         temp_buffer.?.deinit();
@@ -104,6 +125,7 @@ pub fn deinitNoContext() void {
 extern fn zguiCreateContext(shared_font_atlas: ?*const anyopaque) Context;
 extern fn zguiDestroyContext(ctx: ?Context) void;
 extern fn zguiGetCurrentContext() ?Context;
+extern fn zguiSetCurrentContext(ctx: ?Context) void;
 //--------------------------------------------------------------------------------------------------
 var mem_allocator: ?std.mem.Allocator = null;
 var mem_allocations: ?std.AutoHashMap(usize, usize) = null;
@@ -405,7 +427,7 @@ pub fn getClipboardText() [:0]const u8 {
 extern fn zguiSetClipboardText(text: [*:0]const u8) void;
 extern fn zguiGetClipboardText() [*:0]const u8;
 //--------------------------------------------------------------------------------------------------
-const Context = *opaque {};
+pub const Context = *opaque {};
 pub const DrawData = *extern struct {
     valid: bool,
     cmd_lists_count: c_int,

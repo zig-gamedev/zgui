@@ -271,7 +271,7 @@ zgui.sameLine(.{});
 zgui.pushStyleColor4f(.{ .idx = zgui.StyleCol.button_active, .c = .{ 0.6, 0.2, 0.2, 1 } });
 zgui.pushStyleColor4f(.{ .idx = zgui.StyleCol.button_hovered, .c = .{ 0.6, 0.4, 0.4, 1 } });
 zgui.pushStyleColor4f(.{ .idx = zgui.StyleCol.button, .c = .{ 0.4, 0, 0, 1 } });
-_ = zgui.knobs.knob_int("i32 Knob", .{
+_ = zgui.knobs.knobInt("i32 Knob", .{
     .v = &v_knob_int,
     .v_min = -10,
     .v_max = 10,

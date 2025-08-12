@@ -240,3 +240,47 @@ defer zgui.node_editor.setCurrentEditor(null);
     }
 }
 ```
+
+### Imgui-Knobs Api.
+zig wrapper for [imgui-knobs](https://github.com/altschuler/imgui-knobs)
+
+``` zig
+// Minimal knob function call
+_ = zgui.knobs.knob("Minimal", .{
+    .v = &v_knob,
+    .v_min = 0,
+    .v_max = 1.0,
+});
+zgui.sameLine(.{});
+
+// Styled f32 knob
+_ = zgui.knobs.knob("f32 Knob", .{
+    .v = &v_knob,
+    .v_min = 0,
+    .v_max = 1.0,
+    .size = 200,
+    .speed = 0.0005,
+    .angle_min = std.math.pi,
+    .angle_max = 2 * std.math.pi,
+    .variant = .{ .stepped = true },
+    .steps = 5,
+});
+zgui.sameLine(.{});
+
+// Styled i32 knob (applied color)
+zgui.pushStyleColor4f(.{ .idx = zgui.StyleCol.button_active, .c = .{ 0.6, 0.2, 0.2, 1 } });
+zgui.pushStyleColor4f(.{ .idx = zgui.StyleCol.button_hovered, .c = .{ 0.6, 0.4, 0.4, 1 } });
+zgui.pushStyleColor4f(.{ .idx = zgui.StyleCol.button, .c = .{ 0.4, 0, 0, 1 } });
+_ = zgui.knobs.knob_int("i32 Knob", .{
+    .v = &v_knob_int,
+    .v_min = -10,
+    .v_max = 10,
+    .size = 250,
+    .variant = zgui.knobs.KnobVariant{ .wiper_dot = true },
+    .flags = zgui.knobs.KnobFlags{
+        .drag_horizontal = true,
+        .no_input = true,
+    },
+});
+zgui.popStyleColor(.{ .count = 3 });
+```

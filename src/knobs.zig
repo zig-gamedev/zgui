@@ -54,21 +54,21 @@ pub fn knob(
     label: [*:0]const u8,
     args: KnobTypeGen(f32),
 ) bool {
-    return zknobs_knob(label, args.v, args.v_min, args.v_max, args.speed, args.cfmt, args.variant, args.size, args.flags, args.steps, args.angle_min, args.angle_max);
+    return zknobs_Knob(label, args.v, args.v_min, args.v_max, args.speed, args.cfmt, args.variant, args.size, args.flags, args.steps, args.angle_min, args.angle_max);
 }
 
 /// Remarks:
 /// - angle_min and angle_max works in radian with the starting position at the right side of the circle
 /// - steps only affects the visuals for stepped KnobVariant
-pub fn knob_int(
+pub fn knobInt(
     label: [*:0]const u8,
     args: KnobTypeGen(i32),
 ) bool {
-    return zknobs_knob_int(label, args.v, args.v_min, args.v_max, args.speed, args.cfmt, args.variant, args.size, args.flags, args.steps, args.angle_min, args.angle_max);
+    return zknobs_KnobInt(label, args.v, args.v_min, args.v_max, args.speed, args.cfmt, args.variant, args.size, args.flags, args.steps, args.angle_min, args.angle_max);
 }
 
 //---------------------------------------------------------------------------------------------------------------------|
-extern fn zknobs_knob(
+extern fn zknobs_Knob(
     label: [*:0]const u8,
     v: *f32,
     v_min: f32,
@@ -83,7 +83,7 @@ extern fn zknobs_knob(
     angle_max: f32,
 ) bool;
 
-extern fn zknobs_knob_int(
+extern fn zknobs_KnobInt(
     label: [*:0]const u8,
     v: *c_int,
     v_min: c_int,

@@ -15,7 +15,7 @@
 //--------------------------------------------------------------------------------------------------
 extern "C"
 {
-    ZGUI_API bool zknobs_knob(
+    ZGUI_API bool zknobs_Knob(
         const char *label,
         float *v,
         float v_min,
@@ -34,7 +34,7 @@ extern "C"
         );
     }
 
-    ZGUI_API bool zknobs_knob_int(
+    ZGUI_API bool zknobs_KnobInt(
         const char *label,
         int *v,
         int v_min,

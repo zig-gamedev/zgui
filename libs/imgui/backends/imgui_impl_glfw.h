@@ -33,7 +33,7 @@ IMGUI_IMPL_API bool     ImGui_ImplGlfw_InitForOpenGL(GLFWwindow* window, bool in
 IMGUI_IMPL_API bool     ImGui_ImplGlfw_InitForVulkan(GLFWwindow* window, bool install_callbacks);
 IMGUI_IMPL_API bool     ImGui_ImplGlfw_InitForOther(GLFWwindow* window, bool install_callbacks);
 IMGUI_IMPL_API void     ImGui_ImplGlfw_Shutdown();
-IMGUI_IMPL_API void     ImGui_ImplGlfw_NewFrame();
+IMGUI_IMPL_API void     ImGui_ImplGlfw_NewFrame(float scale_x, float scale_y);
 
 // Emscripten related initialization phase methods (call after ImGui_ImplGlfw_InitForOpenGL)
 #ifdef __EMSCRIPTEN__

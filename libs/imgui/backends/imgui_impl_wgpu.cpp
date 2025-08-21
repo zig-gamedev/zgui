@@ -45,9 +45,6 @@
 // When targeting native platforms (i.e. NOT emscripten), one of IMGUI_IMPL_WEBGPU_BACKEND_DAWN
 // or IMGUI_IMPL_WEBGPU_BACKEND_WGPU must be provided. See imgui_impl_wgpu.h for more details.
 
-// FIX(zig-gamedev)
-#define IMGUI_IMPL_WEBGPU_BACKEND_WGPU
-
 #ifndef __EMSCRIPTEN__
     #if defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN) == defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU)
     #error exactly one of IMGUI_IMPL_WEBGPU_BACKEND_DAWN or IMGUI_IMPL_WEBGPU_BACKEND_WGPU must be defined!
@@ -836,8 +833,6 @@ bool ImGui_ImplWGPU_Init(ImGui_ImplWGPU_InitInfo* init_info)
     io.BackendRendererName = "imgui_impl_webgpu_emscripten";
 #elif defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN)
     io.BackendRendererName = "imgui_impl_webgpu_dawn";
-#elif defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU)
-    io.BackendRendererName = "imgui_impl_webgpu_wgpu";
 #else
     io.BackendRendererName = "imgui_impl_webgpu";
 #endif

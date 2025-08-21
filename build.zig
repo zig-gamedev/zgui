@@ -73,7 +73,7 @@ pub fn build(b: *std.Build) void {
 
     const options_module = options_step.createModule();
 
-    _ = b.addModule("root", .{
+    const imgui = b.addModule("root", .{
         .root_source_file = b.path("src/gui.zig"),
         .imports = &.{
             .{ .name = "zgui_options", .module = options_module },
@@ -93,40 +93,25 @@ pub fn build(b: *std.Build) void {
         "-Wno-availability",
     };
 
-    const imgui = if (options.shared) blk: {
-        const lib = b.addSharedLibrary(.{
-            .name = "imgui",
-            .target = target,
-            .optimize = optimize,
-        });
-
-        if (target.result.os.tag == .windows) {
-            lib.root_module.addCMacro("IMGUI_API", "__declspec(dllexport)");
-            lib.root_module.addCMacro("IMPLOT_API", "__declspec(dllexport)");
-            lib.root_module.addCMacro("ZGUI_API", "__declspec(dllexport)");
-        }
-
-        if (target.result.os.tag == .macos) {
-            lib.linker_allow_shlib_undefined = true;
-        }
-
-        break :blk lib;
-    } else b.addStaticLibrary(.{
-        .name = "imgui",
-        .target = target,
-        .optimize = optimize,
-    });
-
-    b.installArtifact(imgui);
-
-    const emscripten = target.result.os.tag == .emscripten;
+    //Shared Library details
+    //if (target.result.os.tag == .macos) {
+    //    lib.linker_allow_shlib_undefined = true;
+    //}
+    //if (target.result.os.tag == .windows) {
+    //    imgui.addCMacro("IMGUI_API", "__declspec(dllexport)");
+    //    imgui.addCMacro("IMPLOT_API", "__declspec(dllexport)");
+    //    imgui.addCMacro("ZGUI_API", "__declspec(dllexport)");
+    //}
 
     imgui.addIncludePath(b.path("libs"));
     imgui.addIncludePath(b.path("libs/imgui"));
 
-    imgui.linkLibC();
-    if (target.result.abi != .msvc)
-        imgui.linkLibCpp();
+    const emscripten = target.result.os.tag == .emscripten;
+    if (!emscripten) {
+        imgui.link_libc = true;
+        if (target.result.abi != .msvc)
+            imgui.link_libcpp = true;
+    }
 
     imgui.addCSourceFile(.{
         .file = b.path("src/zgui.cpp"),
@@ -152,11 +137,11 @@ pub fn build(b: *std.Build) void {
             .file = b.path("libs/imgui/misc/freetype/imgui_freetype.cpp"),
             .flags = cflags,
         });
-        imgui.root_module.addCMacro("IMGUI_ENABLE_FREETYPE", "1");
+        imgui.addCMacro("IMGUI_ENABLE_FREETYPE", "1");
     }
 
     if (options.use_wchar32) {
-        imgui.root_module.addCMacro("IMGUI_USE_WCHAR32", "1");
+        imgui.addCMacro("IMGUI_USE_WCHAR32", "1");
     }
 
     if (options.with_implot) {
@@ -211,8 +196,8 @@ pub fn build(b: *std.Build) void {
             .flags = cflags,
         });
 
-        imgui.root_module.addCMacro("IMGUI_ENABLE_TEST_ENGINE", "");
-        imgui.root_module.addCMacro("IMGUI_TEST_ENGINE_ENABLE_COROUTINE_STDTHREAD_IMPL", "1");
+        imgui.addCMacro("IMGUI_ENABLE_TEST_ENGINE", "");
+        imgui.addCMacro("IMGUI_TEST_ENGINE_ENABLE_COROUTINE_STDTHREAD_IMPL", "1");
 
         imgui.addIncludePath(b.path("libs/imgui_test_engine/"));
 
@@ -232,6 +217,13 @@ pub fn build(b: *std.Build) void {
                 imgui.addSystemIncludePath(.{
                     .cwd_relative = b.pathJoin(&.{ b.sysroot.?, "include" }),
                 });
+                imgui.addCSourceFiles(.{
+                    .files = &.{
+                        "libs/imgui/backends/imgui_impl_glfw.cpp",
+                        "libs/imgui/backends/imgui_impl_wgpu.cpp",
+                    },
+                    .flags = cflags,
+                });
             } else {
                 if (b.lazyDependency("zglfw", .{})) |zglfw| {
                     imgui.addIncludePath(zglfw.path("libs/glfw/include"));
@@ -239,14 +231,14 @@ pub fn build(b: *std.Build) void {
                 if (b.lazyDependency("zgpu", .{})) |zgpu| {
                     imgui.addIncludePath(zgpu.path("libs/dawn/include"));
                 }
+                imgui.addCSourceFiles(.{
+                    .files = &.{
+                        "libs/imgui/backends/imgui_impl_glfw.cpp",
+                        "libs/imgui/backends/imgui_impl_wgpu.cpp",
+                    },
+                    .flags = &(cflags.* ++ .{"-DIMGUI_IMPL_WEBGPU_BACKEND_WGPU"}),
+                });
             }
-            imgui.addCSourceFiles(.{
-                .files = &.{
-                    "libs/imgui/backends/imgui_impl_glfw.cpp",
-                    "libs/imgui/backends/imgui_impl_wgpu.cpp",
-                },
-                .flags = cflags,
-            });
         },
         .glfw_opengl3 => {
             if (b.lazyDependency("zglfw", .{})) |zglfw| {
@@ -271,7 +263,7 @@ pub fn build(b: *std.Build) void {
                 },
                 .flags = cflags,
             });
-            imgui.linkSystemLibrary("d3dcompiler_47");
+            imgui.linkSystemLibrary("d3dcompiler_47", .{});
         },
         .win32_dx12 => {
             imgui.addCSourceFiles(.{
@@ -281,11 +273,11 @@ pub fn build(b: *std.Build) void {
                 },
                 .flags = cflags,
             });
-            imgui.linkSystemLibrary("d3dcompiler_47");
-            imgui.linkSystemLibrary("dwmapi");
+            imgui.linkSystemLibrary("d3dcompiler_47", .{});
+            imgui.linkSystemLibrary("dwmapi", .{});
             switch (target.result.abi) {
-                .msvc => imgui.linkSystemLibrary("Gdi32"),
-                .gnu => imgui.linkSystemLibrary("gdi32"),
+                .msvc => imgui.linkSystemLibrary("Gdi32", .{}),
+                .gnu => imgui.linkSystemLibrary("gdi32", .{}),
                 else => {},
             }
         },
@@ -327,10 +319,10 @@ pub fn build(b: *std.Build) void {
             });
         },
         .osx_metal => {
-            imgui.linkFramework("Foundation");
-            imgui.linkFramework("Metal");
-            imgui.linkFramework("Cocoa");
-            imgui.linkFramework("QuartzCore");
+            imgui.linkFramework("Foundation", .{});
+            imgui.linkFramework("Metal", .{});
+            imgui.linkFramework("Cocoa", .{});
+            imgui.linkFramework("QuartzCore", .{});
             imgui.addCSourceFiles(.{
                 .files = &.{
                     "libs/imgui/backends/imgui_impl_osx.mm",
@@ -430,7 +422,7 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(tests);
 
     tests.root_module.addImport("zgui_options", options_module);
-    tests.linkLibrary(imgui);
+    tests.root_module.addImport("zgui", imgui);
 
     test_step.dependOn(&b.addRunArtifact(tests).step);
 }

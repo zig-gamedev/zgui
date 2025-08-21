@@ -1782,7 +1782,7 @@ const ImageButton = struct {
 pub fn imageButton(str_id: [:0]const u8, user_texture_id: TextureIdent, args: ImageButton) bool {
     return zguiImageButton(
         str_id,
-        user_texture_id,
+        @intFromPtr(user_texture_id),
         args.w,
         args.h,
         &args.uv0,
@@ -1793,7 +1793,7 @@ pub fn imageButton(str_id: [:0]const u8, user_texture_id: TextureIdent, args: Im
 }
 extern fn zguiImageButton(
     str_id: [*:0]const u8,
-    user_texture_id: TextureIdent,
+    user_texture_id: u64,
     w: f32,
     h: f32,
     uv0: *const [2]f32,

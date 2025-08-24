@@ -9,6 +9,11 @@ pub const gizmo = @import("gizmo.zig");
 pub const node_editor = @import("node_editor.zig");
 pub const te = @import("te.zig");
 
+const cimgui = @cImport({
+    @cDefine("CIMGUI_DEFINE_ENUMS_AND_STRUCTS", "");
+    @cInclude("cimgui.h");
+});
+
 pub const backend = switch (@import("zgui_options").backend) {
     .glfw_wgpu => @import("backend_glfw_wgpu.zig"),
     .glfw_opengl3 => @import("backend_glfw_opengl.zig"),
@@ -35,21 +40,17 @@ pub const f32_min: f32 = 1.17549435082228750796873653722225e-38;
 pub const f32_max: f32 = 3.40282346638528859811704183484517e+38;
 //--------------------------------------------------------------------------------------------------
 pub const DrawIdx = if (@import("zgui_options").use_32bit_draw_idx) u32 else u16;
-pub const DrawVert = extern struct {
-    pos: [2]f32,
-    uv: [2]f32,
-    color: u32,
-};
+pub const DrawVert = cimgui.ImDrawVert;
 //--------------------------------------------------------------------------------------------------
 
 pub fn init(allocator: std.mem.Allocator) void {
-    if (zguiGetCurrentContext() == null) {
+    if (cimgui.igGetCurrentContext() == null) {
         mem_allocator = allocator;
         mem_allocations = std.AutoHashMap(usize, usize).init(allocator);
         mem_allocations.?.ensureTotalCapacity(32) catch @panic("zgui: out of memory");
-        zguiSetAllocatorFunctions(zguiMemAlloc, zguiMemFree);
+        cimgui.igSetAllocatorFunctions(zguiMemAlloc, zguiMemFree, null);
 
-        _ = zguiCreateContext(null);
+        _ = cimgui.igCreateContext(null);
 
         temp_buffer = std.ArrayList(u8).init(allocator);
         temp_buffer.?.resize(3 * 1024 + 1) catch unreachable;
@@ -66,9 +67,9 @@ pub fn initWithExistingContext(allocator: std.mem.Allocator, ctx: Context) void 
     mem_allocator = allocator;
     mem_allocations = std.AutoHashMap(usize, usize).init(allocator);
     mem_allocations.?.ensureTotalCapacity(32) catch @panic("zgui: out of memory");
-    zguiSetAllocatorFunctions(zguiMemAlloc, zguiMemFree);
+    cimgui.igSetAllocatorFunctions(zguiMemAlloc, zguiMemFree);
 
-    zguiSetCurrentContext(ctx);
+    cimgui.igSetCurrentContext(ctx);
 
     temp_buffer = std.ArrayList(u8).init(allocator);
     temp_buffer.?.resize(3 * 1024 + 1) catch unreachable;
@@ -78,12 +79,13 @@ pub fn initWithExistingContext(allocator: std.mem.Allocator, ctx: Context) void 
     }
 }
 pub fn getCurrentContext() ?Context {
-    return zguiGetCurrentContext();
+    return cimgui.iggetcurrentcontext();
 }
 pub fn deinit() void {
-    if (zguiGetCurrentContext() != null) {
+    
+    if (cimgui.igGetCurrentContext() != null) {
         temp_buffer.?.deinit();
-        zguiDestroyContext(null);
+        cimgui.igDestroyContext(null);
 
         // Must be after destroy imgui context.
         // And before allocation check
@@ -122,10 +124,6 @@ pub fn deinitNoContext() void {
         buf.deinit();
     }
 }
-extern fn zguiCreateContext(shared_font_atlas: ?*const anyopaque) Context;
-extern fn zguiDestroyContext(ctx: ?Context) void;
-extern fn zguiGetCurrentContext() ?Context;
-extern fn zguiSetCurrentContext(ctx: ?Context) void;
 //--------------------------------------------------------------------------------------------------
 var mem_allocator: ?std.mem.Allocator = null;
 var mem_allocations: ?std.AutoHashMap(usize, usize) = null;
@@ -162,10 +160,6 @@ fn zguiMemFree(maybe_ptr: ?*anyopaque, _: ?*anyopaque) callconv(.C) void {
     }
 }
 
-extern fn zguiSetAllocatorFunctions(
-    alloc_func: ?*const fn (usize, ?*anyopaque) callconv(.C) ?*anyopaque,
-    free_func: ?*const fn (?*anyopaque, ?*anyopaque) callconv(.C) void,
-) void;
 //--------------------------------------------------------------------------------------------------
 pub const ConfigFlags = packed struct(c_int) {
     nav_enable_keyboard: bool = false,
@@ -201,44 +195,18 @@ pub const FontBuilderFlags = packed struct(c_uint) {
     _padding: u22 = 0,
 };
 
-pub const FontConfig = extern struct {
-    font_data: ?*anyopaque,
-    font_data_size: c_int,
-    font_data_owned_by_atlas: bool,
-    merge_mode: bool,
-    pixel_snap_h: bool,
-    font_no: c_int,
-    oversample_h: c_int,
-    oversample_v: c_int,
-    size_pixels: f32,
-    glyph_extra_spacing: [2]f32,
-    glyph_offset: [2]f32,
-    glyph_ranges: [*c]u16,
-    glyph_min_advance_x: f32,
-    glyph_max_advance_x: f32,
-    font_builder_flags: FontBuilderFlags,
-    rasterizer_multiply: f32,
-    rasterizer_density: f32,
-    ellipsis_char: Wchar,
-    name: [40]u8,
-    dst_font: *Font,
-
-    pub fn init() FontConfig {
-        return zguiFontConfig_Init();
-    }
-    extern fn zguiFontConfig_Init() FontConfig;
-};
+pub const FontConfig = cimgui.ImFontConfig();
 
 pub const io = struct {
     pub fn addFontDefault(config: ?FontConfig) Font {
-        return zguiIoAddFontDefault(if (config) |c| &c else null);
+        const fonts = cimgui.igGetIO_Nil().*.Fonts;
+        return cimgui.ImFontAtlas_AddFontDefault(fonts, config);
     }
-    extern fn zguiIoAddFontDefault(config: ?*const FontConfig) Font;
 
     pub fn addFontFromFile(filename: [:0]const u8, size_pixels: f32) Font {
-        return zguiIoAddFontFromFile(filename, size_pixels);
+        const fonts = cimgui.igGetIO_Nil().*.Fonts;
+        return cimgui.ImFontAtlas_AddFontFromFileTTF(fonts, filename, size_pixels, null, null);
     }
-    extern fn zguiIoAddFontFromFile(filename: [*:0]const u8, size_pixels: f32) Font;
 
     pub fn addFontFromFileWithConfig(
         filename: [:0]const u8,
@@ -246,14 +214,9 @@ pub const io = struct {
         config: ?FontConfig,
         ranges: ?[*]const Wchar,
     ) Font {
-        return zguiIoAddFontFromFileWithConfig(filename, size_pixels, if (config) |c| &c else null, ranges);
+        const fonts = cimgui.igGetIO_Nil().*.Fonts;
+        return cimgui.ImFontAtlas_AddFontFromFileTTF(fonts, filename, size_pixels, config, ranges);
     }
-    extern fn zguiIoAddFontFromFileWithConfig(
-        filename: [*:0]const u8,
-        size_pixels: f32,
-        config: ?*const FontConfig,
-        ranges: ?[*]const Wchar,
-    ) Font;
 
     pub fn addFontFromMemory(fontdata: []const u8, size_pixels: f32) Font {
         return zguiIoAddFontFromMemory(fontdata.ptr, @intCast(fontdata.len), size_pixels);
@@ -291,21 +254,23 @@ pub const io = struct {
     pub const setDefaultFont = zguiIoSetDefaultFont;
     extern fn zguiIoSetDefaultFont(font: Font) void;
 
-    pub fn getFontsTextDataAsRgba32() struct {
-        width: i32,
-        height: i32,
-        pixels: ?[*]const u32,
-    } {
-        var width: i32 = undefined;
-        var height: i32 = undefined;
-        const ptr = zguiIoGetFontsTexDataAsRgba32(&width, &height);
-        return .{
-            .width = width,
-            .height = height,
-            .pixels = ptr,
-        };
-    }
-    extern fn zguiIoGetFontsTexDataAsRgba32(width: *c_int, height: *c_int) [*c]const u32;
+
+    //TODO <tonitch>:  Function not in imgui since 1.92.0
+    // pub fn getFontsTextDataAsRgba32() struct {
+    //     width: i32,
+    //     height: i32,
+    //     pixels: ?[*]const u32,
+    // } {
+    //     var width: i32 = undefined;
+    //     var height: i32 = undefined;
+    //     const ptr = zguiIoGetFontsTexDataAsRgba32(&width, &height);
+    //     return .{
+    //         .width = width,
+    //         .height = height,
+    //         .pixels = ptr,
+    //     };
+    // }
+
 
     /// `pub fn setFontsTexId(id:TextureIdent) set the backend Id for the fonts atlas
     pub const setFontsTexId = zguiIoSetFontsTexId;
@@ -361,13 +326,17 @@ pub const io = struct {
     extern fn zguiIoFramerate() f32;
 
     pub fn setIniFilename(filename: ?[*:0]const u8) void {
-        zguiIoSetIniFilename(filename);
+        var IO = cimgui.igGetIO_Nil().*;
+        IO.IniFilename = filename;
     }
     extern fn zguiIoSetIniFilename(filename: ?[*:0]const u8) void;
 
     /// `pub fn setDisplaySize(width: f32, height: f32) void`
-    pub const setDisplaySize = zguiIoSetDisplaySize;
-    extern fn zguiIoSetDisplaySize(width: f32, height: f32) void;
+    pub fn setDisplaySize(width: f32, height: f32) void{
+        var IO = cimgui.igGetIO_Nil().*;
+        IO.DisplaySize.x = width;
+        IO.DisplaySize.y = height;
+    }
 
     pub fn getDisplaySize() [2]f32 {
         var size: [2]f32 = undefined;
@@ -701,39 +670,32 @@ pub const Condition = enum(c_int) {
 //
 //--------------------------------------------------------------------------------------------------
 /// `pub fn newFrame() void`
-pub const newFrame = zguiNewFrame;
-extern fn zguiNewFrame() void;
+pub const newFrame = cimgui.igNewFrame;
 /// `pub fn endFrame() void`
-pub const endFrame = zguiEndFrame;
-extern fn zguiEndFrame() void;
+pub const endFrame = cimgui.igEndFrame;
 //--------------------------------------------------------------------------------------------------
 /// `pub fn render() void`
-pub const render = zguiRender;
-extern fn zguiRender() void;
+pub const render = cimgui.igRender;
 //--------------------------------------------------------------------------------------------------
 /// `pub fn getDrawData() DrawData`
-pub const getDrawData = zguiGetDrawData;
-extern fn zguiGetDrawData() DrawData;
+pub const getDrawData = cimgui.igGetDrawData;
 //--------------------------------------------------------------------------------------------------
 //
 // Demo, Debug, Information
 //
 //--------------------------------------------------------------------------------------------------
 /// `pub fn showDemoWindow(popen: ?*bool) void`
-pub const showDemoWindow = zguiShowDemoWindow;
-extern fn zguiShowDemoWindow(popen: ?*bool) void;
+pub const showDemoWindow = cimgui.igShowDemoWindow;
 
-pub const showMetricsWindow = zguiShowMetricsWindow;
-extern fn zguiShowMetricsWindow(popen: ?*bool) void;
+pub const showMetricsWindow = cimgui.igShowMetricsWindow;
 //--------------------------------------------------------------------------------------------------
 //
 // Windows
 //
 //--------------------------------------------------------------------------------------------------
 pub fn setNextWindowViewport(viewport_id: Ident) void {
-    zguiSetNextWindowViewport(viewport_id);
+    cimgui.igSetNextWindowViewport(viewport_id);
 }
-extern fn zguiSetNextWindowViewport(viewport_id: Ident) void;
 //--------------------------------------------------------------------------------------------------
 const SetNextWindowPos = struct {
     x: f32,
@@ -743,9 +705,8 @@ const SetNextWindowPos = struct {
     pivot_y: f32 = 0.0,
 };
 pub fn setNextWindowPos(args: SetNextWindowPos) void {
-    zguiSetNextWindowPos(args.x, args.y, args.cond, args.pivot_x, args.pivot_y);
+    cimgui.igSetNextWindowPos(.{.x = args.x, .y = args.y}, args.cond, .{.x = args.pivot_x, .y = args.pivot_y});
 }
-extern fn zguiSetNextWindowPos(x: f32, y: f32, cond: Condition, pivot_x: f32, pivot_y: f32) void;
 //--------------------------------------------------------------------------------------------------
 const SetNextWindowSize = struct {
     w: f32,
@@ -808,12 +769,11 @@ const Begin = struct {
     flags: WindowFlags = .{},
 };
 pub fn begin(name: [:0]const u8, args: Begin) bool {
-    return zguiBegin(name, args.popen, args.flags);
+    return cimgui.igBegin(name, args.popen, @bitCast(args.flags));
 }
 /// `pub fn end() void`
-pub const end = zguiEnd;
+pub const end = cimgui.igEnd;
 extern fn zguiBegin(name: [*:0]const u8, popen: ?*bool, flags: WindowFlags) bool;
-extern fn zguiEnd() void;
 //--------------------------------------------------------------------------------------------------
 const BeginChild = struct {
     w: f32 = 0.0,
@@ -1923,7 +1883,7 @@ pub fn combo(label: [:0]const u8, args: struct {
     items_separated_by_zeros: [:0]const u8,
     popup_max_height_in_items: i32 = -1,
 }) bool {
-    return zguiCombo(
+    return cimgui.igCombo_Str(
         label,
         args.current_item,
         args.items_separated_by_zeros,
@@ -1986,12 +1946,12 @@ pub fn comboFromEnum(
 
     return result;
 }
-extern fn zguiCombo(
-    label: [*:0]const u8,
-    current_item: *c_int,
-    items_separated_by_zeros: [*:0]const u8,
-    popup_max_height_in_items: c_int,
-) bool;
+// extern fn zguiCombo(
+//     label: [*:0]const u8,
+//     current_item: *c_int,
+//     items_separated_by_zeros: [*:0]const u8,
+//     popup_max_height_in_items: c_int,
+// ) bool;
 //--------------------------------------------------------------------------------------------------
 pub const ComboFlags = packed struct(c_int) {
     popup_align_left: bool = false,
@@ -5122,7 +5082,7 @@ test {
 
     io.setIniFilename(null);
 
-    _ = io.getFontsTextDataAsRgba32();
+    // _ = io.getFontsTextDataAsRgba32();
 
     io.setDisplaySize(1, 1);
 

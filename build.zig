@@ -73,7 +73,7 @@ pub fn build(b: *std.Build) void {
 
     const options_module = options_step.createModule();
 
-    _ = b.addModule("root", .{
+    const root = b.addModule("root", .{
         .root_source_file = b.path("src/gui.zig"),
         .imports = &.{
             .{ .name = "zgui_options", .module = options_module },
@@ -143,9 +143,12 @@ pub fn build(b: *std.Build) void {
     cimgui.addCSourceFile(.{
         .file = cimgui_dep.path("cimgui.cpp"),
     });
-    cimgui.installHeadersDirectory(cimgui_dep.path(""), "", .{});
+    cimgui.addIncludePath(cimgui_dep.path(""));
+    root.addIncludePath(cimgui_dep.path(""));
 
-    // b.installArtifact(cimgui);
+    b.installArtifact(cimgui);
+    b.installArtifact(imgui);
+    
 
     if (options.with_freetype) {
         if (b.lazyDependency("freetype", .{})) |freetype| {

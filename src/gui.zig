@@ -198,8 +198,10 @@ pub const FontBuilderFlags = packed struct(c_uint) {
 pub const FontConfig = cimgui.ImFontConfig();
 
 pub const io = struct {
+    pub const GetIO = cimgui.igGetIO_Nil;
+
     pub fn addFontDefault(config: ?FontConfig) Font {
-        const fonts = cimgui.igGetIO_Nil().*.Fonts;
+        const fonts = GetIO().*.Fonts;
         return cimgui.ImFontAtlas_AddFontDefault(fonts, config);
     }
 
@@ -219,9 +221,16 @@ pub const io = struct {
     }
 
     pub fn addFontFromMemory(fontdata: []const u8, size_pixels: f32) Font {
-        return zguiIoAddFontFromMemory(fontdata.ptr, @intCast(fontdata.len), size_pixels);
+        const config = cimgui.ImFontConfig_ImFontConfig();
+        config.*.FontDataOwnedByAtlas = false;
+
+        return cimgui.ImFontAtlas_AddFontFromMemoryTTF(
+            GetIO().*.Fonts.*,
+            fontdata.ptr, @intCast(fontdata.len),
+            size_pixels,
+            &config,
+            null);
     }
-    extern fn zguiIoAddFontFromMemory(font_data: *const anyopaque, font_size: c_int, size_pixels: f32) Font;
 
     pub fn addFontFromMemoryWithConfig(
         fontdata: []const u8,
@@ -229,30 +238,22 @@ pub const io = struct {
         config: ?FontConfig,
         ranges: ?[*]const Wchar,
     ) Font {
-        return zguiIoAddFontFromMemoryWithConfig(
-            fontdata.ptr,
-            @intCast(fontdata.len),
+        return cimgui.ImFontAtlas_AddFontFromMemoryTTF(
+            GetIO().*.Fonts.*,
+            fontdata.ptr, @intCast(fontdata.len),
             size_pixels,
             if (config) |c| &c else null,
             ranges,
         );
     }
-    extern fn zguiIoAddFontFromMemoryWithConfig(
-        font_data: *const anyopaque,
-        font_size: c_int,
-        size_pixels: f32,
-        config: ?*const FontConfig,
-        ranges: ?[*]const Wchar,
-    ) Font;
 
     pub fn getFont(index: u32) Font {
-        return zguiIoGetFont(index);
+        return GetIO().*.Fonts.*.Fonts.Data[index];
     }
-    extern fn zguiIoGetFont(index: c_uint) Font;
 
-    /// `pub fn setDefaultFont(font: Font) void`
-    pub const setDefaultFont = zguiIoSetDefaultFont;
-    extern fn zguiIoSetDefaultFont(font: Font) void;
+    pub fn setDefaultFont(font: Font) void{
+        GetIO().*.FontDefault = font;
+    }
 
 
     //TODO <tonitch>:  Function not in imgui since 1.92.0
@@ -272,145 +273,137 @@ pub const io = struct {
     // }
 
 
+    // TODO <tonitch>: can't find equivalent to ImGui::GetIO().Fonts->TexID = id;
     /// `pub fn setFontsTexId(id:TextureIdent) set the backend Id for the fonts atlas
-    pub const setFontsTexId = zguiIoSetFontsTexId;
-    extern fn zguiIoSetFontsTexId(id: TextureIdent) void;
+    // pub const setFontsTexId = zguiIoSetFontsTexId;
+    //
+    // pub const getFontsTexId = zguiIoGetFontsTexId;
 
-    pub const getFontsTexId = zguiIoGetFontsTexId;
-    extern fn zguiIoGetFontsTexId() TextureIdent;
+    pub fn getGlyphRangesDefault() [*]const Wchar{
+        return cimgui.ImFontAtlas_GetGlyphRangesDefault(GetIO().*.Fonts.*);
+    }
 
-    pub const getGlyphRangesDefault = zguiIoGetGlyphRangesDefault;
-    extern fn zguiIoGetGlyphRangesDefault() [*]const Wchar;
+    // those functions are Obsolete since 1.92
+    // pub const getGlyphRangesGreek = zguiIoGetGlyphRangesGreek;
+    // pub fn getGlyphRangesGreek() [*]const Wchar;
+    //
+    // pub const getGlyphRangesKorean = zguiIoGetGlyphRangesKorean;
+    // extern fn zguiIoGetGlyphRangesKorean() [*]const Wchar;
+    //
+    // pub const getGlyphRangesJapanese = zguiIoGetGlyphRangesJapanese;
+    // extern fn zguiIoGetGlyphRangesJapanese() [*]const Wchar;
+    //
+    // pub const getGlyphRangesChineseFull = zguiIoGetGlyphRangesChineseFull;
+    // extern fn zguiIoGetGlyphRangesChineseFull() [*]const Wchar;
+    //
+    // pub const getGlyphRangesChineseSimplifiedCommon = zguiIoGetGlyphRangesChineseSimplifiedCommon;
+    // extern fn zguiIoGetGlyphRangesChineseSimplifiedCommon() [*]const Wchar;
+    //
+    // pub const getGlyphRangesCyrillic = zguiIoGetGlyphRangesCyrillic;
+    // extern fn zguiIoGetGlyphRangesCyrillic() [*]const Wchar;
+    //
+    // pub const getGlyphRangesThai = zguiIoGetGlyphRangesThai;
+    // extern fn zguiIoGetGlyphRangesThai() [*]const Wchar;
+    //
+    // pub const getGlyphRangesVietnamese = zguiIoGetGlyphRangesVietnamese;
+    // extern fn zguiIoGetGlyphRangesVietnamese() [*]const Wchar;
+    
+    pub fn setConfigWindowsMoveFromTitleBarOnly(enabled: bool) void{
+        var IO = GetIO().*;
+        IO.ConfigWindowsMoveFromTitleBarOnly = enabled;
+    }
 
-    pub const getGlyphRangesGreek = zguiIoGetGlyphRangesGreek;
-    extern fn zguiIoGetGlyphRangesGreek() [*]const Wchar;
+    pub fn getWantCaptureMouse() bool{
+        return GetIO().*.WantCaptureMouse;
+    }
 
-    pub const getGlyphRangesKorean = zguiIoGetGlyphRangesKorean;
-    extern fn zguiIoGetGlyphRangesKorean() [*]const Wchar;
+    pub fn getWantCaptureKeyboard() bool{
+        return GetIO().*.WantCaptureKeyboard;
+    }
 
-    pub const getGlyphRangesJapanese = zguiIoGetGlyphRangesJapanese;
-    extern fn zguiIoGetGlyphRangesJapanese() [*]const Wchar;
+    pub fn getWantTextInput() bool{
+        return GetIO().*.WantTextInput;
+    }
 
-    pub const getGlyphRangesChineseFull = zguiIoGetGlyphRangesChineseFull;
-    extern fn zguiIoGetGlyphRangesChineseFull() [*]const Wchar;
-
-    pub const getGlyphRangesChineseSimplifiedCommon = zguiIoGetGlyphRangesChineseSimplifiedCommon;
-    extern fn zguiIoGetGlyphRangesChineseSimplifiedCommon() [*]const Wchar;
-
-    pub const getGlyphRangesCyrillic = zguiIoGetGlyphRangesCyrillic;
-    extern fn zguiIoGetGlyphRangesCyrillic() [*]const Wchar;
-
-    pub const getGlyphRangesThai = zguiIoGetGlyphRangesThai;
-    extern fn zguiIoGetGlyphRangesThai() [*]const Wchar;
-
-    pub const getGlyphRangesVietnamese = zguiIoGetGlyphRangesVietnamese;
-    extern fn zguiIoGetGlyphRangesVietnamese() [*]const Wchar;
-
-    /// `pub fn zguiIoSetConfigWindowsMoveFromTitleBarOnly(bool) void`
-    pub const setConfigWindowsMoveFromTitleBarOnly = zguiIoSetConfigWindowsMoveFromTitleBarOnly;
-    extern fn zguiIoSetConfigWindowsMoveFromTitleBarOnly(enabled: bool) void;
-
-    /// `pub fn zguiIoGetWantCaptureMouse() bool`
-    pub const getWantCaptureMouse = zguiIoGetWantCaptureMouse;
-    extern fn zguiIoGetWantCaptureMouse() bool;
-
-    /// `pub fn zguiIoGetWantCaptureKeyboard() bool`
-    pub const getWantCaptureKeyboard = zguiIoGetWantCaptureKeyboard;
-    extern fn zguiIoGetWantCaptureKeyboard() bool;
-
-    /// `pub fn zguiIoGetWantTextInput() bool`
-    pub const getWantTextInput = zguiIoGetWantTextInput;
-    extern fn zguiIoGetWantTextInput() bool;
-
-    pub const getFramerate = zguiIoFramerate;
-    extern fn zguiIoFramerate() f32;
+    pub fn getFramerate() bool{
+        return GetIO().*.Framerate;
+    }
 
     pub fn setIniFilename(filename: ?[*:0]const u8) void {
-        var IO = cimgui.igGetIO_Nil().*;
+        var IO = GetIO().*;
         IO.IniFilename = filename;
     }
-    extern fn zguiIoSetIniFilename(filename: ?[*:0]const u8) void;
 
-    /// `pub fn setDisplaySize(width: f32, height: f32) void`
     pub fn setDisplaySize(width: f32, height: f32) void{
-        var IO = cimgui.igGetIO_Nil().*;
-        IO.DisplaySize.x = width;
-        IO.DisplaySize.y = height;
+        var IO = GetIO().*;
+        IO.DisplaySize = .{.x = width, .y = height};
     }
 
     pub fn getDisplaySize() [2]f32 {
-        var size: [2]f32 = undefined;
-        zguiIoGetDisplaySize(&size);
-        return size;
+        return @bitCast(GetIO().*.DisplaySize);
     }
-    extern fn zguiIoGetDisplaySize(size: *[2]f32) void;
 
     pub fn setDisplayFramebufferScale(sx: f32, sy: f32) void{
-        const IO = cimgui.igGetIO_Nil();
-        IO.*.DisplayFramebufferScale = .{.x = sx, .y = sy};
+        var IO = GetIO().*;
+        IO.DisplayFramebufferScale = .{.x = sx, .y = sy};
     }
 
-    /// `pub fn setConfigFlags(flags: ConfigFlags) void`
-    pub const setConfigFlags = zguiIoSetConfigFlags;
-    extern fn zguiIoSetConfigFlags(flags: ConfigFlags) void;
+    pub fn setConfigFlags(flags: ConfigFlags) void{
+        var IO = GetIO().*;
+        IO.ConfigFlags = flags;
+    }
 
-    /// `pub fn setDeltaTime(delta_time: f32) void`
-    pub const setDeltaTime = zguiIoSetDeltaTime;
-    extern fn zguiIoSetDeltaTime(delta_time: f32) void;
+    pub fn setDeltaTime(delta_time: f32) void{
+        var IO = GetIO().*;
+        IO.DeltaTime = delta_time;
+    }
 
-    pub const addFocusEvent = zguiIoAddFocusEvent;
-    extern fn zguiIoAddFocusEvent(focused: bool) void;
+    pub fn addFocusEvent(focused: bool) void{
+        cimgui.ImGuiIO_AddFocusEvent(GetIO(), focused);
+    }
 
-    pub const addMousePositionEvent = zguiIoAddMousePositionEvent;
-    extern fn zguiIoAddMousePositionEvent(x: f32, y: f32) void;
+    pub fn addMousePositionEvent(x: f32, y: f32) void{
+        cimgui.ImGuiIO_AddMousePosEvent(GetIO(), x, y);
+    }
 
-    pub const addMouseButtonEvent = zguiIoAddMouseButtonEvent;
-    extern fn zguiIoAddMouseButtonEvent(button: MouseButton, down: bool) void;
+    pub fn addMouseButtonEvent(btn: MouseButton, down: bool) void{
+        cimgui.ImGuiIO_AddMouseButtonEvent(GetIO(), btn, down);
+    }
 
-    pub const addMouseWheelEvent = zguiIoAddMouseWheelEvent;
-    extern fn zguiIoAddMouseWheelEvent(x: f32, y: f32) void;
+    pub fn addMouseWheelEvent(x: f32, y: f32) void{
+        cimgui.ImGuiIO_AddMouseWheelEvent(GetIO(), x, y);
+    }
 
-    pub const addKeyEvent = zguiIoAddKeyEvent;
-    extern fn zguiIoAddKeyEvent(key: Key, down: bool) void;
+    pub fn addKeyEvent(key: Key, down: bool) void{
+        cimgui.ImGuiIO_AddKeyEvent(GetIO(), key, down);
+    }
 
-    pub const addInputCharactersUTF8 = zguiIoAddInputCharactersUTF8;
-    extern fn zguiIoAddInputCharactersUTF8(utf8_chars: ?[*:0]const u8) void;
+    pub fn addInputCharactersUTF8(utf8_chars: ?[*:0]const u8) void{
+        cimgui.ImGuiIO_AddInputCharactersUTF8(GetIO(), utf8_chars);
+    }
 
     pub fn setKeyEventNativeData(key: Key, keycode: i32, scancode: i32) void {
-        zguiIoSetKeyEventNativeData(key, keycode, scancode);
+        cimgui.ImGuiIO_SetKeyEventNativeData(GetIO(), key, keycode, scancode);
     }
-    extern fn zguiIoSetKeyEventNativeData(key: Key, keycode: c_int, scancode: c_int) void;
 
     pub fn addCharacterEvent(char: i32) void {
-        zguiIoAddCharacterEvent(char);
+        cimgui.ImGuiIO_AddInputCharacter(GetIO(), char);
     }
-    extern fn zguiIoAddCharacterEvent(char: c_int) void;
 };
 
 pub fn setClipboardText(value: [:0]const u8) void {
-    zguiSetClipboardText(value.ptr);
+    cimgui.igSetClipboardText(value);
 }
 pub fn getClipboardText() [:0]const u8 {
-    const value = zguiGetClipboardText();
+    const value = cimgui.igGetClipboardText();
     return std.mem.span(value);
 }
-extern fn zguiSetClipboardText(text: [*:0]const u8) void;
-extern fn zguiGetClipboardText() [*:0]const u8;
 //--------------------------------------------------------------------------------------------------
 pub const Context = *opaque {};
-pub const DrawData = *extern struct {
-    valid: bool,
-    cmd_lists_count: c_int,
-    total_idx_count: c_int,
-    total_vtx_count: c_int,
-    cmd_lists: Vector(DrawList),
-    display_pos: [2]f32,
-    display_size: [2]f32,
-    framebuffer_scale: [2]f32,
-};
-pub const Font = *opaque {};
+pub const DrawData = *cimgui.ImDrawData;
+pub const Font = *cimgui.ImFont;
 pub const Ident = u32;
-pub const TextureIdent = *anyopaque;
+pub const TextureIdent = cimgui.ImTextureID; //TODO <tonitch>: not sure, was *anyopaque
 pub const Wchar = if (@import("zgui_options").use_wchar32) u32 else u16;
 pub const Key = enum(c_int) {
     none = 0,
@@ -709,61 +702,51 @@ pub fn setNextWindowPos(args: SetNextWindowPos) void {
     cimgui.igSetNextWindowPos(.{.x = args.x, .y = args.y}, args.cond, .{.x = args.pivot_x, .y = args.pivot_y});
 }
 //--------------------------------------------------------------------------------------------------
-const SetNextWindowSize = struct {
-    w: f32,
-    h: f32,
-    cond: Condition = .none,
-};
-pub fn setNextWindowSize(args: SetNextWindowSize) void {
-    zguiSetNextWindowSize(args.w, args.h, args.cond);
-}
-extern fn zguiSetNextWindowSize(w: f32, h: f32, cond: Condition) void;
+// fn igSetNextWindowSize(size: ImVec2, cond: ImGuiCond) void
+pub const setNextWindowSize = cimgui.igSetNextWindowSize;
 //--------------------------------------------------------------------------------------------------
-extern fn zguiSetNextWindowContentSize(w: f32, h: f32) void;
-pub const setNextWindowContentSize = zguiSetNextWindowContentSize;
+//
+// fn igSetNextWindowContentSize(size: ImVec2) void;
+pub const setNextWindowContentSize = cimgui.igSetNextWindowContentSize;
 //--------------------------------------------------------------------------------------------------
 const SetNextWindowCollapsed = struct {
     collapsed: bool,
     cond: Condition = .none,
 };
-pub fn setNextWindowCollapsed(args: SetNextWindowCollapsed) void {
-    zguiSetNextWindowCollapsed(args.collapsed, args.cond);
-}
-extern fn zguiSetNextWindowCollapsed(collapsed: bool, cond: Condition) void;
+// fn igSetNextWindowCollapsed(collapsed: bool, cond: ImGuiCond) void;
+pub const setNextWindowCollapsed = cimgui.igSetNextWindowCollapsed;
+
 //--------------------------------------------------------------------------------------------------
-/// `pub fn setNextWindowFocus() void`
-pub const setNextWindowFocus = zguiSetNextWindowFocus;
-extern fn zguiSetNextWindowFocus() void;
+// fn igSetNextWindowFocus() void;
+pub const setNextWindowFocus = cimgui.igSetNextWindowFocus;
 //--------------------------------------------------------------------------------------------------
-extern fn zguiSetNextWindowScroll(scroll_x: f32, scroll_y: f32) void;
-pub const setNextWindowScroll = zguiSetNextWindowScroll;
+// fn igSetNextWindowScroll(scroll: ImVec2) void;
+pub const setNextWindowScroll = cimgui.igSetNextWindowScroll;
 //--------------------------------------------------------------------------------------------------
-const SetNextWindowBgAlpha = struct {
-    alpha: f32,
-};
-pub fn setNextWindowBgAlpha(args: SetNextWindowBgAlpha) void {
-    zguiSetNextWindowBgAlpha(args.alpha);
-}
-extern fn zguiSetNextWindowBgAlpha(alpha: f32) void;
+// fn igSetNextWindowBgAlpha(alpha: f32) void;
+pub const setNextWindowBgAlpha = cimgui.igSetNextWindowBgAlpha;
 //--------------------------------------------------------------------------------------------------
 pub fn setWindowFocus(name: ?[:0]const u8) void {
-    zguiSetWindowFocus(name orelse null);
+    if(name) |n|{
+        cimgui.igSetWindowFocus_Str(n);
+    }else{
+        cimgui.igSetWindowFocus_Nil();
+    }
 }
-extern fn zguiSetWindowFocus(name: ?[*:0]const u8) void;
 //-------------------------------------------------------------------------------------------------
-extern fn zguiSetWindowFontScale(scale: f32) void;
-pub const setWindowFontScale = zguiSetWindowFontScale;
+// TODO <tonitch>: depreciated
+// extern fn zguiSetWindowFontScale(scale: f32) void;
+// pub const setWindowFontScale = zguiSetWindowFontScale;
 //-------------------------------------------------------------------------------------------------
-pub fn setKeyboardFocusHere(offset: i32) void {
-    zguiSetKeyboardFocusHere(offset);
-}
-extern fn zguiSetKeyboardFocusHere(offset: c_int) void;
 
-extern fn zguiSetNavCursorVisible(visible: bool) void;
-pub const setNavCursorVisible = zguiSetNavCursorVisible;
+// fn igSetKeyboardFocusHere(offset: c_int) void;
+pub const setKeyboardFocusHere = cimgui.igSetKeyboardFocusHere; 
 
-extern fn zguiSetNextItemAllowOverlap() void;
-pub const setNextItemAllowOverlap = zguiSetNextItemAllowOverlap;
+// fn igSetNavCursorVisible(visible: bool) void;
+pub const setNavCursorVisible = cimgui.igSetNavCursorVisible;
+
+// fn igSetNextItemAllowOverlap() void;
+pub const setNextItemAllowOverlap = cimgui.igSetNextItemAllowOverlap;
 //--------------------------------------------------------------------------------------------------
 const Begin = struct {
     popen: ?*bool = null,

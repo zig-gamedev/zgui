@@ -9,7 +9,7 @@ pub const gizmo = @import("gizmo.zig");
 pub const node_editor = @import("node_editor.zig");
 pub const te = @import("te.zig");
 
-const cimgui = @cImport({
+pub const cimgui = @cImport({
     @cDefine("CIMGUI_DEFINE_ENUMS_AND_STRUCTS", "");
     @cInclude("cimgui.h");
 });
@@ -345,9 +345,10 @@ pub const io = struct {
     }
     extern fn zguiIoGetDisplaySize(size: *[2]f32) void;
 
-    /// `pub fn setDisplayFramebufferScale(sx: f32, sy: f32) void`
-    pub const setDisplayFramebufferScale = zguiIoSetDisplayFramebufferScale;
-    extern fn zguiIoSetDisplayFramebufferScale(sx: f32, sy: f32) void;
+    pub fn setDisplayFramebufferScale(sx: f32, sy: f32) void{
+        const IO = cimgui.igGetIO_Nil();
+        IO.*.DisplayFramebufferScale = .{.x = sx, .y = sy};
+    }
 
     /// `pub fn setConfigFlags(flags: ConfigFlags) void`
     pub const setConfigFlags = zguiIoSetConfigFlags;
@@ -1609,7 +1610,7 @@ extern fn zguiGetPtrId(ptr_id: *const anyopaque) Ident;
 //
 //--------------------------------------------------------------------------------------------------
 pub fn textUnformatted(txt: []const u8) void {
-    zguiTextUnformatted(txt.ptr, txt.ptr + txt.len);
+    cimgui.igTextUnformatted(txt.ptr, txt.ptr + txt.len);
 }
 pub fn textUnformattedColored(color: [4]f32, txt: []const u8) void {
     pushStyleColor4f(.{ .idx = .text, .c = color });
@@ -1619,14 +1620,13 @@ pub fn textUnformattedColored(color: [4]f32, txt: []const u8) void {
 //--------------------------------------------------------------------------------------------------
 pub fn text(comptime fmt: []const u8, args: anytype) void {
     const result = format(fmt, args);
-    zguiTextUnformatted(result.ptr, result.ptr + result.len);
+    cimgui.igTextUnformatted(result.ptr, result.ptr + result.len);
 }
 pub fn textColored(color: [4]f32, comptime fmt: []const u8, args: anytype) void {
     pushStyleColor4f(.{ .idx = .text, .c = color });
     text(fmt, args);
     popStyleColor(.{});
 }
-extern fn zguiTextUnformatted(txt: [*]const u8, txt_end: [*]const u8) void;
 //--------------------------------------------------------------------------------------------------
 pub fn textDisabled(comptime fmt: []const u8, args: anytype) void {
     zguiTextDisabled("%s", formatZ(fmt, args).ptr);

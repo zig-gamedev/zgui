@@ -85,6 +85,7 @@ pub fn build(b: *std.Build) void {
         "-Wno-elaborated-enum-base",
         "-Wno-error=date-time",
         if (options.use_32bit_draw_idx) "-DIMGUI_USE_32BIT_DRAW_INDEX" else "",
+        "-DIMGUI_IMPL_API=extern \"C\" ",
     };
 
     const objcflags = &.{
@@ -117,7 +118,6 @@ pub fn build(b: *std.Build) void {
             "imgui_tables.cpp",
             "imgui_draw.cpp",
             "imgui_demo.cpp",
-            //TODO <tonitch>: add the backend from option
         },
         .flags = cflags,
     });

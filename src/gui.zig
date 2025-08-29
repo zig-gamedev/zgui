@@ -403,6 +403,7 @@ pub const Context = *opaque {};
 pub const DrawData = *cimgui.ImDrawData;
 pub const Font = *cimgui.ImFont;
 pub const Ident = u32;
+pub const Vec2 = cimgui.ImVec2;
 pub const TextureIdent = cimgui.ImTextureID; //TODO <tonitch>: not sure, was *anyopaque
 pub const Wchar = if (@import("zgui_options").use_wchar32) u32 else u16;
 pub const Key = enum(c_int) {
@@ -755,9 +756,7 @@ const Begin = struct {
 pub fn begin(name: [:0]const u8, args: Begin) bool {
     return cimgui.igBegin(name, args.popen, @bitCast(args.flags));
 }
-/// `pub fn end() void`
 pub const end = cimgui.igEnd;
-extern fn zguiBegin(name: [*:0]const u8, popen: ?*bool, flags: WindowFlags) bool;
 //--------------------------------------------------------------------------------------------------
 const BeginChild = struct {
     w: f32 = 0.0,
@@ -766,65 +765,24 @@ const BeginChild = struct {
     window_flags: WindowFlags = .{},
 };
 pub fn beginChild(str_id: [:0]const u8, args: BeginChild) bool {
-    return zguiBeginChild(str_id, args.w, args.h, args.child_flags, args.window_flags);
+    return cimgui.igBeginChild_Str(str_id, .{args.w, args.h}, @bitCast(args.child_flags), @bitCast(args.window_flags));
 }
 pub fn beginChildId(id: Ident, args: BeginChild) bool {
-    return zguiBeginChildId(id, args.w, args.h, args.child_flags, args.window_flags);
+    return cimgui.igBeginChild_ID(id, .{args.w, args.h}, @bitCast(args.child_flags), @bitCast(args.window_flags));
 }
-/// `pub fn endChild() void`
-pub const endChild = zguiEndChild;
-extern fn zguiBeginChild(str_id: [*:0]const u8, w: f32, h: f32, flags: ChildFlags, window_flags: WindowFlags) bool;
-extern fn zguiBeginChildId(id: Ident, w: f32, h: f32, flags: ChildFlags, window_flags: WindowFlags) bool;
-extern fn zguiEndChild() void;
+// fn igEndChild() void;
+pub const endChild = cimgui.igEndChild;
 //--------------------------------------------------------------------------------------------------
-/// `pub fn zguiGetScrollX() f32`
-pub const getScrollX = zguiGetScrollX;
-/// `pub fn zguiGetScrollY() f32`
-pub const getScrollY = zguiGetScrollY;
-/// `pub fn zguiSetScrollX(scroll_x: f32) void`
-pub const setScrollX = zguiSetScrollX;
-/// `pub fn zguiSetScrollY(scroll_y: f32) void`
-pub const setScrollY = zguiSetScrollY;
-/// `pub fn zguiGetScrollMaxX() f32`
-pub const getScrollMaxX = zguiGetScrollMaxX;
-/// `pub fn zguiGetScrollMaxY() f32`
-pub const getScrollMaxY = zguiGetScrollMaxY;
-extern fn zguiGetScrollX() f32;
-extern fn zguiGetScrollY() f32;
-extern fn zguiSetScrollX(scroll_x: f32) void;
-extern fn zguiSetScrollY(scroll_y: f32) void;
-extern fn zguiGetScrollMaxX() f32;
-extern fn zguiGetScrollMaxY() f32;
-const SetScrollHereX = struct {
-    center_x_ratio: f32 = 0.5,
-};
-const SetScrollHereY = struct {
-    center_y_ratio: f32 = 0.5,
-};
-pub fn setScrollHereX(args: SetScrollHereX) void {
-    zguiSetScrollHereX(args.center_x_ratio);
-}
-pub fn setScrollHereY(args: SetScrollHereY) void {
-    zguiSetScrollHereY(args.center_y_ratio);
-}
-const SetScrollFromPosX = struct {
-    local_x: f32,
-    center_x_ratio: f32 = 0.5,
-};
-const SetScrollFromPosY = struct {
-    local_y: f32,
-    center_y_ratio: f32 = 0.5,
-};
-pub fn setScrollFromPosX(args: SetScrollFromPosX) void {
-    zguiSetScrollFromPosX(args.local_x, args.center_x_ratio);
-}
-pub fn setScrollFromPosY(args: SetScrollFromPosY) void {
-    zguiSetScrollFromPosY(args.local_y, args.center_y_ratio);
-}
-extern fn zguiSetScrollHereX(center_x_ratio: f32) void;
-extern fn zguiSetScrollHereY(center_y_ratio: f32) void;
-extern fn zguiSetScrollFromPosX(local_x: f32, center_x_ratio: f32) void;
-extern fn zguiSetScrollFromPosY(local_y: f32, center_y_ratio: f32) void;
+pub const getScrollX = cimgui.igGetScrollX;
+pub const getScrollY = cimgui.igGetScrollY;
+pub const setScrollX = cimgui.igSetScrollX_Float;
+pub const setScrollY = cimgui.igSetScrollY_Float;
+pub const getScrollMaxX = cimgui.igGetScrollMaxX;
+pub const getScrollMaxY = cimgui.igGetScrollMaxY;
+pub const setScrollHereX = cimgui.igSetScrollHereX;
+pub const setScrollHereY = cimgui.igSetScrollHereY;
+pub const setScrollFromPosX = cimgui.igSetScrollFromPosX_Float;
+pub const setScrollFromPosY = cimgui.igSetScrollFromPosY_Float;
 //--------------------------------------------------------------------------------------------------
 pub const FocusedFlags = packed struct(c_int) {
     child_windows: bool = false,
@@ -867,68 +825,38 @@ pub const HoveredFlags = packed struct(c_int) {
     pub const root_and_child_windows = HoveredFlags{ .root_window = true, .child_windows = true };
 };
 //--------------------------------------------------------------------------------------------------
-/// `pub fn isWindowAppearing() bool`
-pub const isWindowAppearing = zguiIsWindowAppearing;
-/// `pub fn isWindowCollapsed() bool`
-pub const isWindowCollapsed = zguiIsWindowCollapsed;
+pub const isWindowAppearing = cimgui.igIsWindowAppearing;
+pub const isWindowCollapsed = cimgui.igIsWindowCollapsed;
 pub fn isWindowFocused(flags: FocusedFlags) bool {
-    return zguiIsWindowFocused(flags);
+    return cimgui.igIsWindowFocused(@bitCast(flags))
 }
 pub fn isWindowHovered(flags: HoveredFlags) bool {
-    return zguiIsWindowHovered(flags);
+    return cimgui.igIsWindowHovered(@bitCast(flags))
 }
-extern fn zguiIsWindowAppearing() bool;
-extern fn zguiIsWindowCollapsed() bool;
-extern fn zguiIsWindowFocused(flags: FocusedFlags) bool;
-extern fn zguiIsWindowHovered(flags: HoveredFlags) bool;
 //--------------------------------------------------------------------------------------------------
-pub fn getWindowPos() [2]f32 {
-    var pos: [2]f32 = undefined;
-    zguiGetWindowPos(&pos);
+pub fn getWindowPos() Vec2 {
+    var pos: Vec2 = undefined;
+    cimgui.igGetWindowPos(&pos);
     return pos;
 }
-pub fn getWindowSize() [2]f32 {
-    var size: [2]f32 = undefined;
-    zguiGetWindowSize(&size);
+pub fn getWindowSize() Vec2 {
+    var size: Vec2 = undefined;
+    cimgui.igGetWindowSize(&size);
     return size;
 }
 
-pub fn getContentRegionAvail() [2]f32 {
-    var size: [2]f32 = undefined;
-    zguiGetContentRegionAvail(&size);
+pub fn getContentRegionAvail() Vec2 {
+    var size: Vec2 = undefined;
+    cimgui.igGetContentRegionAvail(&size);
     return size;
 }
+// https://github.com/ocornut/imgui/issues/7838
+// pub fn getContentRegionMax() Vec2;
+// pub fn getWindowContentRegionMin() Vec2 ;
+// pub fn getWindowContentRegionMax() Vec2;
 
-pub fn getContentRegionMax() [2]f32 {
-    var size: [2]f32 = undefined;
-    zguiGetContentRegionMax(&size);
-    return size;
-}
-
-pub fn getWindowContentRegionMin() [2]f32 {
-    var size: [2]f32 = undefined;
-    zguiGetWindowContentRegionMin(&size);
-    return size;
-}
-
-pub fn getWindowContentRegionMax() [2]f32 {
-    var size: [2]f32 = undefined;
-    zguiGetWindowContentRegionMax(&size);
-    return size;
-}
-
-/// `pub fn getWindowWidth() f32`
-pub const getWindowWidth = zguiGetWindowWidth;
-/// `pub fn getWindowHeight() f32`
-pub const getWindowHeight = zguiGetWindowHeight;
-extern fn zguiGetWindowPos(pos: *[2]f32) void;
-extern fn zguiGetWindowSize(size: *[2]f32) void;
-extern fn zguiGetWindowWidth() f32;
-extern fn zguiGetWindowHeight() f32;
-extern fn zguiGetContentRegionAvail(size: *[2]f32) void;
-extern fn zguiGetContentRegionMax(size: *[2]f32) void;
-extern fn zguiGetWindowContentRegionMin(size: *[2]f32) void;
-extern fn zguiGetWindowContentRegionMax(size: *[2]f32) void;
+pub const getWindowWidth = cimgui.igGetWindowWidth;
+pub const getWindowHeight = cimgui.igGetWindowHeight;
 //--------------------------------------------------------------------------------------------------
 //
 // Docking
@@ -961,57 +889,13 @@ pub const DockNodeFlags = packed struct(c_int) {
     no_docking_over_empty: bool = false,
     _padding_1: u9 = 0,
 };
-extern fn zguiDockSpace(str_id: [*:0]const u8, size: *const [2]f32, flags: DockNodeFlags) Ident;
 
-pub fn DockSpace(str_id: [:0]const u8, size: [2]f32, flags: DockNodeFlags) Ident {
-    return zguiDockSpace(str_id.ptr, &size, flags);
+pub fn DockSpace(str_id: [:0]const u8, size: Vec2, flags: DockNodeFlags) Ident {
+    return cimgui.igDockSpace(cimgui.igGetID_Str, size, @bitCast(flags));
 }
 
-extern fn zguiDockSpaceOverViewport(dockspace_id: Ident, viewport: Viewport, flags: DockNodeFlags) Ident;
-pub const DockSpaceOverViewport = zguiDockSpaceOverViewport;
+pub const DockSpaceOverViewport = cimgui.igDockSpaceOverViewport;
 
-//--------------------------------------------------------------------------------------------------
-//
-// DockBuilder (Unstable internal imgui API, subject to change, use at own risk)
-//
-//--------------------------------------------------------------------------------------------------
-const DockNode = anyopaque;
-pub fn dockNodeRect(node: *const DockNode, out_rect: *[4]f32) void {
-    return zguiDockNodeRect(node, out_rect);
-}
-extern fn zguiDockNodeRect(node: *const DockNode, out_rect: *[4]f32) void;
-
-pub fn dockBuilderDockWindow(window_name: [:0]const u8, node_id: Ident) void {
-    zguiDockBuilderDockWindow(window_name.ptr, node_id);
-}
-pub const dockBuilderGetNode = zguiDockBuilderGetNode;
-pub const dockBuilderGetCentralNode = zguiDockBuilderGetCentralNode;
-pub const dockBuilderAddNode = zguiDockBuilderAddNode;
-pub const dockBuilderRemoveNode = zguiDockBuilderRemoveNode;
-pub fn dockBuilderSetNodePos(node_id: Ident, pos: [2]f32) void {
-    zguiDockBuilderSetNodePos(node_id, &pos);
-}
-pub fn dockBuilderSetNodeSize(node_id: Ident, size: [2]f32) void {
-    zguiDockBuilderSetNodeSize(node_id, &size);
-}
-pub const dockBuilderSplitNode = zguiDockBuilderSplitNode;
-pub const dockBuilderFinish = zguiDockBuilderFinish;
-
-extern fn zguiDockBuilderDockWindow(window_name: [*:0]const u8, node_id: Ident) void;
-extern fn zguiDockBuilderGetNode(node_id: Ident) ?*DockNode;
-extern fn zguiDockBuilderGetCentralNode(node_id: Ident) ?*DockNode;
-extern fn zguiDockBuilderAddNode(node_id: Ident, flags: DockNodeFlags) Ident;
-extern fn zguiDockBuilderRemoveNode(node_id: Ident) void;
-extern fn zguiDockBuilderSetNodePos(node_id: Ident, pos: *const [2]f32) void;
-extern fn zguiDockBuilderSetNodeSize(node_id: Ident, size: *const [2]f32) void;
-extern fn zguiDockBuilderSplitNode(
-    node_id: Ident,
-    split_dir: Direction,
-    size_ratio_for_node_at_dir: f32,
-    out_id_at_dir: ?*Ident,
-    out_id_at_opposite_dir: ?*Ident,
-) Ident;
-extern fn zguiDockBuilderFinish(node_id: Ident) void;
 
 //--------------------------------------------------------------------------------------------------
 //

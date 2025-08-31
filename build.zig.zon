@@ -23,13 +23,13 @@
             .lazy = true,
         },
         .zgpu = .{
-            .url = "https://github.com/kcbanner/zgpu/archive/31854d24431b69ae27a89eab2d03bbb40fe9144d.tar.gz",
-            .hash = "zgpu-0.12.0-dev-nqFT5LqgCACR_1wEhi7rveY3ocKJczfRaXQoisCmpohn",
+            .url = "https://github.com/zig-gamedev/zgpu/archive/d860e2b4a333cacffb168fab49a233c5d2f1bca2.tar.gz",
+            .hash = "zgpu-0.12.0-dev-nqFT5EKgCADkhwAf97_pfSOmPWEguKmljSECs9ihpFS7",
             .lazy = true,
         },
         .zsdl = .{
-            .url = "https://github.com/kcbanner/zsdl/archive/c42b36e1e0439025fe9468d72c7ed886ad297509.tar.gz",
-            .hash = "zsdl-0.14.0-dev-rFpjE9xYWQAutEb4D9OExVVHmjn18h-LCKIghUhF3zLj",
+            .url = "https://github.com/zig-gamedev/zsdl/archive/89c1fe2d7ef5020c68e71ac574195f09fc949cce.tar.gz",
+            .hash = "zsdl-0.4.0-dev-rFpjE5FXWQAHcbsSHDjFtbTkruSgvRVYOae6x8RXCnoM",
             .lazy = true,
         },
         .freetype = .{

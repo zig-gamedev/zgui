@@ -51,8 +51,8 @@ pub fn init(allocator: std.mem.Allocator) void {
 
         _ = zguiCreateContext(null);
 
-        temp_buffer = std.ArrayList(u8).init(allocator);
-        temp_buffer.?.resize(3 * 1024 + 1) catch unreachable;
+        temp_buffer = std.ArrayList(u8){};
+        temp_buffer.?.resize(allocator, 3 * 1024 + 1) catch unreachable;
 
         if (te_enabled) {
             te.init();
@@ -70,7 +70,7 @@ pub fn initWithExistingContext(allocator: std.mem.Allocator, ctx: Context) void 
 
     zguiSetCurrentContext(ctx);
 
-    temp_buffer = std.ArrayList(u8).init(allocator);
+    temp_buffer = std.ArrayList(u8){};
     temp_buffer.?.resize(3 * 1024 + 1) catch unreachable;
 
     if (te_enabled) {
@@ -82,7 +82,7 @@ pub fn getCurrentContext() ?Context {
 }
 pub fn deinit() void {
     if (zguiGetCurrentContext() != null) {
-        temp_buffer.?.deinit();
+        temp_buffer.?.deinit(mem_allocator.?);
         zguiDestroyContext(null);
 
         // Must be after destroy imgui context.
@@ -111,9 +111,9 @@ pub fn deinit() void {
         mem_allocator = null;
     }
 }
-pub fn initNoContext(allocator: std.mem.Allocator) void {
+pub fn initNoContext() void {
     if (temp_buffer == null) {
-        temp_buffer = std.ArrayList(u8).init(allocator);
+        temp_buffer = std.ArrayList(u8){};
         temp_buffer.?.resize(3 * 1024 + 1) catch unreachable;
     }
 }

@@ -115,7 +115,7 @@ defer zgui.deinit();
 In your shared library:
 ```zig
 const zgui = @import("zgui");
-zgui.initNoContext(allocator);
+zgui.initNoContext();
 defer zgui.deinitNoContxt();
 ```
 

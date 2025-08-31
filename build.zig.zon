@@ -23,13 +23,13 @@
             .lazy = true,
         },
         .zgpu = .{
-            .url = "https://github.com/kcbanner/zgpu/archive/96f3ce2229e4836daec714a3f0b8c3c3218a6b2c.tar.gz",
+            .url = "https://github.com/kcbanner/zgpu/archive/31854d24431b69ae27a89eab2d03bbb40fe9144d.tar.gz",
             .hash = "zgpu-0.12.0-dev-nqFT5LqgCACR_1wEhi7rveY3ocKJczfRaXQoisCmpohn",
             .lazy = true,
         },
         .zsdl = .{
-            .url = "https://github.com/kcbanner/zsdl/archive/a764b0ee51a157a6133007e4f423a869df9e31d7.tar.gz",
-            .hash = "zsdl-0.4.0-dev-rFpjE2BgWQADibKkkIjv0Ig8k96MOu3Yeo6e0n9OD85L",
+            .url = "https://github.com/kcbanner/zsdl/archive/c42b36e1e0439025fe9468d72c7ed886ad297509.tar.gz",
+            .hash = "zsdl-0.14.0-dev-rFpjE9xYWQAutEb4D9OExVVHmjn18h-LCKIghUhF3zLj",
             .lazy = true,
         },
         .freetype = .{

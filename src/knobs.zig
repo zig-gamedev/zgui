@@ -28,7 +28,7 @@ fn KnobTypeGen(comptime T: type) type {
         f32 => "%.3f",
         i32 => "%i",
         else => {
-            @panic("Unspported Knob Type");
+            @panic("Unsupported Knob Type");
         },
     };
 

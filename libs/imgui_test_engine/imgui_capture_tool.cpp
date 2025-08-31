@@ -2,9 +2,6 @@
 // (screen/video capture tool)
 // This is usable as a standalone applet or controlled by the test engine.
 
-// This file is governed by the "Dear ImGui Test Engine License".
-// Details of the license are provided in the LICENSE.txt file in the same directory.
-
 // Two mode of operation:
 // - Interactive: call ImGuiCaptureToolUI::ShowCaptureToolWindow()
 // - Programmatic: generally via ImGuiTestContext::CaptureXXX functions
@@ -206,7 +203,6 @@ void ImGuiCaptureContext::PreRender()
     if (IsCapturing())
     {
         const ImGuiCaptureArgs* args = _CaptureArgs;
-        IM_ASSERT(args != NULL);
         g.IO.MouseDrawCursor = !(args->InFlags & ImGuiCaptureFlags_HideMouseCursor);
     }
 }
@@ -619,7 +615,6 @@ void ImGuiCaptureContext::EndVideoCapture()
     IM_ASSERT(_VideoRecording == true);
 
     _VideoRecording = false;
-    _CaptureArgs = nullptr;
 }
 
 bool ImGuiCaptureContext::IsCapturingVideo()

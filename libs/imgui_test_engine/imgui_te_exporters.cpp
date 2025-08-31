@@ -2,9 +2,6 @@
 // (result exporters)
 // Read https://github.com/ocornut/imgui_test_engine/wiki/Exporting-Results
 
-// This file is governed by the "Dear ImGui Test Engine License".
-// Details of the license are provided in the LICENSE.txt file in the same directory.
-
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -30,10 +27,11 @@ static void ImGuiTestEngine_ExportJUnitXml(ImGuiTestEngine* engine, const char* 
 
 void ImGuiTestEngine_PrintResultSummary(ImGuiTestEngine* engine)
 {
-    ImGuiTestEngineResultSummary summary;
-    ImGuiTestEngine_GetResultSummary(engine, &summary);
+    int count_tested = 0;
+    int count_success = 0;
+    ImGuiTestEngine_GetResult(engine, count_tested, count_success);
 
-    if (summary.CountSuccess < summary.CountTested)
+    if (count_success < count_tested)
     {
         printf("\nFailing tests:\n");
         for (ImGuiTest* test : engine->TestsAll)
@@ -41,12 +39,9 @@ void ImGuiTestEngine_PrintResultSummary(ImGuiTestEngine* engine)
                 printf("- %s\n", test->Name);
     }
 
-    bool success = (summary.CountSuccess == summary.CountTested);
-    ImOsConsoleSetTextColor(ImOsConsoleStream_StandardOutput, success ? ImOsConsoleTextColor_BrightGreen : ImOsConsoleTextColor_BrightRed);
-    printf("\nTests Result: %s\n", success ? "OK" : "Errors");
-    printf("(%d/%d tests passed)\n", summary.CountSuccess, summary.CountTested);
-    if (summary.CountInQueue > 0)
-        printf("(%d queued tests remaining)\n", summary.CountInQueue);
+    ImOsConsoleSetTextColor(ImOsConsoleStream_StandardOutput, (count_success == count_tested) ? ImOsConsoleTextColor_BrightGreen : ImOsConsoleTextColor_BrightRed);
+    printf("\nTests Result: %s\n", (count_success == count_tested) ? "OK" : "Errors");
+    printf("(%d/%d tests passed)\n", count_success, count_tested);
     ImOsConsoleSetTextColor(ImOsConsoleStream_StandardOutput, ImOsConsoleTextColor_White);
 }
 

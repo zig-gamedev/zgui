@@ -184,7 +184,7 @@ pub const ConfigFlags = packed struct(c_int) {
     user_storage: u4 = 0,
     is_srgb: bool = false,
     is_touch_screen: bool = false,
-    _padding2: u10 = 0,
+    _padding: u10 = 0,
 };
 
 pub const BackendFlags = packed struct(c_int) {
@@ -193,11 +193,11 @@ pub const BackendFlags = packed struct(c_int) {
     has_set_mouse_pos: bool = false,
     renderer_has_vtx_offset: bool = false,
     renderer_has_textures: bool = false,
-    _padding0: u5 = 0,
+    _pading0: u5 = 0,
     platform_has_viewports: bool = false,
     has_mouse_hovered_viewports: bool = false,
     renderer_has_viewports: bool = false,
-    _padding1: u19 = 0,
+    _padding: u19 = 0,
 };
 
 pub const FreeTypeLoaderFlags = packed struct(c_uint) {
@@ -4030,7 +4030,7 @@ pub fn beginDragDropSource(flags: DragDropFlags) bool {
 
 /// Note: `payload_type` can be at most 32 characters long
 pub fn setDragDropPayload(payload_type: [*:0]const u8, data: []const u8, cond: Condition) bool {
-    return zguiSetDragDropPayload(payload_type, @ptrCast(@alignCast(data.ptr)), data.len, cond);
+    return zguiSetDragDropPayload(payload_type, @alignCast(@ptrCast(data.ptr)), data.len, cond);
 }
 pub fn endDragDropSource() void {
     zguiEndDragDropSource();

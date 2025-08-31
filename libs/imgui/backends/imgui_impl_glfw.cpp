@@ -807,7 +807,6 @@ void ImGui_ImplGlfw_Shutdown()
     io.BackendPlatformUserData = nullptr;
     io.BackendFlags &= ~(ImGuiBackendFlags_HasMouseCursors | ImGuiBackendFlags_HasSetMousePos | ImGuiBackendFlags_HasGamepad | ImGuiBackendFlags_PlatformHasViewports | ImGuiBackendFlags_HasMouseHoveredViewport);
     ImGui_ImplGlfw_ContextMap_Remove(bd->Window);
-    g_ContextMap.clear();
     IM_DELETE(bd);
 }
 

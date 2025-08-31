@@ -93,29 +93,31 @@ pub fn build(b: *std.Build) void {
         "-Wno-availability",
     };
 
-    const imgui = if (options.shared) blk: {
-        const lib = b.addSharedLibrary(.{
-            .name = "imgui",
+    const imgui = b.addLibrary(.{
+        .name = "imgui",
+        .linkage = if (options.shared) .dynamic else .static,
+        .root_module = b.createModule(.{
             .target = target,
             .optimize = optimize,
-        });
+        }),
+    });
 
+    imgui.root_module.addCMacro("IMGUI_DISABLE_OBSOLETE_FUNCTIONS", "");
+
+    if (options.shared) {
         if (target.result.os.tag == .windows) {
-            lib.root_module.addCMacro("IMGUI_API", "__declspec(dllexport)");
-            lib.root_module.addCMacro("IMPLOT_API", "__declspec(dllexport)");
-            lib.root_module.addCMacro("ZGUI_API", "__declspec(dllexport)");
+            imgui.root_module.addCMacro("IMGUI_API", "__declspec(dllexport)");
+            imgui.root_module.addCMacro("IMGUI_IMPL_API", "extern \"C\" __declspec(dllexport)");
+            imgui.root_module.addCMacro("IMPLOT_API", "__declspec(dllexport)");
+            imgui.root_module.addCMacro("ZGUI_API", "__declspec(dllexport)");
+        } else {
+            imgui.root_module.addCMacro("IMGUI_IMPL_API", "extern \"C\"");
         }
 
         if (target.result.os.tag == .macos) {
-            lib.linker_allow_shlib_undefined = true;
+            imgui.linker_allow_shlib_undefined = true;
         }
-
-        break :blk lib;
-    } else b.addStaticLibrary(.{
-        .name = "imgui",
-        .target = target,
-        .optimize = optimize,
-    });
+    }
 
     b.installArtifact(imgui);
 
@@ -423,9 +425,11 @@ pub fn build(b: *std.Build) void {
 
     const tests = b.addTest(.{
         .name = "zgui-tests",
-        .root_source_file = b.path("src/gui.zig"),
-        .target = target,
-        .optimize = optimize,
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/gui.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
     });
     b.installArtifact(tests);
 

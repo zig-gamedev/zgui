@@ -446,9 +446,11 @@ pub fn build(b: *std.Build) void {
 
     const tests = b.addTest(.{
         .name = "zgui-tests",
-        .root_source_file = b.path("src/gui.zig"),
-        .target = target,
-        .optimize = optimize,
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/gui.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
     });
     b.installArtifact(tests);
 

@@ -13,6 +13,7 @@ Easy to use, hand-crafted API with default arguments, named parameters and Zig s
 * [Plot API](#plot-api) for advanced data visualizations
 * [Gizmo API](#gizmo-api) for gizmo
 * [Node editor API](#node-editor-api) for node based stuff
+* [Knobs API](https://github.com/altschuler/imgui-knobs) for knobs
 
 ## Versions
 
@@ -21,6 +22,7 @@ Easy to use, hand-crafted API with default arguments, named parameters and Zig s
 * [ImPlot](https://github.com/epezent/implot) `O.17`
 * [ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo) `1.89 WIP`
 * [ImGuiNodeEditor](https://github.com/thedmd/imgui-node-editor/tree/v0.9.3) `O.9.3`
+* [imgui-knobs](https://github.com/altschuler/imgui-knobs/commit/8a43bf7b31c4166ec50f3a52c382c2cc66a91516) `main - commit 8a43bf7b31c4166ec50f3a52c382c2cc66a91516`
 
 ## Getting started
 

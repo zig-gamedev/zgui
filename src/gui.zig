@@ -388,6 +388,7 @@ pub const DrawData = *cimgui.ImDrawData;
 pub const Font = *cimgui.ImFont;
 pub const Ident = u32;
 pub const Vec2 = cimgui.ImVec2;
+pub const Vec4 = cimgui.ImVec4;
 pub const TextureIdent = cimgui.ImTextureID;
 pub const TextureRef = cimgui.ImTextureRef;
 pub const Wchar = if (@import("zgui_options").use_wchar32) u32 else u16;
@@ -884,7 +885,7 @@ pub const DockSpaceOverViewport = cimgui.igDockSpaceOverViewport;
 //
 //--------------------------------------------------------------------------------------------------
 
-pub const ListClipper = extern struct {
+pub const ListClipper = struct {
     Base: cimgui.ImGuiListClipper,
 
     pub fn init() ListClipper {
@@ -917,92 +918,95 @@ pub const ListClipper = extern struct {
 //
 //--------------------------------------------------------------------------------------------------
 pub const Style = extern struct {
-    font_size_base: f32,
-    font_scale_main: f32,
-    font_scale_dpi: f32,
-    alpha: f32,
-    disabled_alpha: f32,
-    window_padding: [2]f32,
-    window_rounding: f32,
-    window_border_size: f32,
-    window_border_hover_padding: f32,
-    window_min_size: [2]f32,
-    window_title_align: [2]f32,
-    window_menu_button_position: Direction,
-    child_rounding: f32,
-    child_border_size: f32,
-    popup_rounding: f32,
-    popup_border_size: f32,
-    frame_padding: [2]f32,
-    frame_rounding: f32,
-    frame_border_size: f32,
-    item_spacing: [2]f32,
-    item_inner_spacing: [2]f32,
-    cell_padding: [2]f32,
-    touch_extra_padding: [2]f32,
-    indent_spacing: f32,
-    columns_min_spacing: f32,
-    scrollbar_size: f32,
-    scrollbar_rounding: f32,
-    grab_min_size: f32,
-    grab_rounding: f32,
-    log_slider_deadzone: f32,
-    image_border_size: f32,
-    tab_rounding: f32,
-    tab_border_size: f32,
-    tab_close_button_min_width_selected: f32,
-    tab_close_button_min_width_unselected: f32,
-    tab_bar_border_size: f32,
-    tab_bar_overline_size: f32,
-    table_angled_header_angle: f32,
-    table_angled_headers_text_align: [2]f32,
-    tree_lines_flags: TreeNodeFlags,
-    tree_lines_size: f32,
-    tree_lines_rounding: f32,
-    color_button_position: Direction,
-    button_text_align: [2]f32,
-    selectable_text_align: [2]f32,
-    separator_text_border_size: f32,
-    separator_text_align: [2]f32,
-    separator_text_padding: [2]f32,
-    display_window_padding: [2]f32,
-    display_safe_area_padding: [2]f32,
-    docking_separator_size: f32,
-    mouse_cursor_scale: f32,
-    anti_aliased_lines: bool,
-    anti_aliased_lines_use_tex: bool,
-    anti_aliased_fill: bool,
-    curve_tessellation_tol: f32,
-    circle_tessellation_max_error: f32,
+    base: cimgui.ImGuiStyle,
+    // font_size_base: f32,
+    // font_scale_main: f32,
+    // font_scale_dpi: f32,
+    // alpha: f32,
+    // disabled_alpha: f32,
+    // window_padding: [2]f32,
+    // window_rounding: f32,
+    // window_border_size: f32,
+    // window_border_hover_padding: f32,
+    // window_min_size: [2]f32,
+    // window_title_align: [2]f32,
+    // window_menu_button_position: Direction,
+    // child_rounding: f32,
+    // child_border_size: f32,
+    // popup_rounding: f32,
+    // popup_border_size: f32,
+    // frame_padding: [2]f32,
+    // frame_rounding: f32,
+    // frame_border_size: f32,
+    // item_spacing: [2]f32,
+    // item_inner_spacing: [2]f32,
+    // cell_padding: [2]f32,
+    // touch_extra_padding: [2]f32,
+    // indent_spacing: f32,
+    // columns_min_spacing: f32,
+    // scrollbar_size: f32,
+    // scrollbar_rounding: f32,
+    // grab_min_size: f32,
+    // grab_rounding: f32,
+    // log_slider_deadzone: f32,
+    // image_border_size: f32,
+    // tab_rounding: f32,
+    // tab_border_size: f32,
+    // tab_close_button_min_width_selected: f32,
+    // tab_close_button_min_width_unselected: f32,
+    // tab_bar_border_size: f32,
+    // tab_bar_overline_size: f32,
+    // table_angled_header_angle: f32,
+    // table_angled_headers_text_align: [2]f32,
+    // tree_lines_flags: TreeNodeFlags,
+    // tree_lines_size: f32,
+    // tree_lines_rounding: f32,
+    // color_button_position: Direction,
+    // button_text_align: [2]f32,
+    // selectable_text_align: [2]f32,
+    // separator_text_border_size: f32,
+    // separator_text_align: [2]f32,
+    // separator_text_padding: [2]f32,
+    // display_window_padding: [2]f32,
+    // display_safe_area_padding: [2]f32,
+    // docking_separator_size: f32,
+    // mouse_cursor_scale: f32,
+    // anti_aliased_lines: bool,
+    // anti_aliased_lines_use_tex: bool,
+    // anti_aliased_fill: bool,
+    // curve_tessellation_tol: f32,
+    // circle_tessellation_max_error: f32,
+    //
+    // colors: [@typeInfo(StyleCol).@"enum".fields.len][4]f32,
+    //
+    // hover_stationary_delay: f32,
+    // hover_delay_short: f32,
+    // hover_delay_normal: f32,
+    //
+    // hover_flags_for_tooltip_mouse: HoveredFlags,
+    // hover_flags_for_tooltip_nav: HoveredFlags,
+    //
+    // _main_scale: f32,
+    // _next_frame_font_size_base: f32,
+    //
+    pub fn init() Style{
+        .{.base = cimgui.ImGuiStyle_ImGuiStyle()};
+    }
 
-    colors: [@typeInfo(StyleCol).@"enum".fields.len][4]f32,
+    // `pub fn getStyle() *Style`
+    pub const getStyle = cimgui.igGetStyle;
 
-    hover_stationary_delay: f32,
-    hover_delay_short: f32,
-    hover_delay_normal: f32,
+    // fn ImGuiStyle_ScaleAllSizes(*Style, scale_factor: f32) void;
+    pub const scaleAllSizes = cimgui.ImGuiStyle_ScaleAllSizes;
 
-    hover_flags_for_tooltip_mouse: HoveredFlags,
-    hover_flags_for_tooltip_nav: HoveredFlags,
+    /// fn styleColorsDark(*Style)`
+    pub const setColorsDark = cimgui.igStyleColorsDark;
 
-    _main_scale: f32,
-    _next_frame_font_size_base: f32,
+    /// fn styleColorsLight(*Style)`
+    pub const setColorsLight = cimgui.igStyleColorsLight;
 
-    /// `pub fn init() Style`
-    pub const init = zguiStyle_Init;
-    extern fn zguiStyle_Init() Style;
-
-    /// `pub fn scaleAllSizes(style: *Style, scale_factor: f32) void`
-    pub const scaleAllSizes = zguiStyle_ScaleAllSizes;
-    extern fn zguiStyle_ScaleAllSizes(style: *Style, scale_factor: f32) void;
-
-    /// `pub fn styleColorsDark(*Style)`
-    pub const setColorsDark = zguiStyleColorsDark;
-
-    /// `pub fn styleColorsLight(*Style)`
-    pub const setColorsLight = zguiStyleColorsLight;
-
-    /// `pub fn styleColorsClassic(*Style)`
-    pub const setColorsClassic = zguiStyleColorsClassic;
+    /// fn styleColorsClassic(*Style)`
+    pub const setColorsClassic = cimgui.igStyleColorsClassic;
 
     pub const StyleColorsBuiltin = enum {
         dark,
@@ -1011,34 +1015,22 @@ pub const Style = extern struct {
     };
     pub fn setColorsBuiltin(style: *Style, variant: StyleColorsBuiltin) void {
         switch (variant) {
-            .dark => zguiStyleColorsDark(style),
-            .light => zguiStyleColorsLight(style),
-            .classic => zguiStyleColorsClassic(style),
+            .dark => setColorsDark(style),
+            .light => setColorsLight(style),
+            .classic => setColorsDark(style),
         }
     }
 
     pub fn getColor(style: Style, idx: StyleCol) [4]f32 {
-        return style.colors[@intCast(@intFromEnum(idx))];
+        return style.base.Colors[@intCast(@intFromEnum(idx))];
     }
+
     pub fn setColor(style: *Style, idx: StyleCol, color: [4]f32) void {
-        style.colors[@intCast(@intFromEnum(idx))] = color;
+        style.base.Colors[@intCast(@intFromEnum(idx))] = color;
     }
+
 };
-/// `pub fn getStyle() *Style`
-pub const getStyle = zguiGetStyle;
-extern fn zguiGetStyle() *Style;
 
-/// `pub fn styleColorsDark(*Style)`
-pub const styleColorsDark = zguiStyleColorsDark;
-extern fn zguiStyleColorsDark(style: *Style) void;
-
-/// `pub fn styleColorsLight(*Style)`
-pub const styleColorsLight = zguiStyleColorsLight;
-extern fn zguiStyleColorsLight(style: *Style) void;
-
-/// `pub fn styleColorsClassic(*Style)`
-pub const styleColorsClassic = zguiStyleColorsClassic;
-extern fn zguiStyleColorsClassic(style: *Style) void;
 //--------------------------------------------------------------------------------------------------
 pub const StyleCol = enum(c_int) {
     text,
@@ -1103,36 +1095,11 @@ pub const StyleCol = enum(c_int) {
     modal_window_dim_bg,
 };
 
-pub fn pushStyleColor4f(args: struct {
-    idx: StyleCol,
-    c: [4]f32,
-}) void {
-    zguiPushStyleColor4f(args.idx, &args.c);
-}
-extern fn zguiPushStyleColor4f(idx: StyleCol, col: *const [4]f32) void;
-
-pub fn pushStyleColor1u(args: struct {
-    idx: StyleCol,
-    c: u32,
-}) void {
-    zguiPushStyleColor1u(args.idx, args.c);
-}
-extern fn zguiPushStyleColor1u(idx: StyleCol, col: c_uint) void;
-
-pub fn popStyleColor(args: struct {
-    count: i32 = 1,
-}) void {
-    zguiPopStyleColor(args.count);
-}
-extern fn zguiPopStyleColor(count: c_int) void;
-
-/// `fn pushTextWrapPos(wrap_pos_x: f32) void`
-pub const pushTextWrapPos = zguiPushTextWrapPos;
-extern fn zguiPushTextWrapPos(wrap_pos_x: f32) void;
-
-/// `fn popTextWrapPos() void`
-pub const popTextWrapPos = zguiPopTextWrapPos;
-extern fn zguiPopTextWrapPos() void;
+pub const pushStyleColor4f = cimgui.igPushStyleColor_Vec4;
+pub const pushStyleColor1u = cimgui.igPushStyleColor_U32;
+pub const popStyleColor = cimgui.igPopStyleColor;
+pub const pushTextWrapPos = cimgui.igPushTextWrapPos; 
+pub const popTextWrapPos = cimgui.igPopTextWrapPos;
 
 //--------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------
@@ -1173,28 +1140,9 @@ pub const StyleVar = enum(c_int) {
     docking_separator_size, // 1f
 };
 
-pub fn pushStyleVar1f(args: struct {
-    idx: StyleVar,
-    v: f32,
-}) void {
-    zguiPushStyleVar1f(args.idx, args.v);
-}
-extern fn zguiPushStyleVar1f(idx: StyleVar, v: f32) void;
-
-pub fn pushStyleVar2f(args: struct {
-    idx: StyleVar,
-    v: [2]f32,
-}) void {
-    zguiPushStyleVar2f(args.idx, &args.v);
-}
-extern fn zguiPushStyleVar2f(idx: StyleVar, v: *const [2]f32) void;
-
-pub fn popStyleVar(args: struct {
-    count: i32 = 1,
-}) void {
-    zguiPopStyleVar(args.count);
-}
-extern fn zguiPopStyleVar(count: c_int) void;
+pub const pushStyleVar1f = cimgui.igPushStyleVar_Float;
+pub const pushStyleVar2f = cimgui.igPushStyleVar_Vec2;
+pub const popStyleVar = cimgui.igPopStyleVar;
 
 //--------------------------------------------------------------------------------------------------
 pub const ItemFlag = enum(c_int) {
@@ -1206,44 +1154,25 @@ pub const ItemFlag = enum(c_int) {
     auto_close_popups = 1 << 4,
     allow_duplicate_id = 1 << 5,
 };
-/// `void pushItemFlag(item_flag: ItemFlag, enabled: bool) void`
-pub const pushItemFlag = zguiPushItemFlag;
-/// `void popItemFlag() void`
-pub const popItemFlag = zguiPopItemFlag;
-/// `void pushItemWidth(item_width: f32) void`
-pub const pushItemWidth = zguiPushItemWidth;
-/// `void popItemWidth() void`
-pub const popItemWidth = zguiPopItemWidth;
-/// `void setNextItemWidth(item_width: f32) void`
-pub const setNextItemWidth = zguiSetNextItemWidth;
-/// `void setItemDefaultFocus() void`
-pub const setItemDefaultFocus = zguiSetItemDefaultFocus;
-extern fn zguiPushItemFlag(item_flag: ItemFlag, enabled: bool) void;
-extern fn zguiPopItemFlag() void;
-extern fn zguiPushItemWidth(item_width: f32) void;
-extern fn zguiPopItemWidth() void;
-extern fn zguiSetNextItemWidth(item_width: f32) void;
-extern fn zguiSetItemDefaultFocus() void;
+pub fn pushItemFlag(item_flag: ItemFlag, enabled: bool) void{
+    cimgui.igPushItemFlag(@intFromEnum(item_flag), enabled);
+}
+pub const popItemFlag = cimgui.igPopItemFlag; 
+pub const pushItemWidth = cimgui.igPushItemWidth; 
+pub const popItemWidth = cimgui.igPopItemWidth;
+pub const setNextItemWidth = cimgui.igSetNextItemWidth; 
+pub const setItemDefaultFocus = cimgui.igSetItemDefaultFocus;
 //--------------------------------------------------------------------------------------------------
-/// `pub fn getFont() Font`
-pub const getFont = zguiGetFont;
-extern fn zguiGetFont() Font;
-/// `pub fn getFontSize() f32`
-pub const getFontSize = zguiGetFontSize;
-extern fn zguiGetFontSize() f32;
-/// `void pushFont(font: Font, font_size_base_unscaled: f32) void`
-pub const pushFont = zguiPushFont;
-extern fn zguiPushFont(font: Font, font_size_base_unscaled: f32) void;
-/// `void popFont() void`
-pub const popFont = zguiPopFont;
-extern fn zguiPopFont() void;
+pub const getFont = cimgui.igGetFont;
+pub const getFontSize = cimgui.igGetFontSize;
+pub const pushFont = cimgui.igPushFont;
+pub const popFont = cimgui.igPopFont;
 
-pub fn getFontTexUvWhitePixel() [2]f32 {
-    var uv: [2]f32 = undefined;
-    zguiGetFontTexUvWhitePixel(&uv);
+pub fn getFontTexUvWhitePixel() Vec2 {
+    var uv: Vec2 = undefined;
+    cimgui.igGetFontTexUvWhitePixel(&uv);
     return uv;
 }
-extern fn zguiGetFontTexUvWhitePixel(uv: *[2]f32) void;
 //--------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------
 const BeginDisabled = struct {

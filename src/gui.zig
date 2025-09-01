@@ -72,7 +72,7 @@ pub fn initWithExistingContext(allocator: std.mem.Allocator, ctx: Context) void 
     cimgui.igSetCurrentContext(ctx);
 
     temp_buffer = std.ArrayList(u8){};
-    temp_buffer.?.resize(3 * 1024 + 1) catch unreachable;
+    temp_buffer.?.resize(allocator, 3 * 1024 + 1) catch unreachable;
 
     if (te_enabled) {
         te.init();
@@ -116,7 +116,7 @@ pub fn deinit() void {
 pub fn initNoContext() void {
     if (temp_buffer == null) {
         temp_buffer = std.ArrayList(u8){};
-        temp_buffer.?.resize(3 * 1024 + 1) catch unreachable;
+        temp_buffer.?.resize(mem_allocator, 3 * 1024 + 1) catch unreachable;
     }
 }
 pub fn deinitNoContext() void {
@@ -261,9 +261,8 @@ pub const io = struct {
     }
 
     pub fn removeFont(font: Font) void {
-        zguiIoRemoveFont(font);
+        cimgui.ImFontAtlas_RemoveFont(GetIO().*.Fonts.*, font);
     }
-    extern fn zguiIoRemoveFont(font: Font) void;
 
     pub fn getFont(index: u32) Font {
         return GetIO().*.Fonts.*.Fonts.Data[index];
@@ -273,58 +272,9 @@ pub const io = struct {
         GetIO().*.FontDefault = font;
     }
 
-
-    //TODO <tonitch>:  Function not in imgui since 1.92.0
-    // pub fn getFontsTextDataAsRgba32() struct {
-    //     width: i32,
-    //     height: i32,
-    //     pixels: ?[*]const u32,
-    // } {
-    //     var width: i32 = undefined;
-    //     var height: i32 = undefined;
-    //     const ptr = zguiIoGetFontsTexDataAsRgba32(&width, &height);
-    //     return .{
-    //         .width = width,
-    //         .height = height,
-    //         .pixels = ptr,
-    //     };
-    // }
-
-
-    // TODO <tonitch>: can't find equivalent to ImGui::GetIO().Fonts->TexID = id;
-    /// `pub fn setFontsTexId(id:TextureIdent) set the backend Id for the fonts atlas
-    // pub const setFontsTexId = zguiIoSetFontsTexId;
-    //
-    // pub const getFontsTexId = zguiIoGetFontsTexId;
-
     pub fn getGlyphRangesDefault() [*]const Wchar{
         return cimgui.ImFontAtlas_GetGlyphRangesDefault(GetIO().*.Fonts.*);
     }
-
-    // those functions are Obsolete since 1.92
-    // pub const getGlyphRangesGreek = zguiIoGetGlyphRangesGreek;
-    // pub fn getGlyphRangesGreek() [*]const Wchar;
-    //
-    // pub const getGlyphRangesKorean = zguiIoGetGlyphRangesKorean;
-    // extern fn zguiIoGetGlyphRangesKorean() [*]const Wchar;
-    //
-    // pub const getGlyphRangesJapanese = zguiIoGetGlyphRangesJapanese;
-    // extern fn zguiIoGetGlyphRangesJapanese() [*]const Wchar;
-    //
-    // pub const getGlyphRangesChineseFull = zguiIoGetGlyphRangesChineseFull;
-    // extern fn zguiIoGetGlyphRangesChineseFull() [*]const Wchar;
-    //
-    // pub const getGlyphRangesChineseSimplifiedCommon = zguiIoGetGlyphRangesChineseSimplifiedCommon;
-    // extern fn zguiIoGetGlyphRangesChineseSimplifiedCommon() [*]const Wchar;
-    //
-    // pub const getGlyphRangesCyrillic = zguiIoGetGlyphRangesCyrillic;
-    // extern fn zguiIoGetGlyphRangesCyrillic() [*]const Wchar;
-    //
-    // pub const getGlyphRangesThai = zguiIoGetGlyphRangesThai;
-    // extern fn zguiIoGetGlyphRangesThai() [*]const Wchar;
-    //
-    // pub const getGlyphRangesVietnamese = zguiIoGetGlyphRangesVietnamese;
-    // extern fn zguiIoGetGlyphRangesVietnamese() [*]const Wchar;
     
     pub fn setConfigWindowsMoveFromTitleBarOnly(enabled: bool) void{
         var IO = GetIO().*;
@@ -346,30 +296,16 @@ pub const io = struct {
     pub fn getFramerate() bool{
         return GetIO().*.Framerate;
     }
-// =======
-// 
-//     pub const getFontsTexRef = zguiIoGetFontsTexRef;
-//     extern fn zguiIoGetFontsTexRef() TextureRef;
-// 
-//     /// `pub fn zguiIoSetConfigWindowsMoveFromTitleBarOnly(bool) void`
-//     pub const setConfigWindowsMoveFromTitleBarOnly = zguiIoSetConfigWindowsMoveFromTitleBarOnly;
-//     extern fn zguiIoSetConfigWindowsMoveFromTitleBarOnly(enabled: bool) void;
-// 
-//     /// `pub fn zguiIoGetWantCaptureMouse() bool`
-//     pub const getWantCaptureMouse = zguiIoGetWantCaptureMouse;
-//     extern fn zguiIoGetWantCaptureMouse() bool;
-// 
-//     /// `pub fn zguiIoGetWantCaptureKeyboard() bool`
-//     pub const getWantCaptureKeyboard = zguiIoGetWantCaptureKeyboard;
-//     extern fn zguiIoGetWantCaptureKeyboard() bool;
-// 
-//     /// `pub fn zguiIoGetWantTextInput() bool`
-//     pub const getWantTextInput = zguiIoGetWantTextInput;
-//     extern fn zguiIoGetWantTextInput() bool;
-// 
-//     pub const getFramerate = zguiIoFramerate;
-//     extern fn zguiIoFramerate() f32;
-// >>>>>>> main
+
+    pub fn getFontsTexRef() TextureRef{
+        return GetIO().*.Fonts.*.TexRef;
+        
+    }
+
+    pub fn zguiIoGetWantTextInput() bool{
+        return GetIO().*.WantTextInput;
+
+    }
 
     pub fn setIniFilename(filename: ?[*:0]const u8) void {
         var IO = GetIO().*;
@@ -400,9 +336,10 @@ pub const io = struct {
         IO.DeltaTime = delta_time;
     }
 
-    /// `pub fn setBackendFlags(flags: BackendFlags) void`
-    pub const setBackendFlags = zguiIoSetBackendFlags;
-    extern fn zguiIoSetBackendFlags(flags: BackendFlags) void;
+    pub fn setBackendFlags(flags: BackendFlags) void{
+        var IO = GetIO().*;
+        IO.BackendFlags = @bitCast(flags);
+    }
 
 
     pub fn addFocusEvent(focused: bool) void{
@@ -451,28 +388,8 @@ pub const DrawData = *cimgui.ImDrawData;
 pub const Font = *cimgui.ImFont;
 pub const Ident = u32;
 pub const Vec2 = cimgui.ImVec2;
-pub const TextureIdent = cimgui.ImTextureID; //TODO <tonitch>: not sure, was *anyopaque
-// =======
-// pub const DrawData = *extern struct {
-//     valid: bool,
-//     cmd_lists_count: c_int,
-//     total_idx_count: c_int,
-//     total_vtx_count: c_int,
-//     cmd_lists: Vector(DrawList),
-//     display_pos: [2]f32,
-//     display_size: [2]f32,
-//     framebuffer_scale: [2]f32,
-//     owner_viewport: ?*Viewport,
-//     textures: *Vector(TextureIdent),
-// };
-// pub const Font = *opaque {};
-// pub const Ident = u32;
-// pub const TextureIdent = enum(u64) { _ };
-// pub const TextureRef = extern struct {
-//     tex_data: ?*anyopaque,
-//     tex_id: TextureIdent,
-// };
-// >>>>>>> main
+pub const TextureIdent = cimgui.ImTextureID;
+pub const TextureRef = cimgui.ImTextureRef;
 pub const Wchar = if (@import("zgui_options").use_wchar32) u32 else u16;
 pub const Key = enum(c_int) {
     none = 0,
@@ -955,7 +872,7 @@ pub const DockNodeFlags = packed struct(c_int) {
 };
 
 pub fn DockSpace(str_id: [:0]const u8, size: Vec2, flags: DockNodeFlags) Ident {
-    return cimgui.igDockSpace(cimgui.igGetID_Str, size, @bitCast(flags));
+    return cimgui.igDockSpace(cimgui.igGetID_Str(str_id), size, @bitCast(flags));
 }
 
 pub const DockSpaceOverViewport = cimgui.igDockSpaceOverViewport;
@@ -1657,21 +1574,13 @@ pub fn arrowButton(label: [:0]const u8, args: ArrowButton) bool {
 extern fn zguiArrowButton(label: [*:0]const u8, dir: Direction) bool;
 //--------------------------------------------------------------------------------------------------
 const Image = struct {
-    w: f32,
-    h: f32,
-    uv0: [2]f32 = .{ 0.0, 0.0 },
-    uv1: [2]f32 = .{ 1.0, 1.0 },
+    size: Vec2,
+    uv0: Vec2 = .{ 0.0, 0.0 },
+    uv1: Vec2 = .{ 1.0, 1.0 },
 };
 pub fn image(user_texture_ref: TextureRef, args: Image) void {
-    zguiImage(user_texture_ref, args.w, args.h, &args.uv0, &args.uv1);
+    cimgui.igImage(user_texture_ref, args.size, args.uv0, args.uv1);
 }
-extern fn zguiImage(
-    user_texture_ref: TextureRef,
-    w: f32,
-    h: f32,
-    uv0: *const [2]f32,
-    uv1: *const [2]f32,
-) void;
 //--------------------------------------------------------------------------------------------------
 const ImageWithBg = struct {
     w: f32,
@@ -3615,12 +3524,12 @@ var temp_buffer: ?std.ArrayList(u8) = null;
 
 pub fn format(comptime fmt: []const u8, args: anytype) []const u8 {
     const len = std.fmt.count(fmt, args);
-    if (len > temp_buffer.?.items.len) temp_buffer.?.resize(@intCast(len + 64)) catch unreachable;
+    if (len > temp_buffer.?.items.len) temp_buffer.?.resize(mem_allocator.?, @intCast(len + 64)) catch unreachable;
     return std.fmt.bufPrint(temp_buffer.?.items, fmt, args) catch unreachable;
 }
 pub fn formatZ(comptime fmt: []const u8, args: anytype) [:0]const u8 {
     const len = std.fmt.count(fmt ++ "\x00", args);
-    if (len > temp_buffer.?.items.len) temp_buffer.?.resize(@intCast(len + 64)) catch unreachable;
+    if (len > temp_buffer.?.items.len) temp_buffer.?.resize(mem_allocator.?, @intCast(len + 64)) catch unreachable;
     return std.fmt.bufPrintZ(temp_buffer.?.items, fmt, args) catch unreachable;
 }
 //--------------------------------------------------------------------------------------------------

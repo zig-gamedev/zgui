@@ -54,6 +54,11 @@ pub fn build(b: *std.Build) void {
             "with_freetype",
             "Build with system FreeType engine support",
         ) orelse false,
+        .with_knobs = b.option(
+            bool,
+            "with_knobs",
+            "Build with bundled Imgui-Knobs",
+        ) orelse false,
         .use_wchar32 = b.option(
             bool,
             "use_wchar32",
@@ -187,6 +192,22 @@ pub fn build(b: *std.Build) void {
         imgui.addCSourceFiles(.{
             .files = &.{
                 "libs/imguizmo/ImGuizmo.cpp",
+            },
+            .flags = cflags,
+        });
+    }
+
+    if (options.with_knobs) {
+        imgui.addIncludePath(b.path("libs/imgui_knobs/"));
+
+        imgui.addCSourceFile(.{
+            .file = b.path("src/zknobs.cpp"),
+            .flags = cflags,
+        });
+
+        imgui.addCSourceFiles(.{
+            .files = &.{
+                "libs/imgui_knobs/imgui-knobs.cpp",
             },
             .flags = cflags,
         });

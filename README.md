@@ -13,6 +13,7 @@ Easy to use, hand-crafted API with default arguments, named parameters and Zig s
 * [Plot API](#plot-api) for advanced data visualizations
 * [Gizmo API](#gizmo-api) for gizmo
 * [Node editor API](#node-editor-api) for node based stuff
+* [Knobs API](https://github.com/altschuler/imgui-knobs) for knobs
 
 ## Versions
 
@@ -21,6 +22,7 @@ Easy to use, hand-crafted API with default arguments, named parameters and Zig s
 * [ImPlot](https://github.com/epezent/implot) `O.17`
 * [ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo) `1.91.3 WIP`
 * [ImGuiNodeEditor](https://github.com/thedmd/imgui-node-editor/tree/v0.9.3) `O.9.3`
+* [imgui-knobs](https://github.com/altschuler/imgui-knobs/commit/8a43bf7b31c4166ec50f3a52c382c2cc66a91516) `main - commit 8a43bf7b31c4166ec50f3a52c382c2cc66a91516`
 
 ## Getting started
 
@@ -239,4 +241,48 @@ defer zgui.node_editor.setCurrentEditor(null);
         }
     }
 }
+```
+
+### Imgui-Knobs Api.
+zig wrapper for [imgui-knobs](https://github.com/altschuler/imgui-knobs)
+
+``` zig
+// Minimal knob function call
+_ = zgui.knobs.knob("Minimal", .{
+    .v = &v_knob,
+    .v_min = 0,
+    .v_max = 1.0,
+});
+zgui.sameLine(.{});
+
+// Styled f32 knob
+_ = zgui.knobs.knob("f32 Knob", .{
+    .v = &v_knob,
+    .v_min = 0,
+    .v_max = 1.0,
+    .size = 200,
+    .speed = 0.0005,
+    .angle_min = std.math.pi,
+    .angle_max = 2 * std.math.pi,
+    .variant = .{ .stepped = true },
+    .steps = 5,
+});
+zgui.sameLine(.{});
+
+// Styled i32 knob (applied color)
+zgui.pushStyleColor4f(.{ .idx = zgui.StyleCol.button_active, .c = .{ 0.6, 0.2, 0.2, 1 } });
+zgui.pushStyleColor4f(.{ .idx = zgui.StyleCol.button_hovered, .c = .{ 0.6, 0.4, 0.4, 1 } });
+zgui.pushStyleColor4f(.{ .idx = zgui.StyleCol.button, .c = .{ 0.4, 0, 0, 1 } });
+_ = zgui.knobs.knobInt("i32 Knob", .{
+    .v = &v_knob_int,
+    .v_min = -10,
+    .v_max = 10,
+    .size = 250,
+    .variant = zgui.knobs.KnobVariant{ .wiper_dot = true },
+    .flags = zgui.knobs.KnobFlags{
+        .drag_horizontal = true,
+        .no_input = true,
+    },
+});
+zgui.popStyleColor(.{ .count = 3 });
 ```

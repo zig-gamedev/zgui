@@ -1925,54 +1925,32 @@ pub const InputTextFlags = packed struct(c_int) {
 };
 //--------------------------------------------------------------------------------------------------
 pub const InputTextCallbackData = extern struct {
-    ctx: *Context,
-    event_flag: InputTextFlags,
-    flags: InputTextFlags,
-    user_data: ?*anyopaque,
-    event_char: Wchar,
-    event_key: Key,
-    buf: [*]u8,
-    buf_text_len: i32,
-    buf_size: i32,
-    buf_dirty: bool,
-    cursor_pos: i32,
-    selection_start: i32,
-    selection_end: i32,
+    data: *cimgui.ImGuiInputTextCallbackData,
 
-    /// `pub fn init() InputTextCallbackData`
-    pub const init = zguiInputTextCallbackData_Init;
-    extern fn zguiInputTextCallbackData_Init() InputTextCallbackData;
-
-    /// `pub fn deleteChars(data: *InputTextCallbackData, pos: i32, bytes_count: i32) void`
-    pub const deleteChars = zguiInputTextCallbackData_DeleteChars;
-    extern fn zguiInputTextCallbackData_DeleteChars(
-        data: *InputTextCallbackData,
-        pos: c_int,
-        bytes_count: c_int,
-    ) void;
-
-    pub fn insertChars(data: *InputTextCallbackData, pos: i32, txt: []const u8) void {
-        zguiInputTextCallbackData_InsertChars(data, pos, txt.ptr, txt.ptr + txt.len);
-    }
-    extern fn zguiInputTextCallbackData_InsertChars(
-        data: *InputTextCallbackData,
-        pos: c_int,
-        text: [*]const u8,
-        text_end: [*]const u8,
-    ) void;
-
-    pub fn selectAll(data: *InputTextCallbackData) void {
-        data.selection_start = 0;
-        data.selection_end = data.buf_text_len;
+    pub fn init() InputTextCallbackData{
+        return .{.data = cimgui.ImGuiInputTextCallbackData_ImGuiInputTextCallbackData() };
     }
 
-    pub fn clearSelection(data: *InputTextCallbackData) void {
-        data.selection_start = data.buf_text_len;
-        data.selection_end = data.buf_text_len;
+    pub fn deleteChars(self: InputTextCallbackData, pos: i32, bytes_count: i32) void{
+        cimgui.ImGuiInputTextCallbackData_DeleteChars(self.data, pos, bytes_count);
     }
 
-    pub fn hasSelection(data: InputTextCallbackData) bool {
-        return data.selection_start != data.selection_end;
+    pub fn insertChars(self: *InputTextCallbackData, pos: i32, txt: []const u8) void {
+        cimgui.ImGuiInputTextCallbackData_InsertChars(self.data, pos, txt.ptr, txt.ptr + txt.len);
+    }
+
+    pub fn selectAll(self: *InputTextCallbackData) void {
+        self.data.SelectionStart = 0;
+        self.data.SelectionEnd = self.data.BufTextLen;
+    }
+
+    pub fn clearSelection(self: *InputTextCallbackData) void {
+        self.data.SelectionStart = self.data.BufTextLen;
+        self.data.SelectionEnd = self.data.BufTextLen;
+    }
+
+    pub fn hasSelection(self: InputTextCallbackData) bool {
+        return self.data.SelectionStart != self.data.SelectionEnd;
     }
 };
 
@@ -2931,56 +2909,39 @@ pub const tabItemButton = cimgui.igTabItemButton;
 // Viewport
 //
 //--------------------------------------------------------------------------------------------------
-pub const Viewport = *opaque {
-    pub fn getId(viewport: Viewport) Ident {
-        return zguiViewport_GetId(viewport);
-    }
-    extern fn zguiViewport_GetId(viewport: Viewport) Ident;
+pub const Viewport = struct {
+    data: *cimgui.ImGuiViewport,
 
-    pub fn getPos(viewport: Viewport) Vec2 {
-        var pos: Vec2 = undefined;
-        zguiViewport_GetPos(viewport, &pos);
-        return pos;
-    }
-    extern fn zguiViewport_GetPos(viewport: Viewport, pos: *Vec2) void;
-
-    pub fn getSize(viewport: Viewport) Vec2 {
-        var pos: Vec2 = undefined;
-        zguiViewport_GetSize(viewport, &pos);
-        return pos;
-    }
-    extern fn zguiViewport_GetSize(viewport: Viewport, size: *Vec2) void;
-
-    pub fn getWorkPos(viewport: Viewport) Vec2 {
-        var pos: Vec2 = undefined;
-        zguiViewport_GetWorkPos(viewport, &pos);
-        return pos;
-    }
-    extern fn zguiViewport_GetWorkPos(viewport: Viewport, pos: *Vec2) void;
-
-    pub fn getWorkSize(viewport: Viewport) Vec2 {
-        var pos: Vec2 = undefined;
-        zguiViewport_GetWorkSize(viewport, &pos);
-        return pos;
-    }
-    extern fn zguiViewport_GetWorkSize(viewport: Viewport, size: *Vec2) void;
-
-    pub fn getCenter(viewport: Viewport) Vec2 {
-        const pos = viewport.getPos();
-        const size = viewport.getSize();
-        return .{
-            pos[0] + size[0] * 0.5,
-            pos[1] + size[1] * 0.5,
-        };
+    pub fn getId(self: Viewport) Ident {
+        return self.data.ID; 
     }
 
-    pub fn getWorkCenter(viewport: Viewport) Vec2 {
-        const pos = viewport.getWorkPos();
-        const size = viewport.getWorkSize();
-        return .{
-            pos[0] + size[0] * 0.5,
-            pos[1] + size[1] * 0.5,
-        };
+    pub fn getPos(self: Viewport) Vec2 {
+        return self.data.Pos;
+    }
+
+    pub fn getSize(self: Viewport) Vec2 {
+        return self.data.Size;
+    }
+
+    pub fn getWorkPos(self: Viewport) Vec2 {
+        return self.data.Pos;
+    }
+
+    pub fn getWorkSize(self: Viewport) Vec2 {
+        return self.data.WorkSize;
+    }
+
+    pub fn getCenter(self: Viewport) Vec2 {
+        var center: Vec2 = undefined;
+        cimgui.ImGuiViewport_GetCenter(&center, self.data);
+        return center;
+    }
+
+    pub fn getWorkCenter(self: Viewport) Vec2 {
+        var center: Vec2 = undefined;
+        cimgui.ImGuiViewport_GetWorkCenter(&center, self.data);
+        return center;
     }
 };
 pub const getMainViewport = cimgui.igGetMainViewport;
@@ -3117,19 +3078,8 @@ pub const DrawFlags = packed struct(c_int) {
     };
 };
 
-pub const DrawCmd = extern struct {
-    clip_rect: Vec4,
-    texture_ref: TextureRef,
-    vtx_offset: c_uint,
-    idx_offset: c_uint,
-    elem_count: c_uint,
-    user_callback: ?DrawCallback,
-    user_callback_data: ?*anyopaque,
-    user_callback_data_size: c_int,
-    user_callback_data_offset: c_int,
-};
-
-pub const DrawCallback = *const fn (*const anyopaque, *const DrawCmd) callconv(.c) void;
+pub const DrawCmd = cimgui.ImDrawCmd;
+pub const DrawCallback = cimgui.ImDrawCallback;
 
 pub const getWindowDrawList = cimgui.igGetWindowDrawList;
 pub const getBackgroundDrawList = cimgui.igGetBackgroundDrawList;
@@ -3137,989 +3087,617 @@ pub const getForegroundDrawList = cimgui.igGetForegroundDrawList_WindowPtr;
 
 pub const getWindowDpiScale = cimgui.igGetWindowDpiScale;
 
-// pub fn createDrawList() void{
-// TODO
-// }
-// pub fn destroyDrawList(draw_list: DrawList) void {
-//     if (draw_list.getOwnerName()) |owner| {
-//         @panic(format("zgui: illegally destroying DrawList of {s}", .{owner}));
-//     }
-//     cimgui.igDestroyDrawList(draw_list);
-// }
+pub const DrawList = struct {
+    data: *cimgui.ImDrawList,
 
-//TODO<tonitch>
-pub const DrawList = *opaque {
-//
-//     pub fn reset(draw_list: DrawList) void {
-//         if (draw_list.getOwnerName()) |owner| {
-//             @panic(format("zgui: illegally resetting DrawList of {s}", .{owner}));
-//         }
-//         cimgui.igDrawList_ResetForNewFrame(draw_list);
-//     }
-//
-//     pub fn clearMemory(draw_list: DrawList) void {
-//         if (draw_list.getOwnerName()) |owner| {
-//             @panic(format("zgui: illegally clearing memory DrawList of {s}", .{owner}));
-//         }
-//         cimgui.igDrawList_ClearFreeMemory(draw_list);
-//     }
-//
-//     //----------------------------------------------------------------------------------------------
-//     pub fn getVertexBufferLength(draw_list: DrawList) i32 {
-//         return cimgui.igDrawList_GetVertexBufferLength(draw_list);
-//     }
-//     extern fn zguiDrawList_GetVertexBufferLength(draw_list: DrawList) c_int;
-//
-//     pub const getVertexBufferData = zguiDrawList_GetVertexBufferData;
-//     extern fn zguiDrawList_GetVertexBufferData(draw_list: DrawList) [*]DrawVert;
-//     pub fn getVertexBuffer(draw_list: DrawList) []DrawVert {
-//         const len: usize = @intCast(draw_list.getVertexBufferLength());
-//         return draw_list.getVertexBufferData()[0..len];
-//     }
-//
-//     pub fn getIndexBufferLength(draw_list: DrawList) i32 {
-//         return zguiDrawList_GetIndexBufferLength(draw_list);
-//     }
-//     extern fn zguiDrawList_GetIndexBufferLength(draw_list: DrawList) c_int;
-//
-//     pub const getIndexBufferData = zguiDrawList_GetIndexBufferData;
-//     extern fn zguiDrawList_GetIndexBufferData(draw_list: DrawList) [*]DrawIdx;
-//     pub fn getIndexBuffer(draw_list: DrawList) []DrawIdx {
-//         const len: usize = @intCast(draw_list.getIndexBufferLength());
-//         return draw_list.getIndexBufferData()[0..len];
-//     }
-//
-//     pub fn getCurrentIndex(draw_list: DrawList) u32 {
-//         return zguiDrawList_GetCurrentIndex(draw_list);
-//     }
-//     extern fn zguiDrawList_GetCurrentIndex(draw_list: DrawList) c_uint;
-//
-//     pub fn getCmdBufferLength(draw_list: DrawList) i32 {
-//         return zguiDrawList_GetCmdBufferLength(draw_list);
-//     }
-//     extern fn zguiDrawList_GetCmdBufferLength(draw_list: DrawList) c_int;
-//
-//     pub const getCmdBufferData = zguiDrawList_GetCmdBufferData;
-//     extern fn zguiDrawList_GetCmdBufferData(draw_list: DrawList) [*]DrawCmd;
-//     pub fn getCmdBuffer(draw_list: DrawList) []DrawCmd {
-//         const len: usize = @intCast(draw_list.getCmdBufferLength());
-//         return draw_list.getCmdBufferData()[0..len];
-//     }
-//
-//     pub const DrawListFlags = packed struct(c_int) {
-//         anti_aliased_lines: bool = false,
-//         anti_aliased_lines_use_tex: bool = false,
-//         anti_aliased_fill: bool = false,
-//         allow_vtx_offset: bool = false,
-//
-//         _padding: u28 = 0,
-//     };
-//
-//     pub const setDrawListFlags = zguiDrawList_SetFlags;
-//     extern fn zguiDrawList_SetFlags(draw_list: DrawList, flags: DrawListFlags) void;
-//     pub const getDrawListFlags = zguiDrawList_GetFlags;
-//     extern fn zguiDrawList_GetFlags(draw_list: DrawList) DrawListFlags;
-//
-//     //----------------------------------------------------------------------------------------------
-//     const ClipRect = struct {
-//         pmin: Vec2,
-//         pmax: Vec2,
-//         intersect_with_current: bool = false,
-//     };
-//     pub fn pushClipRect(draw_list: DrawList, args: ClipRect) void {
-//         zguiDrawList_PushClipRect(
-//             draw_list,
-//             &args.pmin,
-//             &args.pmax,
-//             args.intersect_with_current,
-//         );
-//     }
-//     extern fn zguiDrawList_PushClipRect(
-//         draw_list: DrawList,
-//         clip_rect_min: *const Vec2,
-//         clip_rect_max: *const Vec2,
-//         intersect_with_current_clip_rect: bool,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub const pushClipRectFullScreen = zguiDrawList_PushClipRectFullScreen;
-//     extern fn zguiDrawList_PushClipRectFullScreen(draw_list: DrawList) void;
-//
-//     pub const popClipRect = zguiDrawList_PopClipRect;
-//     extern fn zguiDrawList_PopClipRect(draw_list: DrawList) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub const pushTexture = zguiDrawList_PushTexture;
-//     extern fn zguiDrawList_PushTexture(draw_list: DrawList, texture_ref: TextureRef) void;
-//
-//     pub const popTexture = zguiDrawList_PopTexture;
-//     extern fn zguiDrawList_PopTexture(draw_list: DrawList) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn getClipRectMin(draw_list: DrawList) Vec2 {
-//         var v: Vec2 = undefined;
-//         zguiDrawList_GetClipRectMin(draw_list, &v);
-//         return v;
-//     }
-//     extern fn zguiDrawList_GetClipRectMin(draw_list: DrawList, clip_min: *Vec2) void;
-//
-//     pub fn getClipRectMax(draw_list: DrawList) Vec2 {
-//         var v: Vec2 = undefined;
-//         zguiDrawList_GetClipRectMax(draw_list, &v);
-//         return v;
-//     }
-//     extern fn zguiDrawList_GetClipRectMax(draw_list: DrawList, clip_min: *Vec2) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn addLine(draw_list: DrawList, args: struct {
-//         p1: Vec2,
-//         p2: Vec2,
-//         col: u32,
-//         thickness: f32,
-//     }) void {
-//         zguiDrawList_AddLine(draw_list, &args.p1, &args.p2, args.col, args.thickness);
-//     }
-//     extern fn zguiDrawList_AddLine(
-//         draw_list: DrawList,
-//         p1: *const Vec2,
-//         p2: *const Vec2,
-//         col: u32,
-//         thickness: f32,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn addRect(draw_list: DrawList, args: struct {
-//         pmin: Vec2,
-//         pmax: Vec2,
-//         col: u32,
-//         rounding: f32 = 0.0,
-//         flags: DrawFlags = .{},
-//         thickness: f32 = 1.0,
-//     }) void {
-//         zguiDrawList_AddRect(
-//             draw_list,
-//             &args.pmin,
-//             &args.pmax,
-//             args.col,
-//             args.rounding,
-//             args.flags,
-//             args.thickness,
-//         );
-//     }
-//     extern fn zguiDrawList_AddRect(
-//         draw_list: DrawList,
-//         pmin: *const Vec2,
-//         pmax: *const Vec2,
-//         col: u32,
-//         rounding: f32,
-//         flags: DrawFlags,
-//         thickness: f32,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn addRectFilled(draw_list: DrawList, args: struct {
-//         pmin: Vec2,
-//         pmax: Vec2,
-//         col: u32,
-//         rounding: f32 = 0.0,
-//         flags: DrawFlags = .{},
-//     }) void {
-//         zguiDrawList_AddRectFilled(
-//             draw_list,
-//             &args.pmin,
-//             &args.pmax,
-//             args.col,
-//             args.rounding,
-//             args.flags,
-//         );
-//     }
-//     extern fn zguiDrawList_AddRectFilled(
-//         draw_list: DrawList,
-//         pmin: *const Vec2,
-//         pmax: *const Vec2,
-//         col: u32,
-//         rounding: f32,
-//         flags: DrawFlags,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn addRectFilledMultiColor(draw_list: DrawList, args: struct {
-//         pmin: Vec2,
-//         pmax: Vec2,
-//         col_upr_left: u32,
-//         col_upr_right: u32,
-//         col_bot_right: u32,
-//         col_bot_left: u32,
-//     }) void {
-//         zguiDrawList_AddRectFilledMultiColor(
-//             draw_list,
-//             &args.pmin,
-//             &args.pmax,
-//             args.col_upr_left,
-//             args.col_upr_right,
-//             args.col_bot_right,
-//             args.col_bot_left,
-//         );
-//     }
-//     extern fn zguiDrawList_AddRectFilledMultiColor(
-//         draw_list: DrawList,
-//         pmin: *const Vec2,
-//         pmax: *const Vec2,
-//         col_upr_left: c_uint,
-//         col_upr_right: c_uint,
-//         col_bot_right: c_uint,
-//         col_bot_left: c_uint,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn addQuad(draw_list: DrawList, args: struct {
-//         p1: Vec2,
-//         p2: Vec2,
-//         p3: Vec2,
-//         p4: Vec2,
-//         col: u32,
-//         thickness: f32 = 1.0,
-//     }) void {
-//         zguiDrawList_AddQuad(
-//             draw_list,
-//             &args.p1,
-//             &args.p2,
-//             &args.p3,
-//             &args.p4,
-//             args.col,
-//             args.thickness,
-//         );
-//     }
-//     extern fn zguiDrawList_AddQuad(
-//         draw_list: DrawList,
-//         p1: *const Vec2,
-//         p2: *const Vec2,
-//         p3: *const Vec2,
-//         p4: *const Vec2,
-//         col: u32,
-//         thickness: f32,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn addQuadFilled(draw_list: DrawList, args: struct {
-//         p1: Vec2,
-//         p2: Vec2,
-//         p3: Vec2,
-//         p4: Vec2,
-//         col: u32,
-//     }) void {
-//         zguiDrawList_AddQuadFilled(draw_list, &args.p1, &args.p2, &args.p3, &args.p4, args.col);
-//     }
-//     extern fn zguiDrawList_AddQuadFilled(
-//         draw_list: DrawList,
-//         p1: *const Vec2,
-//         p2: *const Vec2,
-//         p3: *const Vec2,
-//         p4: *const Vec2,
-//         col: u32,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn addTriangle(draw_list: DrawList, args: struct {
-//         p1: Vec2,
-//         p2: Vec2,
-//         p3: Vec2,
-//         col: u32,
-//         thickness: f32 = 1.0,
-//     }) void {
-//         zguiDrawList_AddTriangle(draw_list, &args.p1, &args.p2, &args.p3, args.col, args.thickness);
-//     }
-//     extern fn zguiDrawList_AddTriangle(
-//         draw_list: DrawList,
-//         p1: *const Vec2,
-//         p2: *const Vec2,
-//         p3: *const Vec2,
-//         col: u32,
-//         thickness: f32,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn addTriangleFilled(draw_list: DrawList, args: struct {
-//         p1: Vec2,
-//         p2: Vec2,
-//         p3: Vec2,
-//         col: u32,
-//     }) void {
-//         zguiDrawList_AddTriangleFilled(draw_list, &args.p1, &args.p2, &args.p3, args.col);
-//     }
-//     extern fn zguiDrawList_AddTriangleFilled(
-//         draw_list: DrawList,
-//         p1: *const Vec2,
-//         p2: *const Vec2,
-//         p3: *const Vec2,
-//         col: u32,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn addCircle(draw_list: DrawList, args: struct {
-//         p: Vec2,
-//         r: f32,
-//         col: u32,
-//         num_segments: i32 = 0,
-//         thickness: f32 = 1.0,
-//     }) void {
-//         zguiDrawList_AddCircle(
-//             draw_list,
-//             &args.p,
-//             args.r,
-//             args.col,
-//             args.num_segments,
-//             args.thickness,
-//         );
-//     }
-//     extern fn zguiDrawList_AddCircle(
-//         draw_list: DrawList,
-//         center: *const Vec2,
-//         radius: f32,
-//         col: u32,
-//         num_segments: c_int,
-//         thickness: f32,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn addCircleFilled(draw_list: DrawList, args: struct {
-//         p: Vec2,
-//         r: f32,
-//         col: u32,
-//         num_segments: u16 = 0,
-//     }) void {
-//         zguiDrawList_AddCircleFilled(draw_list, &args.p, args.r, args.col, args.num_segments);
-//     }
-//     extern fn zguiDrawList_AddCircleFilled(
-//         draw_list: DrawList,
-//         center: *const Vec2,
-//         radius: f32,
-//         col: u32,
-//         num_segments: c_int,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn addEllipse(draw_list: DrawList, args: struct {
-//         p: Vec2,
-//         r: Vec2,
-//         col: u32,
-//         rot: f32 = 0,
-//         num_segments: i32 = 0,
-//         thickness: f32 = 1.0,
-//     }) void {
-//         zguiDrawList_AddEllipse(
-//             draw_list,
-//             &args.p,
-//             &args.r,
-//             args.col,
-//             args.rot,
-//             args.num_segments,
-//             args.thickness,
-//         );
-//     }
-//     extern fn zguiDrawList_AddEllipse(
-//         draw_list: DrawList,
-//         center: *const Vec2,
-//         radius: *const Vec2,
-//         col: u32,
-//         rot: f32,
-//         num_segments: c_int,
-//         thickness: f32,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn addEllipseFilled(draw_list: DrawList, args: struct {
-//         p: Vec2,
-//         r: Vec2,
-//         col: u32,
-//         rot: f32 = 0,
-//         num_segments: u16 = 0,
-//     }) void {
-//         zguiDrawList_AddEllipseFilled(
-//             draw_list,
-//             &args.p,
-//             &args.r,
-//             args.col,
-//             args.rot,
-//             args.num_segments,
-//         );
-//     }
-//     extern fn zguiDrawList_AddEllipseFilled(
-//         draw_list: DrawList,
-//         center: *const Vec2,
-//         radius: *const Vec2,
-//         col: u32,
-//         rot: f32,
-//         num_segments: c_int,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn addNgon(draw_list: DrawList, args: struct {
-//         p: Vec2,
-//         r: f32,
-//         col: u32,
-//         num_segments: u32,
-//         thickness: f32 = 1.0,
-//     }) void {
-//         zguiDrawList_AddNgon(
-//             draw_list,
-//             &args.p,
-//             args.r,
-//             args.col,
-//             @intCast(args.num_segments),
-//             args.thickness,
-//         );
-//     }
-//     extern fn zguiDrawList_AddNgon(
-//         draw_list: DrawList,
-//         center: *const Vec2,
-//         radius: f32,
-//         col: u32,
-//         num_segments: c_int,
-//         thickness: f32,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn addNgonFilled(draw_list: DrawList, args: struct {
-//         p: Vec2,
-//         r: f32,
-//         col: u32,
-//         num_segments: u32,
-//     }) void {
-//         zguiDrawList_AddNgonFilled(draw_list, &args.p, args.r, args.col, @intCast(args.num_segments));
-//     }
-//     extern fn zguiDrawList_AddNgonFilled(
-//         draw_list: DrawList,
-//         center: *const Vec2,
-//         radius: f32,
-//         col: u32,
-//         num_segments: c_int,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn addText(draw_list: DrawList, pos: Vec2, col: u32, comptime fmt: []const u8, args: anytype) void {
-//         const txt = format(fmt, args);
-//         draw_list.addTextUnformatted(pos, col, txt);
-//     }
-//     pub fn addTextUnformatted(draw_list: DrawList, pos: Vec2, col: u32, txt: []const u8) void {
-//         zguiDrawList_AddText(draw_list, &pos, col, txt.ptr, txt.ptr + txt.len);
-//     }
-//     extern fn zguiDrawList_AddText(
-//         draw_list: DrawList,
-//         pos: *const Vec2,
-//         col: u32,
-//         text: [*]const u8,
-//         text_end: [*]const u8,
-//     ) void;
-//     const AddTextArgs = struct {
-//         font: ?Font,
-//         font_size: f32,
-//         wrap_width: f32 = 0,
-//         cpu_fine_clip_rect: ?[*]const Vec4 = null,
-//     };
-//     pub fn addTextExtended(
-//         draw_list: DrawList,
-//         pos: Vec2,
-//         col: u32,
-//         comptime fmt: []const u8,
-//         args: anytype,
-//         add_text_args: AddTextArgs,
-//     ) void {
-//         const txt = format(fmt, args);
-//         addTextExtendedUnformatted(draw_list, pos, col, txt, add_text_args);
-//     }
-//     pub fn addTextExtendedUnformatted(
-//         draw_list: DrawList,
-//         pos: Vec2,
-//         col: u32,
-//         txt: []const u8,
-//         add_text_args: AddTextArgs,
-//     ) void {
-//         zguiDrawList_AddTextExtended(
-//             draw_list,
-//             add_text_args.font,
-//             add_text_args.font_size,
-//             &pos,
-//             col,
-//             txt.ptr,
-//             txt.ptr + txt.len,
-//             add_text_args.wrap_width,
-//             add_text_args.cpu_fine_clip_rect,
-//         );
-//     }
-//     extern fn zguiDrawList_AddTextExtended(
-//         draw_list: DrawList,
-//         font: ?Font,
-//         font_size: f32,
-//         pos: *const Vec2,
-//         col: u32,
-//         text: [*]const u8,
-//         text_end: [*]const u8,
-//         wrap_width: f32,
-//         cpu_fine_clip_rect: ?[*]const Vec4,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn addPolyline(draw_list: DrawList, points: []const Vec2, args: struct {
-//         col: u32,
-//         flags: DrawFlags = .{},
-//         thickness: f32 = 1.0,
-//     }) void {
-//         zguiDrawList_AddPolyline(
-//             draw_list,
-//             points.ptr,
-//             @intCast(points.len),
-//             args.col,
-//             args.flags,
-//             args.thickness,
-//         );
-//     }
-//     extern fn zguiDrawList_AddPolyline(
-//         draw_list: DrawList,
-//         points: [*]const Vec2,
-//         num_points: c_int,
-//         col: u32,
-//         flags: DrawFlags,
-//         thickness: f32,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn addConvexPolyFilled(
-//         draw_list: DrawList,
-//         points: []const Vec2,
-//         col: u32,
-//     ) void {
-//         zguiDrawList_AddConvexPolyFilled(
-//             draw_list,
-//             points.ptr,
-//             @intCast(points.len),
-//             col,
-//         );
-//     }
-//     extern fn zguiDrawList_AddConvexPolyFilled(
-//         draw_list: DrawList,
-//         points: [*]const Vec2,
-//         num_points: c_int,
-//         col: u32,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn addConcavePolyFilled(
-//         draw_list: DrawList,
-//         points: []const Vec2,
-//         col: u32,
-//     ) void {
-//         zguiDrawList_AddConcavePolyFilled(
-//             draw_list,
-//             points.ptr,
-//             @intCast(points.len),
-//             col,
-//         );
-//     }
-//     extern fn zguiDrawList_AddConcavePolyFilled(
-//         draw_list: DrawList,
-//         points: [*]const Vec2,
-//         num_points: c_int,
-//         col: u32,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn addBezierCubic(draw_list: DrawList, args: struct {
-//         p1: Vec2,
-//         p2: Vec2,
-//         p3: Vec2,
-//         p4: Vec2,
-//         col: u32,
-//         thickness: f32 = 1.0,
-//         num_segments: u32 = 0,
-//     }) void {
-//         zguiDrawList_AddBezierCubic(
-//             draw_list,
-//             &args.p1,
-//             &args.p2,
-//             &args.p3,
-//             &args.p4,
-//             args.col,
-//             args.thickness,
-//             @intCast(args.num_segments),
-//         );
-//     }
-//     extern fn zguiDrawList_AddBezierCubic(
-//         draw_list: DrawList,
-//         p1: *const Vec2,
-//         p2: *const Vec2,
-//         p3: *const Vec2,
-//         p4: *const Vec2,
-//         col: u32,
-//         thickness: f32,
-//         num_segments: c_int,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn addBezierQuadratic(draw_list: DrawList, args: struct {
-//         p1: Vec2,
-//         p2: Vec2,
-//         p3: Vec2,
-//         col: u32,
-//         thickness: f32 = 1.0,
-//         num_segments: u32 = 0,
-//     }) void {
-//         zguiDrawList_AddBezierQuadratic(
-//             draw_list,
-//             &args.p1,
-//             &args.p2,
-//             &args.p3,
-//             args.col,
-//             args.thickness,
-//             @intCast(args.num_segments),
-//         );
-//     }
-//     extern fn zguiDrawList_AddBezierQuadratic(
-//         draw_list: DrawList,
-//         p1: *const Vec2,
-//         p2: *const Vec2,
-//         p3: *const Vec2,
-//         col: u32,
-//         thickness: f32,
-//         num_segments: c_int,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn addImage(draw_list: DrawList, user_texture_ref: TextureRef, args: struct {
-//         pmin: Vec2,
-//         pmax: Vec2,
-//         uvmin: Vec2 = .{ 0, 0 },
-//         uvmax: Vec2 = .{ 1, 1 },
-//         col: u32 = 0xff_ff_ff_ff,
-//     }) void {
-//         zguiDrawList_AddImage(
-//             draw_list,
-//             user_texture_ref,
-//             &args.pmin,
-//             &args.pmax,
-//             &args.uvmin,
-//             &args.uvmax,
-//             args.col,
-//         );
-//     }
-//     extern fn zguiDrawList_AddImage(
-//         draw_list: DrawList,
-//         user_texture_ref: TextureRef,
-//         pmin: *const Vec2,
-//         pmax: *const Vec2,
-//         uvmin: *const Vec2,
-//         uvmax: *const Vec2,
-//         col: u32,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn addImageQuad(draw_list: DrawList, user_texture_ref: TextureRef, args: struct {
-//         p1: Vec2,
-//         p2: Vec2,
-//         p3: Vec2,
-//         p4: Vec2,
-//         uv1: Vec2 = .{ 0, 0 },
-//         uv2: Vec2 = .{ 1, 0 },
-//         uv3: Vec2 = .{ 1, 1 },
-//         uv4: Vec2 = .{ 0, 1 },
-//         col: u32 = 0xff_ff_ff_ff,
-//     }) void {
-//         zguiDrawList_AddImageQuad(
-//             draw_list,
-//             user_texture_ref,
-//             &args.p1,
-//             &args.p2,
-//             &args.p3,
-//             &args.p4,
-//             &args.uv1,
-//             &args.uv2,
-//             &args.uv3,
-//             &args.uv4,
-//             args.col,
-//         );
-//     }
-//     extern fn zguiDrawList_AddImageQuad(
-//         draw_list: DrawList,
-//         user_texture_ref: TextureRef,
-//         p1: *const Vec2,
-//         p2: *const Vec2,
-//         p3: *const Vec2,
-//         p4: *const Vec2,
-//         uv1: *const Vec2,
-//         uv2: *const Vec2,
-//         uv3: *const Vec2,
-//         uv4: *const Vec2,
-//         col: u32,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn addImageRounded(draw_list: DrawList, user_texture_ref: TextureRef, args: struct {
-//         pmin: Vec2,
-//         pmax: Vec2,
-//         uvmin: Vec2 = .{ 0, 0 },
-//         uvmax: Vec2 = .{ 1, 1 },
-//         col: u32 = 0xff_ff_ff_ff,
-//         rounding: f32 = 4.0,
-//         flags: DrawFlags = .{},
-//     }) void {
-//         zguiDrawList_AddImageRounded(
-//             draw_list,
-//             user_texture_ref,
-//             &args.pmin,
-//             &args.pmax,
-//             &args.uvmin,
-//             &args.uvmax,
-//             args.col,
-//             args.rounding,
-//             args.flags,
-//         );
-//     }
-//     extern fn zguiDrawList_AddImageRounded(
-//         draw_list: DrawList,
-//         user_texture_ref: TextureRef,
-//         pmin: *const Vec2,
-//         pmax: *const Vec2,
-//         uvmin: *const Vec2,
-//         uvmax: *const Vec2,
-//         col: u32,
-//         rounding: f32,
-//         flags: DrawFlags,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub const pathClear = zguiDrawList_PathClear;
-//     extern fn zguiDrawList_PathClear(draw_list: DrawList) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn pathLineTo(draw_list: DrawList, pos: Vec2) void {
-//         zguiDrawList_PathLineTo(draw_list, &pos);
-//     }
-//     extern fn zguiDrawList_PathLineTo(draw_list: DrawList, pos: *const Vec2) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn pathLineToMergeDuplicate(draw_list: DrawList, pos: Vec2) void {
-//         zguiDrawList_PathLineToMergeDuplicate(draw_list, &pos);
-//     }
-//     extern fn zguiDrawList_PathLineToMergeDuplicate(draw_list: DrawList, pos: *const Vec2) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn pathFillConvex(draw_list: DrawList, col: u32) void {
-//         return zguiDrawList_PathFillConvex(draw_list, col);
-//     }
-//     extern fn zguiDrawList_PathFillConvex(draw_list: DrawList, col: c_uint) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn pathFillConcave(draw_list: DrawList, col: u32) void {
-//         return zguiDrawList_PathFillConcave(draw_list, col);
-//     }
-//     extern fn zguiDrawList_PathFillConcave(draw_list: DrawList, col: c_uint) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn pathStroke(draw_list: DrawList, args: struct {
-//         col: u32,
-//         flags: DrawFlags = .{},
-//         thickness: f32 = 1.0,
-//     }) void {
-//         zguiDrawList_PathStroke(draw_list, args.col, args.flags, args.thickness);
-//     }
-//     extern fn zguiDrawList_PathStroke(draw_list: DrawList, col: u32, flags: DrawFlags, thickness: f32) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn pathArcTo(draw_list: DrawList, args: struct {
-//         p: Vec2,
-//         r: f32,
-//         amin: f32,
-//         amax: f32,
-//         num_segments: u16 = 0,
-//     }) void {
-//         zguiDrawList_PathArcTo(
-//             draw_list,
-//             &args.p,
-//             args.r,
-//             args.amin,
-//             args.amax,
-//             args.num_segments,
-//         );
-//     }
-//     extern fn zguiDrawList_PathArcTo(
-//         draw_list: DrawList,
-//         center: *const Vec2,
-//         radius: f32,
-//         amin: f32,
-//         amax: f32,
-//         num_segments: c_int,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn pathArcToFast(draw_list: DrawList, args: struct {
-//         p: Vec2,
-//         r: f32,
-//         amin_of_12: u16,
-//         amax_of_12: u16,
-//     }) void {
-//         zguiDrawList_PathArcToFast(draw_list, &args.p, args.r, args.amin_of_12, args.amax_of_12);
-//     }
-//     extern fn zguiDrawList_PathArcToFast(
-//         draw_list: DrawList,
-//         center: *const Vec2,
-//         radius: f32,
-//         a_min_of_12: c_int,
-//         a_max_of_12: c_int,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn pathEllipticalArcTo(draw_list: DrawList, args: struct {
-//         p: Vec2,
-//         r: Vec2,
-//         rot: f32,
-//         amin: f32,
-//         amax: f32,
-//         num_segments: u16 = 0,
-//     }) void {
-//         zguiDrawList_PathEllipticalArcTo(
-//             draw_list,
-//             &args.p,
-//             &args.r,
-//             args.rot,
-//             args.amin,
-//             args.amax,
-//             args.num_segments,
-//         );
-//     }
-//     extern fn zguiDrawList_PathEllipticalArcTo(
-//         draw_list: DrawList,
-//         center: *const Vec2,
-//         radius: *const Vec2,
-//         rot: f32,
-//         amin: f32,
-//         amax: f32,
-//         num_segments: c_int,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn pathBezierCubicCurveTo(draw_list: DrawList, args: struct {
-//         p2: Vec2,
-//         p3: Vec2,
-//         p4: Vec2,
-//         num_segments: u16 = 0,
-//     }) void {
-//         zguiDrawList_PathBezierCubicCurveTo(
-//             draw_list,
-//             &args.p2,
-//             &args.p3,
-//             &args.p4,
-//             args.num_segments,
-//         );
-//     }
-//     extern fn zguiDrawList_PathBezierCubicCurveTo(
-//         draw_list: DrawList,
-//         p2: *const Vec2,
-//         p3: *const Vec2,
-//         p4: *const Vec2,
-//         num_segments: c_int,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub fn pathBezierQuadraticCurveTo(draw_list: DrawList, args: struct {
-//         p2: Vec2,
-//         p3: Vec2,
-//         num_segments: u16 = 0,
-//     }) void {
-//         zguiDrawList_PathBezierQuadraticCurveTo(draw_list, &args.p2, &args.p3, args.num_segments);
-//     }
-//     extern fn zguiDrawList_PathBezierQuadraticCurveTo(
-//         draw_list: DrawList,
-//         p2: *const Vec2,
-//         p3: *const Vec2,
-//         num_segments: c_int,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     const PathRect = struct {
-//         bmin: Vec2,
-//         bmax: Vec2,
-//         rounding: f32 = 0.0,
-//         flags: DrawFlags = .{},
-//     };
-//     pub fn pathRect(draw_list: DrawList, args: PathRect) void {
-//         zguiDrawList_PathRect(draw_list, &args.bmin, &args.bmax, args.rounding, args.flags);
-//     }
-//     extern fn zguiDrawList_PathRect(
-//         draw_list: DrawList,
-//         rect_min: *const Vec2,
-//         rect_max: *const Vec2,
-//         rounding: f32,
-//         flags: DrawFlags,
-//     ) void;
-//     //----------------------------------------------------------------------------------------------
-//     pub const primReserve = zguiDrawList_PrimReserve;
-//     extern fn zguiDrawList_PrimReserve(
-//         draw_list: DrawList,
-//         idx_count: i32,
-//         vtx_count: i32,
-//     ) void;
-//
-//     pub const primUnreserve = zguiDrawList_PrimUnreserve;
-//     extern fn zguiDrawList_PrimUnreserve(
-//         draw_list: DrawList,
-//         idx_count: i32,
-//         vtx_count: i32,
-//     ) void;
-//
-//     pub fn primRect(
-//         draw_list: DrawList,
-//         a: Vec2,
-//         b: Vec2,
-//         col: u32,
-//     ) void {
-//         return zguiDrawList_PrimRect(draw_list, &a, &b, col);
-//     }
-//     extern fn zguiDrawList_PrimRect(
-//         draw_list: DrawList,
-//         a: *const Vec2,
-//         b: *const Vec2,
-//         col: u32,
-//     ) void;
-//
-//     pub fn primRectUV(
-//         draw_list: DrawList,
-//         a: Vec2,
-//         b: Vec2,
-//         uv_a: Vec2,
-//         uv_b: Vec2,
-//         col: u32,
-//     ) void {
-//         return zguiDrawList_PrimRectUV(draw_list, &a, &b, &uv_a, &uv_b, col);
-//     }
-//     extern fn zguiDrawList_PrimRectUV(
-//         draw_list: DrawList,
-//         a: *const Vec2,
-//         b: *const Vec2,
-//         uv_a: *const Vec2,
-//         uv_b: *const Vec2,
-//         col: u32,
-//     ) void;
-//
-//     pub fn primQuadUV(
-//         draw_list: DrawList,
-//         a: Vec2,
-//         b: Vec2,
-//         c: Vec2,
-//         d: Vec2,
-//         uv_a: Vec2,
-//         uv_b: Vec2,
-//         uv_c: Vec2,
-//         uv_d: Vec2,
-//         col: u32,
-//     ) void {
-//         return zguiDrawList_PrimQuadUV(draw_list, &a, &b, &c, &d, &uv_a, &uv_b, &uv_c, &uv_d, col);
-//     }
-//     extern fn zguiDrawList_PrimQuadUV(
-//         draw_list: DrawList,
-//         a: *const Vec2,
-//         b: *const Vec2,
-//         c: *const Vec2,
-//         d: *const Vec2,
-//         uv_a: *const Vec2,
-//         uv_b: *const Vec2,
-//         uv_c: *const Vec2,
-//         uv_d: *const Vec2,
-//         col: u32,
-//     ) void;
-//
-//     pub fn primWriteVtx(
-//         draw_list: DrawList,
-//         pos: Vec2,
-//         uv: Vec2,
-//         col: u32,
-//     ) void {
-//         return zguiDrawList_PrimWriteVtx(draw_list, &pos, &uv, col);
-//     }
-//     extern fn zguiDrawList_PrimWriteVtx(
-//         draw_list: DrawList,
-//         pos: *const Vec2,
-//         uv: *const Vec2,
-//         col: u32,
-//     ) void;
-//
-//     pub const primWriteIdx = zguiDrawList_PrimWriteIdx;
-//     extern fn zguiDrawList_PrimWriteIdx(
-//         draw_list: DrawList,
-//         idx: DrawIdx,
-//     ) void;
-//
-//     //----------------------------------------------------------------------------------------------
-//
-//     pub fn addCallback(draw_list: DrawList, callback: DrawCallback, callback_data: ?*anyopaque) void {
-//         zguiDrawList_AddCallback(draw_list, callback, callback_data);
-//     }
-//     extern fn zguiDrawList_AddCallback(draw_list: DrawList, callback: DrawCallback, callback_data: ?*anyopaque) void;
-//     pub fn addResetRenderStateCallback(draw_list: DrawList) void {
-//         zguiDrawList_AddResetRenderStateCallback(draw_list);
-//     }
-//     extern fn zguiDrawList_AddResetRenderStateCallback(draw_list: DrawList) void;
+    pub const SharedData = cimgui.ImDrawListSharedData;
+
+    pub fn init(shared_data: *SharedData) DrawList{
+        return .{.data = cimgui.ImDrawList_ImDrawList(shared_data)};
+    }
+
+    pub fn deinit(self: *DrawList) void{
+        cimgui.ImDrawList_destroy(self.data);
+    }
+
+    pub fn reset(self: DrawList) void {
+        cimgui.ImDrawList__ResetForNewFrame(self.data);
+    }
+
+    pub fn clearMemory(self: DrawList) void {
+        cimgui.ImDrawList__ClearFreeMemory(self.data);
+    }
+
+    //----------------------------------------------------------------------------------------------
+    pub fn getVertexBufferLength(self: DrawList) i32 {
+        return self.data.VtxBuffer.Size;
+    }
+
+    pub fn getVertexBufferData(self: DrawList) *DrawVert{
+        return self.data.VtxBuffer.Data;
+    }
+
+    // pub fn getVertexBuffer(self: DrawList) []DrawVert {
+    //     const len: usize = @intCast(self.getVertexBufferLength());
+    //     return self.getVertexBufferData()[0..len];
+    // }
+
+    pub fn getIndexBufferLength(self: DrawList) i32 {
+        return self.data.IdxBuffer.Size;
+    }
+
+    pub fn getIndexBufferData(self: DrawList) *DrawIdx{
+        return self.data.IdxBuffer.Data;
+    }
+    // pub fn getIndexBuffer(self: DrawList) []DrawIdx {
+    //     const len: usize = @intCast(self.getIndexBufferLength());
+    //     return self.getIndexBufferData()[0..len];
+    // }
+
+    // pub fn getCurrentIndex(self: DrawList) u32 {
+    //     return zguiDrawList_GetCurrentIndex(self);
+    // }
+
+    pub fn getCmdBufferLength(self: DrawList) i32 {
+        return self.data.CmdBuffer.Size;
+    }
+
+    pub fn getCmdBufferData(self: DrawList) *DrawCmd{
+        return self.data.CmdBuffer.Data;
+    }
+
+    // pub fn getCmdBuffer(self: DrawList) []DrawCmd {
+    //     const len: usize = @intCast(self.getCmdBufferLength());
+    //     return self.getCmdBufferData()[0..len];
+    // }
+
+    pub const DrawListFlags = packed struct(c_int) {
+        anti_aliased_lines: bool = false,
+        anti_aliased_lines_use_tex: bool = false,
+        anti_aliased_fill: bool = false,
+        allow_vtx_offset: bool = false,
+
+        _padding: u28 = 0,
+    };
+
+    pub fn setDrawListFlags(self: *DrawList, flags: DrawListFlags) void{
+        self.data.Flags = @bitCast(flags);
+    }
+
+    pub fn getDrawListFlags(self: DrawList) DrawListFlags{
+        return @bitCast(self.data.Flags);
+    }
+
+    //----------------------------------------------------------------------------------------------
+    const ClipRect = struct {
+        pmin: Vec2,
+        pmax: Vec2,
+        intersect_with_current: bool = false,
+    };
+    pub fn pushClipRect(self: DrawList, args: ClipRect) void {
+        cimgui.ImDrawList_PushClipRect(self.data, args.pmin, args.pmax, args.intersect_with_current);
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn pushClipRectFullScreen(self: DrawList) void{
+        cimgui.ImDrawList_PushClipRectFullScreen(self.data);
+    }
+
+    pub fn popClipRect(self: DrawList) void{
+        cimgui.ImDrawList_PopClipRect(self.data);
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn pushTexture(self: DrawList, tex: TextureRef) void{
+        cimgui.ImDrawList_PushTexture(self.data, tex);
+    }
+
+    pub fn popTexture(self: DrawList) void{
+        cimgui.ImDrawList_PopTexture(self.data);
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn getClipRectMin(self: DrawList) Vec2 {
+        var v: Vec2 = undefined;
+        cimgui.ImDrawList_GetClipRectMin(&v, self.data);
+        return v;
+    }
+
+    pub fn getClipRectMax(self: DrawList) Vec2 {
+        var v: Vec2 = undefined;
+        cimgui.ImDrawList_GetClipRectMax(&v, self.data);
+        return v;
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn addLine(self: DrawList, p1: Vec2, p2: Vec2, col: u32, thickness: f32) void {
+        cimgui.ImDrawList_AddLine(self.data, p1, p2, col, thickness);
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn addRect(self: DrawList, args: struct {
+        pmin: Vec2,
+        pmax: Vec2,
+        col: u32,
+        rounding: f32 = 0.0,
+        flags: DrawFlags = .{},
+        thickness: f32 = 1.0,
+    }) void {
+        cimgui.ImDrawList_AddRect(
+            self.data,
+            args.pmin, args.pmax,
+            args.col, args.rounding,
+            @bitCast(args.flags), args.thickness);
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn addRectFilled(self: DrawList, args: struct {
+        pmin: Vec2,
+        pmax: Vec2,
+        col: u32,
+        rounding: f32 = 0.0,
+        flags: DrawFlags = .{},
+    }) void {
+        cimgui.ImDrawList_AddRectFilled(
+            self.data,
+            args.pmin, args.pmax,
+            args.col, args.rounding,
+            @bitCast(args.flags)
+        );
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn addRectFilledMultiColor(self: DrawList, args: struct {
+        pmin: Vec2,
+        pmax: Vec2,
+        col_upr_left: u32,
+        col_upr_right: u32,
+        col_bot_right: u32,
+        col_bot_left: u32,
+    }) void {
+        cimgui.ImDrawList_AddRectFilledMultiColor(
+            self.data,
+            args.pmin, args.pmax,
+            args.col_upr_left, args.col_upr_right,
+            args.col_bot_right, args.col_bot_left,
+        );
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn addQuad(self: DrawList, args: struct {
+        p1: Vec2, p2: Vec2, p3: Vec2, p4: Vec2,
+        col: u32, thickness: f32 = 1.0,
+    }) void {
+        cimgui.ImDrawList_AddQuad(
+            self.data,
+            args.p1, args.p2, args.p3, args.p4,
+            args.col, args.thickness,
+        );
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn addQuadFilled(self: DrawList, args: struct {
+        p1: Vec2, p2: Vec2, p3: Vec2, p4: Vec2,
+        col: u32,
+    }) void {
+        cimgui.ImDrawList_AddQuadFilled(
+            self.data,
+            args.p1, args.p2, args.p3, args.p4,
+            args.col
+        );
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn addTriangle(self: DrawList, args: struct {
+        p1: Vec2, p2: Vec2, p3: Vec2,
+        col: u32, thickness: f32 = 1.0,
+    }) void {
+        cimgui.ImDrawList_AddTriangle(
+            self.data,
+            args.p1, args.p2, args.p3,
+            args.col, args.thickness
+        );
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn addTriangleFilled(self: DrawList, args: struct {
+        p1: Vec2,
+        p2: Vec2,
+        p3: Vec2,
+        col: u32,
+    }) void {
+        cimgui.ImDrawList_AddTriangleFilled(
+            self.data,
+            args.p1, args.p2, args.p3,
+            args.col
+        );
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn addCircle(self: DrawList, args: struct {
+        p: Vec2,
+        r: f32,
+        col: u32,
+        num_segments: i32 = 0,
+        thickness: f32 = 1.0,
+    }) void {
+        cimgui.ImDrawList_AddCircle(
+            self.data,
+            args.p,
+            args.r,
+            args.col,
+            args.num_segments,
+            args.thickness,
+        );
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn addCircleFilled(self: DrawList, args: struct {
+        p: Vec2,
+        r: f32,
+        col: u32,
+        num_segments: u16 = 0,
+    }) void {
+        cimgui.ImDrawList_AddCircleFilled(self.data, args.p, args.r, args.col, args.num_segments);
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn addEllipse(self: DrawList, args: struct {
+        p: Vec2,
+        r: Vec2,
+        col: u32,
+        rot: f32 = 0,
+        num_segments: i32 = 0,
+        thickness: f32 = 1.0,
+    }) void {
+        cimgui.ImDrawList_AddEllipse(
+            self.data,
+            args.p,
+            args.r,
+            args.col,
+            args.rot,
+            args.num_segments,
+            args.thickness,
+        );
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn addEllipseFilled(self: DrawList, args: struct {
+        p: Vec2,
+        r: Vec2,
+        col: u32,
+        rot: f32 = 0,
+        num_segments: u16 = 0,
+    }) void {
+        cimgui.ImDrawList_AddEllipseFilled(
+            self.data,
+            args.p,
+            args.r,
+            args.col,
+            args.rot,
+            args.num_segments,
+        );
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn addNgon(self: DrawList, args: struct {
+        p: Vec2,
+        r: f32,
+        col: u32,
+        num_segments: u32,
+        thickness: f32 = 1.0,
+    }) void {
+        cimgui.ImDrawList_AddNgon(
+            self.data,
+            args.p,
+            args.r,
+            args.col,
+            @intCast(args.num_segments),
+            args.thickness,
+        );
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn addNgonFilled(self: DrawList, args: struct {
+        p: Vec2,
+        r: f32,
+        col: u32,
+        num_segments: u32,
+    }) void {
+        cimgui.ImDrawList_AddNgonFilled(self.data, args.p, args.r, args.col, @intCast(args.num_segments));
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn addText(draw_list: DrawList, pos: Vec2, col: u32, comptime fmt: []const u8, args: anytype) void {
+        const txt = format(fmt, args);
+        draw_list.addTextUnformatted(pos, col, txt);
+    }
+    pub fn addTextUnformatted(self: DrawList, pos: Vec2, col: u32, txt: []const u8) void {
+        cimgui.ImDrawList_AddText_Vec2(self.data, pos, col, txt.ptr, txt.ptr + txt.len);
+    }
+    const AddTextArgs = struct {
+        font: ?Font,
+        font_size: f32,
+        wrap_width: f32 = 0,
+        cpu_fine_clip_rect: ?[*]const Vec4 = null,
+    };
+    pub fn addTextExtended(
+        self: DrawList,
+        pos: Vec2,
+        col: u32,
+        comptime fmt: []const u8,
+        args: anytype,
+        add_text_args: AddTextArgs,
+    ) void {
+        const txt = format(fmt, args);
+        self.addTextExtendedUnformatted(pos, col, txt, add_text_args);
+    }
+    pub fn addTextExtendedUnformatted(
+        self: DrawList,
+        pos: Vec2,
+        col: u32,
+        txt: []const u8,
+        add_text_args: AddTextArgs,
+    ) void {
+        cimgui.ImDrawList_AddText_FontPtr(
+            self.data,
+            add_text_args.font,
+            add_text_args.font_size,
+            pos,
+            col,
+            txt.ptr,
+            txt.ptr + txt.len,
+            add_text_args.wrap_width,
+            add_text_args.cpu_fine_clip_rect,
+        );
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn addPolyline(self: DrawList, points: []const Vec2, args: struct {
+        col: u32,
+        flags: DrawFlags = .{},
+        thickness: f32 = 1.0,
+    }) void {
+        cimgui.ImDrawList_AddPolyline(
+            self.data,
+            points.ptr,
+            @intCast(points.len),
+            args.col,
+            @bitCast(args.flags),
+            args.thickness,
+        );
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn addConvexPolyFilled(
+        self: DrawList,
+        points: []const Vec2,
+        col: u32,
+    ) void {
+        cimgui.ImDrawList_AddConvexPolyFilled(
+            self.data,
+            points.ptr,
+            @intCast(points.len),
+            col,
+        );
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn addConcavePolyFilled(
+        self: DrawList,
+        points: []const Vec2,
+        col: u32,
+    ) void {
+        cimgui.ImDrawList_AddConcavePolyFilled(
+            self.data,
+            points.ptr,
+            @intCast(points.len),
+            col,
+        );
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn addBezierCubic(self: DrawList, args: struct {
+        p1: Vec2, p2: Vec2, p3: Vec2, p4: Vec2,
+        col: u32, thickness: f32 = 1.0,
+        num_segments: u32 = 0,
+    }) void {
+        cimgui.ImDrawList_AddBezierCubic(
+            self.data,
+            args.p1, args.p2, args.p3, args.p4,
+            args.col, args.thickness,
+            @intCast(args.num_segments),
+        );
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn addBezierQuadratic(self: DrawList, args: struct {
+        p1: Vec2, p2: Vec2, p3: Vec2,
+        col: u32, thickness: f32 = 1.0,
+        num_segments: u32 = 0,
+    }) void {
+        cimgui.ImDrawList_AddBezierQuadratic(
+            self.data,
+            args.p1, args.p2, args.p3,
+            args.col, args.thickness,
+            @intCast(args.num_segments),
+        );
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn addImage(self: DrawList, user_texture_ref: TextureRef, args: struct {
+        pmin: Vec2, pmax: Vec2,
+        uvmin: Vec2 = .{ },
+        uvmax: Vec2 = .{ .x = 1, .y = 1},
+        col: u32 = 0xff_ff_ff_ff,
+    }) void {
+        cimgui.ImDrawList_AddImage(
+            self.data,
+            user_texture_ref,
+            args.pmin, args.pmax,
+            args.uvmin,
+            args.uvmax,
+            args.col,
+        );
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn addImageQuad(self: DrawList, user_texture_ref: TextureRef, args: struct {
+        p1: Vec2, p2: Vec2, p3: Vec2, p4: Vec2,
+        uv1: Vec2 = .{ .x = 0, .y = 0 },
+        uv2: Vec2 = .{ .x = 1, .y = 0 },
+        uv3: Vec2 = .{ .x = 1, .y = 1 },
+        uv4: Vec2 = .{ .x = 0, .y = 1 },
+        col: u32 = 0xff_ff_ff_ff,
+    }) void {
+        cimgui.ImDrawList_AddImageQuad(
+            self.data,
+            user_texture_ref,
+            args.p1, args.p2, args.p3, args.p4,
+            args.uv1, args.uv2, args.uv3, args.uv4,
+            args.col,
+        );
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn addImageRounded(self: DrawList, user_texture_ref: TextureRef, args: struct {
+        pmin: Vec2, pmax: Vec2,
+        uvmin: Vec2 = .{ .x = 0, .y = 0 },
+        uvmax: Vec2 = .{ .x = 1, .y = 1 },
+        col: u32 = 0xff_ff_ff_ff,
+        rounding: f32 = 4.0,
+        flags: DrawFlags = .{},
+    }) void {
+        cimgui.ImDrawList_AddImageRounded(
+            self.data,
+            user_texture_ref,
+            args.pmin, args.pmax,
+            args.uvmin, args.uvmax,
+            args.col, args.rounding,
+            @bitCast(args.flags),
+        );
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn pathClear(self: DrawList) void{
+        cimgui.ImDrawList_PathClear(self.data);
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn pathLineTo(self: DrawList, pos: Vec2) void {
+        cimgui.ImDrawList_PathLineTo(self.data, pos);
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn pathLineToMergeDuplicate(self: DrawList, pos: Vec2) void {
+        cimgui.ImDrawList_PathLineToMergeDuplicate(self.data, pos);
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn pathFillConvex(self: DrawList, col: u32) void {
+        cimgui.ImDrawList_PathFillConvex(self.data, col);
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn pathFillConcave(self: DrawList, col: u32) void {
+        cimgui.ImDrawList_PathFillConcave(self.data, col);
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn pathStroke(self: DrawList, args: struct {
+        col: u32,
+        flags: DrawFlags = .{},
+        thickness: f32 = 1.0,
+    }) void {
+        cimgui.ImDrawList_PathStroke(self.data, args.col, @bitCast(args.flags), args.thickness);
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn pathArcTo(self: DrawList, args: struct {
+        p: Vec2, r: f32,
+        amin: f32, amax: f32,
+        num_segments: u16 = 0,
+    }) void {
+        cimgui.ImDrawList_PathArcTo(
+            self.data,
+            args.p, args.r,
+            args.amin, args.amax,
+            args.num_segments,
+        );
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn pathArcToFast(self: DrawList, args: struct {
+        p: Vec2,
+        r: f32,
+        amin_of_12: u16,
+        amax_of_12: u16,
+    }) void {
+        cimgui.ImDrawList_PathArcToFast(self.data, args.p, args.r, args.amin_of_12, args.amax_of_12);
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn pathEllipticalArcTo(self: DrawList, args: struct {
+        p: Vec2, r: Vec2, rot: f32,
+        amin: f32, amax: f32,
+        num_segments: u16 = 0,
+    }) void {
+        cimgui.ImDrawList_PathEllipticalArcTo(
+            self.data,
+            args.p, args.r, args.rot,
+            args.amin, args.amax,
+            args.num_segments,
+        );
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn pathBezierCubicCurveTo(self: DrawList, args: struct {
+        p2: Vec2, p3: Vec2, p4: Vec2,
+        num_segments: u16 = 0,
+    }) void {
+        cimgui.ImDrawList_PathBezierCubicCurveTo(
+            self.data,
+            args.p2, args.p3, args.p4,
+            args.num_segments,
+        );
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn pathBezierQuadraticCurveTo(self: DrawList, args: struct {
+        p2: Vec2, p3: Vec2,
+        num_segments: u16 = 0,
+    }) void {
+        cimgui.ImDrawList_PathBezierQuadraticCurveTo(self.data, args.p2, args.p3, args.num_segments);
+    }
+    //----------------------------------------------------------------------------------------------
+    const PathRect = struct {
+        bmin: Vec2, bmax: Vec2,
+        rounding: f32 = 0.0,
+        flags: DrawFlags = .{},
+    };
+    pub fn pathRect(self: DrawList, args: PathRect) void {
+        cimgui.ImDrawList_PathRect(self.data, args.bmin, args.bmax, args.rounding, @bitCast(args.flags));
+    }
+    //----------------------------------------------------------------------------------------------
+    pub fn primReserve (self: DrawList, idx_count: i32, vtx_count: i32) void {
+        cimgui.ImDrawList_PrimReserve(self.data, idx_count, vtx_count);
+    }
+
+    pub fn primUnreserve (self: DrawList, idx_count: i32, vtx_count: i32) void {
+        cimgui.ImDrawList_PrimUnreserve(self.data, idx_count, vtx_count);
+    }
+
+    pub fn primRect(
+        self: DrawList,
+        a: Vec2, b: Vec2,
+        col: u32,
+    ) void {
+        cimgui.ImDrawList_PrimRect(self.data, a, b, col);
+    }
+
+    pub fn primRectUV(
+        self: DrawList,
+        a: Vec2, b: Vec2,
+        uv_a: Vec2, uv_b: Vec2,
+        col: u32,
+    ) void {
+        cimgui.ImDrawList_PrimRectUV(self.data, a, b, uv_a, uv_b, col);
+    }
+
+    pub fn primQuadUV(
+        self: DrawList,
+        a: Vec2, b: Vec2, c: Vec2, d: Vec2,
+        uv_a: Vec2, uv_b: Vec2, uv_c: Vec2, uv_d: Vec2,
+        col: u32,
+    ) void {
+        cimgui.ImDrawList_PrimQuadUV(self.data, a, b, c, d, uv_a, uv_b, uv_c, uv_d, col);
+    }
+
+    pub fn primWriteVtx(
+        self: DrawList,
+        pos: Vec2,
+        uv: Vec2,
+        col: u32,
+    ) void {
+        cimgui.ImDrawList_PrimWriteVtx(self.data, pos, uv, col);
+    }
+
+    pub fn primWriteIdx(self: DrawList, idx: u16) void{
+        cimgui.ImDrawList_PrimWriteIdx(self.data, idx);
+    }
+
+    //----------------------------------------------------------------------------------------------
+
+    pub fn addCallback(self: DrawList, callback: DrawCallback, callback_data: ?*anyopaque) void {
+        cimgui.ImDrawList_AddCallback(self.data, @ptrCast(callback), callback_data, 0);
+    }
+    pub fn addResetRenderStateCallback(self: DrawList) void {
+        self.addCallback(@ptrCast(cimgui.ImDrawCallback_ResetRenderState), null);
+
+    }
 };
 
 fn Vector(comptime T: type) type {
@@ -4128,6 +3706,10 @@ fn Vector(comptime T: type) type {
         capacity: c_int,
         items: [*]T,
     };
+}
+
+test { 
+    std.testing.refAllDecls(@This());
 }
 
 test {

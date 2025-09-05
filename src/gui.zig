@@ -279,8 +279,7 @@ pub const io = struct {
     }
     
     pub fn setConfigWindowsMoveFromTitleBarOnly(enabled: bool) void{
-        var IO = GetIO().*;
-        IO.ConfigWindowsMoveFromTitleBarOnly = enabled;
+        GetIO().*.ConfigWindowsMoveFromTitleBarOnly = enabled;
     }
 
     pub fn getWantCaptureMouse() bool{
@@ -305,13 +304,11 @@ pub const io = struct {
     }
 
     pub fn setIniFilename(filename: ?[*:0]const u8) void {
-        var IO = GetIO().*;
-        IO.IniFilename = filename;
+        GetIO().*.IniFilename = filename;
     }
 
     pub fn setDisplaySize(width: f32, height: f32) void{
-        var IO = GetIO().*;
-        IO.DisplaySize = .{.x = width, .y = height};
+        GetIO().*.DisplaySize = .{.x = width, .y = height};
     }
 
     pub fn getDisplaySize() Vec2 {
@@ -319,23 +316,19 @@ pub const io = struct {
     }
 
     pub fn setDisplayFramebufferScale(sx: f32, sy: f32) void{
-        var IO = GetIO().*;
-        IO.DisplayFramebufferScale = .{.x = sx, .y = sy};
+        GetIO().*.DisplayFramebufferScale = .{.x = sx, .y = sy};
     }
 
     pub fn setConfigFlags(flags: ConfigFlags) void{
-        var IO = GetIO().*;
-        IO.ConfigFlags = @bitCast(flags);
+        GetIO().*.ConfigFlags = @bitCast(flags);
     }
 
     pub fn setDeltaTime(delta_time: f32) void{
-        var IO = GetIO().*;
-        IO.DeltaTime = delta_time;
+        GetIO().*.DeltaTime = delta_time;
     }
 
     pub fn setBackendFlags(flags: BackendFlags) void{
-        var IO = GetIO().*;
-        IO.BackendFlags = @bitCast(flags);
+        GetIO().*.BackendFlags = @bitCast(flags);
     }
 
 

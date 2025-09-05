@@ -37,6 +37,14 @@
             .hash = "freetype-0.0.0-AAAAAA5JcwBMujojfNLEq5g_WijZtU56mRLYx8bjjiMU",
             .lazy = true,
         },
+        .cimgui = .{
+            .url = "git+https://github.com/cimgui/cimgui#d61baefa0ce2a9db938ffdeb29e64f90f44cc037",
+            .hash = "N-V-__8AAINUOABzgSfPV2gKxglHbB9tzG2ss89qbLl6GXPm",
+        },
+        .imgui = .{
+            .url = "git+https://github.com/ocornut/imgui#44aa9a4b3a6f27d09a4eb5770d095cbd376dfc4b",
+            .hash = "N-V-__8AAMSpeAAjIlPRk36GN81oqHOrwAtfmTZdOcDg42BM",
+        },
         .zopengl = .{
             .url = "https://github.com/zig-gamedev/zopengl/archive/33ae578d91692c814e7d6b4b42573142475f68d0.tar.gz",
             .hash = "zopengl-0.6.0-dev-5-tnz7Y8CQCW_JRgxPCM4ETsKGOGHddqw5y1XaXhrsb4",

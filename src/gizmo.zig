@@ -88,8 +88,8 @@ pub const Style = extern struct {
 
 //---------------------------------------------------------------------------------------------------------------------|
 
-pub fn setDrawList(draw_list: ?DrawList) void {
-    zguiGizmo_SetDrawlist(draw_list);
+pub fn setDrawList(draw_list: DrawList) void {
+    zguiGizmo_SetDrawlist(draw_list.data);
 }
 
 pub fn beginFrame() void {
@@ -240,7 +240,7 @@ pub fn getStyle() *Style {
 
 //---------------------------------------------------------------------------------------------------------------------|
 
-extern fn zguiGizmo_SetDrawlist(draw_list: ?DrawList) void;
+extern fn zguiGizmo_SetDrawlist(draw_list: *anyopaque) void;
 extern fn zguiGizmo_BeginFrame() void;
 extern fn zguiGizmo_SetImGuiContext(ctx: *anyopaque) void;
 extern fn zguiGizmo_IsOver() bool;

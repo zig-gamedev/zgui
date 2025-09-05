@@ -78,7 +78,7 @@ pub fn build(b: *std.Build) void {
 
     const options_module = options_step.createModule();
 
-    _ = b.addModule("root", .{
+    const root = b.addModule("root", .{
         .root_source_file = b.path("src/gui.zig"),
         .imports = &.{
             .{ .name = "zgui_options", .module = options_module },
@@ -90,6 +90,7 @@ pub fn build(b: *std.Build) void {
         "-Wno-elaborated-enum-base",
         "-Wno-error=date-time",
         if (options.use_32bit_draw_idx) "-DIMGUI_USE_32BIT_DRAW_INDEX" else "",
+        "-DIMGUI_IMPL_API=extern \"C\" ",
     };
 
     const objcflags = &.{
@@ -98,62 +99,68 @@ pub fn build(b: *std.Build) void {
         "-Wno-availability",
     };
 
-    const imgui = b.addLibrary(.{
-        .name = "imgui",
-        .linkage = if (options.shared) .dynamic else .static,
-        .root_module = b.createModule(.{
-            .target = target,
-            .optimize = optimize,
-        }),
+    const imgui_dep = b.dependency("imgui", .{
+        .target = target,
+        .optimize = optimize,
     });
 
-    imgui.root_module.addCMacro("IMGUI_DISABLE_OBSOLETE_FUNCTIONS", "");
+    const imgui_mod =  b.addModule("imgui", .{
+        .target = target,
+        .optimize = optimize,
+        .link_libcpp = true,
+    });
 
-    if (options.shared) {
-        if (target.result.os.tag == .windows) {
-            imgui.root_module.addCMacro("IMGUI_API", "__declspec(dllexport)");
-            imgui.root_module.addCMacro("IMPLOT_API", "__declspec(dllexport)");
-            imgui.root_module.addCMacro("ZGUI_API", "__declspec(dllexport)");
-        }
-
-        if (target.result.os.tag == .macos) {
-            imgui.linker_allow_shlib_undefined = true;
-        }
-    }
-
-    b.installArtifact(imgui);
-
-    const emscripten = target.result.os.tag == .emscripten;
-
-    imgui.addIncludePath(b.path("libs"));
-    imgui.addIncludePath(b.path("libs/imgui"));
-
-    imgui.linkLibC();
-    if (target.result.abi != .msvc)
-        imgui.linkLibCpp();
-
-    imgui.addCSourceFile(.{
-        .file = b.path("src/zgui.cpp"),
-        .flags = cflags,
+    const imgui = b.addLibrary(.{
+        .name = "imgui",
+        .root_module = imgui_mod,
     });
 
     imgui.addCSourceFiles(.{
+        .root = imgui_dep.path(""),
         .files = &.{
-            "libs/imgui/imgui.cpp",
-            "libs/imgui/imgui_widgets.cpp",
-            "libs/imgui/imgui_tables.cpp",
-            "libs/imgui/imgui_draw.cpp",
-            "libs/imgui/imgui_demo.cpp",
+            "imgui.cpp",
+            "imgui_widgets.cpp",
+            "imgui_tables.cpp",
+            "imgui_draw.cpp",
+            "imgui_demo.cpp",
         },
         .flags = cflags,
     });
+    imgui.installHeadersDirectory(imgui_dep.path(""), "imgui", .{});
+
+   const cimgui_dep = b.dependency("cimgui", .{
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const cimgui_mod = b.addModule("cimgui", .{
+        .target = target,
+        .optimize = optimize,
+        .link_libcpp = true,
+    });
+
+    const cimgui = b.addLibrary(.{
+        .name = "cimgui",
+        .root_module = cimgui_mod,
+    });
+
+    cimgui.linkLibrary(imgui);
+    cimgui.addCSourceFile(.{
+        .file = cimgui_dep.path("cimgui.cpp"),
+    });
+    cimgui.addIncludePath(cimgui_dep.path(""));
+    root.addIncludePath(cimgui_dep.path(""));
+
+    b.installArtifact(cimgui);
+    b.installArtifact(imgui);
+    
 
     if (options.with_freetype) {
         if (b.lazyDependency("freetype", .{})) |freetype| {
             imgui.linkLibrary(freetype.artifact("freetype"));
         }
         imgui.addCSourceFile(.{
-            .file = b.path("libs/imgui/misc/freetype/imgui_freetype.cpp"),
+            .file = imgui_dep.path("misc/freetype/imgui_freetype.cpp"),
             .flags = cflags,
         });
         imgui.root_module.addCMacro("IMGUI_ENABLE_FREETYPE", "1");
@@ -246,6 +253,9 @@ pub fn build(b: *std.Build) void {
         imgui.addCSourceFile(.{ .file = b.path("libs/imgui_test_engine/imgui_te_utils.cpp"), .flags = cflags });
     }
 
+    const emscripten = target.result.os.tag == .emscripten;
+
+    imgui.addIncludePath(imgui_dep.path("")); //For backend to find imgui.h
     switch (options.backend) {
         .glfw_wgpu => {
             if (emscripten) {
@@ -261,9 +271,10 @@ pub fn build(b: *std.Build) void {
                 }
             }
             imgui.addCSourceFiles(.{
+                .root = imgui_dep.path("backends"),
                 .files = &.{
-                    "libs/imgui/backends/imgui_impl_glfw.cpp",
-                    "libs/imgui/backends/imgui_impl_wgpu.cpp",
+                    "imgui_impl_glfw.cpp",
+                    "imgui_impl_wgpu.cpp",
                 },
                 .flags = cflags,
             });
@@ -273,9 +284,10 @@ pub fn build(b: *std.Build) void {
                 imgui.addIncludePath(zglfw.path("libs/glfw/include"));
             }
             imgui.addCSourceFiles(.{
+                .root = imgui_dep.path("backends"),
                 .files = &.{
-                    "libs/imgui/backends/imgui_impl_glfw.cpp",
-                    "libs/imgui/backends/imgui_impl_opengl3.cpp",
+                    "imgui_impl_glfw.cpp",
+                    "imgui_impl_opengl3.cpp",
                 },
                 .flags = &(cflags.* ++ .{"-DIMGUI_IMPL_OPENGL_LOADER_CUSTOM"}),
             });
@@ -285,9 +297,10 @@ pub fn build(b: *std.Build) void {
                 imgui.addIncludePath(zglfw.path("libs/glfw/include"));
             }
             imgui.addCSourceFiles(.{
+                .root = imgui_dep.path("backends"),
                 .files = &.{
-                    "libs/imgui/backends/imgui_impl_glfw.cpp",
-                    "libs/imgui/backends/imgui_impl_dx12.cpp",
+                    "imgui_impl_glfw.cpp",
+                    "imgui_impl_dx12.cpp",
                 },
                 .flags = cflags,
             });
@@ -295,9 +308,10 @@ pub fn build(b: *std.Build) void {
         },
         .win32_dx12 => {
             imgui.addCSourceFiles(.{
+                .root = imgui_dep.path("backends"),
                 .files = &.{
-                    "libs/imgui/backends/imgui_impl_win32.cpp",
-                    "libs/imgui/backends/imgui_impl_dx12.cpp",
+                    "imgui_impl_win32.cpp",
+                    "imgui_impl_dx12.cpp",
                 },
                 .flags = cflags,
             });
@@ -315,9 +329,10 @@ pub fn build(b: *std.Build) void {
             }
 
             imgui.addCSourceFiles(.{
+                .root = imgui_dep.path("backends"),
                 .files = &.{
-                    "libs/imgui/backends/imgui_impl_glfw.cpp",
-                    "libs/imgui/backends/imgui_impl_vulkan.cpp",
+                    "imgui_impl_glfw.cpp",
+                    "imgui_impl_vulkan.cpp",
                 },
                 .flags = &(cflags.* ++ .{ "-DVK_NO_PROTOTYPES", "-DZGUI_DEGAMMA" }),
             });
@@ -327,8 +342,9 @@ pub fn build(b: *std.Build) void {
                 imgui.addIncludePath(zglfw.path("libs/glfw/include"));
             }
             imgui.addCSourceFiles(.{
+                .root = imgui_dep.path("backends"),
                 .files = &.{
-                    "libs/imgui/backends/imgui_impl_glfw.cpp",
+                    "imgui_impl_glfw.cpp",
                 },
                 .flags = cflags,
             });
@@ -338,10 +354,11 @@ pub fn build(b: *std.Build) void {
                 imgui.addIncludePath(zsdl.path("libs/sdl2/include"));
             }
             imgui.addCSourceFiles(.{
+                .root = imgui_dep.path("backends"),
                 .files = &.{
-                    "libs/imgui/backends/imgui_impl_opengl3_loader.h",
-                    "libs/imgui/backends/imgui_impl_sdl2.cpp",
-                    "libs/imgui/backends/imgui_impl_opengl3.cpp",
+                    "imgui_impl_opengl3_loader.h",
+                    "imgui_impl_sdl2.cpp",
+                    "imgui_impl_opengl3.cpp",
                 },
                 .flags = &(cflags.* ++ .{"-DIMGUI_IMPL_OPENGL_LOADER_IMGL3W"}),
             });
@@ -352,9 +369,10 @@ pub fn build(b: *std.Build) void {
             imgui.linkFramework("Cocoa");
             imgui.linkFramework("QuartzCore");
             imgui.addCSourceFiles(.{
+                .root = imgui_dep.path("backends"),
                 .files = &.{
-                    "libs/imgui/backends/imgui_impl_osx.mm",
-                    "libs/imgui/backends/imgui_impl_metal.mm",
+                    "imgui_impl_osx.mm",
+                    "imgui_impl_metal.mm",
                 },
                 .flags = objcflags,
             });
@@ -364,8 +382,9 @@ pub fn build(b: *std.Build) void {
                 imgui.addIncludePath(zsdl.path("libs/sdl2/include"));
             }
             imgui.addCSourceFiles(.{
+                .root = imgui_dep.path("backends"),
                 .files = &.{
-                    "libs/imgui/backends/imgui_impl_sdl2.cpp",
+                    "imgui_impl_sdl2.cpp",
                 },
                 .flags = cflags,
             });
@@ -375,9 +394,10 @@ pub fn build(b: *std.Build) void {
                 imgui.addIncludePath(zsdl.path("libs/sdl2/include"));
             }
             imgui.addCSourceFiles(.{
+                .root = imgui_dep.path("backends"),
                 .files = &.{
-                    "libs/imgui/backends/imgui_impl_sdl2.cpp",
-                    "libs/imgui/backends/imgui_impl_sdlrenderer2.cpp",
+                    "imgui_impl_sdl2.cpp",
+                    "imgui_impl_sdlrenderer2.cpp",
                 },
                 .flags = cflags,
             });
@@ -387,9 +407,10 @@ pub fn build(b: *std.Build) void {
                 imgui.addIncludePath(zsdl.path("libs/sdl3/include"));
             }
             imgui.addCSourceFiles(.{
+                .root = imgui_dep.path("backends"),
                 .files = &.{
-                    "libs/imgui/backends/imgui_impl_sdl3.cpp",
-                    "libs/imgui/backends/imgui_impl_sdlgpu3.cpp",
+                    "imgui_impl_sdl3.cpp",
+                    "imgui_impl_sdlgpu3.cpp",
                 },
                 .flags = cflags,
             });
@@ -399,9 +420,10 @@ pub fn build(b: *std.Build) void {
                 imgui.addIncludePath(zsdl.path("libs/sdl3/include"));
             }
             imgui.addCSourceFiles(.{
+                .root = imgui_dep.path("backends"),
                 .files = &.{
-                    "libs/imgui/backends/imgui_impl_sdl3.cpp",
-                    "libs/imgui/backends/imgui_impl_sdlrenderer3.cpp",
+                    "imgui_impl_sdl3.cpp",
+                    "imgui_impl_sdlrenderer3.cpp",
                 },
                 .flags = cflags,
             });
@@ -411,9 +433,10 @@ pub fn build(b: *std.Build) void {
                 imgui.addIncludePath(zsdl.path("libs/sdl3/include/SDL3"));
             }
             imgui.addCSourceFiles(.{
+                .root = imgui_dep.path("backends"),
                 .files = &.{
-                    "libs/imgui/backends/imgui_impl_sdl3.cpp",
-                    "libs/imgui/backends/imgui_impl_opengl3.cpp",
+                    "imgui_impl_sdl3.cpp",
+                    "imgui_impl_opengl3.cpp",
                 },
                 .flags = &(cflags.* ++ .{"-DIMGUI_IMPL_OPENGL_LOADER_IMGL3W"}),
             });
@@ -423,8 +446,9 @@ pub fn build(b: *std.Build) void {
                 imgui.addIncludePath(zsdl.path("libs/sdl3/include"));
             }
             imgui.addCSourceFiles(.{
+                .root = imgui_dep.path("backends"),
                 .files = &.{
-                    "libs/imgui/backends/imgui_impl_sdl3.cpp",
+                    "imgui_impl_sdl3.cpp",
                 },
                 .flags = cflags,
             });
@@ -452,7 +476,8 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(tests);
 
     tests.root_module.addImport("zgui_options", options_module);
-    tests.linkLibrary(imgui);
+    tests.linkLibrary(cimgui);
+    tests.addIncludePath(cimgui_dep.path(""));
 
     test_step.dependOn(&b.addRunArtifact(tests).step);
 }

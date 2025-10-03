@@ -33,7 +33,7 @@ pub const ImGui_ImplVulkan_InitInfo = extern struct {
     pipeline_rendering_create_info: VkPipelineRenderingCreateInfo = .{},
 
     allocator: ?*const anyopaque = null,
-    check_vk_result_fn: ?*const fn (err: u32) callconv(.C) void = null,
+    check_vk_result_fn: ?*const fn (err: u32) callconv(.c) void = null,
     min_allocation_size: u64 = 0,
 };
 
@@ -46,7 +46,7 @@ pub fn init(init_info: ImGui_ImplVulkan_InitInfo) void {
 }
 
 pub fn loadFunctions(
-    loader: fn (function_name: [*:0]const u8, user_data: ?*anyopaque) callconv(.C) ?*anyopaque,
+    loader: fn (function_name: [*:0]const u8, user_data: ?*anyopaque) callconv(.c) ?*anyopaque,
     user_data: ?*anyopaque,
 ) bool {
     return ImGui_ImplVulkan_LoadFunctions(loader, user_data);
@@ -86,6 +86,6 @@ extern fn ImGui_ImplVulkan_CreateFontsTexture() void;
 extern fn ImGui_ImplVulkan_DestroyFontsTexture() void;
 extern fn ImGui_ImplVulkan_SetMinImageCount(min_image_count: u32) void;
 extern fn ImGui_ImplVulkan_LoadFunctions(
-    loader_func: *const fn (function_name: [*:0]const u8, user_data: ?*anyopaque) callconv(.C) ?*anyopaque,
+    loader_func: *const fn (function_name: [*:0]const u8, user_data: ?*anyopaque) callconv(.c) ?*anyopaque,
     user_data: ?*anyopaque,
 ) bool;

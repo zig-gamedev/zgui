@@ -3695,12 +3695,12 @@ var temp_buffer: ?std.ArrayList(u8) = null;
 
 pub fn format(comptime fmt: []const u8, args: anytype) []const u8 {
     const len = std.fmt.count(fmt, args);
-    if (len > temp_buffer.?.items.len) temp_buffer.?.resize(@intCast(len + 64)) catch unreachable;
+    if (len > temp_buffer.?.items.len) temp_buffer.?.resize(mem_allocator.?, @intCast(len + 64)) catch unreachable;
     return std.fmt.bufPrint(temp_buffer.?.items, fmt, args) catch unreachable;
 }
 pub fn formatZ(comptime fmt: []const u8, args: anytype) [:0]const u8 {
     const len = std.fmt.count(fmt ++ "\x00", args);
-    if (len > temp_buffer.?.items.len) temp_buffer.?.resize(@intCast(len + 64)) catch unreachable;
+    if (len > temp_buffer.?.items.len) temp_buffer.?.resize(mem_allocator.?, @intCast(len + 64)) catch unreachable;
     return std.fmt.bufPrintZ(temp_buffer.?.items, fmt, args) catch unreachable;
 }
 //--------------------------------------------------------------------------------------------------
@@ -4031,7 +4031,7 @@ pub fn beginDragDropSource(flags: DragDropFlags) bool {
 
 /// Note: `payload_type` can be at most 32 characters long
 pub fn setDragDropPayload(payload_type: [*:0]const u8, data: []const u8, cond: Condition) bool {
-    return zguiSetDragDropPayload(payload_type, @alignCast(@ptrCast(data.ptr)), data.len, cond);
+    return zguiSetDragDropPayload(payload_type, @ptrCast(@alignCast(data.ptr)), data.len, cond);
 }
 pub fn endDragDropSource() void {
     zguiEndDragDropSource();
@@ -4238,8 +4238,8 @@ pub const DrawList = *opaque {
     pub const popClipRect = zguiDrawList_PopClipRect;
     extern fn zguiDrawList_PopClipRect(draw_list: DrawList) void;
     //----------------------------------------------------------------------------------------------
-    pub const pushTexture = zguiDrawList_PushTexture;
-    extern fn zguiDrawList_PushTexture(draw_list: DrawList, texture_ref: TextureRef) void;
+    pub const pushTexture = zguiDrawList_PushTextureRef;
+    extern fn zguiDrawList_PushTextureRef(draw_list: DrawList, texture_ref: TextureRef) void;
 
     pub const popTexture = zguiDrawList_PopTexture;
     extern fn zguiDrawList_PopTexture(draw_list: DrawList) void;

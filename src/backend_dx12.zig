@@ -18,12 +18,12 @@ pub const ImGui_ImplDX12_InitInfo = extern struct {
         *ImGui_ImplDX12_InitInfo,
         *D3D12_CPU_DESCRIPTOR_HANDLE,
         *D3D12_GPU_DESCRIPTOR_HANDLE,
-    ) callconv(.C) void = null,
+    ) callconv(.c) void = null,
     srv_desc_free_fn: ?*const fn (
         *ImGui_ImplDX12_InitInfo,
         D3D12_CPU_DESCRIPTOR_HANDLE,
         D3D12_GPU_DESCRIPTOR_HANDLE,
-    ) callconv(.C) void = null,
+    ) callconv(.c) void = null,
     font_srv_cpu_desc_handle: D3D12_CPU_DESCRIPTOR_HANDLE,
     font_srv_gpu_desc_handle: D3D12_GPU_DESCRIPTOR_HANDLE,
 };

@@ -67,11 +67,11 @@ extern "C"
 
     ZGUI_API void zguiTe_GetResult(ImGuiTestEngine *engine, int *count_tested, int *count_success)
     {
-        int ct = 0;
-        int cs = 0;
-        ImGuiTestEngine_GetResult(engine, ct, cs);
-        *count_tested = ct;
-        *count_success = cs;
+
+        ImGuiTestEngineResultSummary summary;
+        ImGuiTestEngine_GetResultSummary(engine, &summary);
+        *count_tested = summary.CountTested;
+        *count_success = summary.CountSuccess;
     }
 
     ZGUI_API void zguiTe_PrintResultSummary(ImGuiTestEngine *engine)

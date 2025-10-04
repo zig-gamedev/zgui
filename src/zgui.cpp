@@ -1090,7 +1090,7 @@ extern "C"
     }
 
     ZGUI_API void zguiImage(
-        ImTextureID user_texture_id,
+        ImTextureRef user_texture_id,
         float w,
         float h,
         const float uv0[2],
@@ -1104,7 +1104,7 @@ extern "C"
     }
 
     ZGUI_API void zguiImageWithBg(
-        ImTextureID user_texture_id,
+        ImTextureRef user_texture_id,
         float w,
         float h,
         const float uv0[2],
@@ -1123,7 +1123,7 @@ extern "C"
 
     ZGUI_API bool zguiImageButton(
         const char *str_id,
-        ImTextureID user_texture_id,
+        ImTextureRef user_texture_id,
         float w,
         float h,
         const float uv0[2],

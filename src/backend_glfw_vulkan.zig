@@ -12,7 +12,7 @@ pub fn init(init_info: ImGui_ImplVulkan_InitInfo, window: *const anyopaque) void
 }
 
 pub fn loadFunctions(
-    loader: fn (function_name: [*:0]const u8, user_data: ?*anyopaque) callconv(.C) ?*anyopaque,
+    loader: fn (function_name: [*:0]const u8, user_data: ?*anyopaque) callconv(.c) ?*anyopaque,
     user_data: ?*anyopaque,
 ) bool {
     return backend_vulkan.loadFunctions(loader, user_data);

@@ -69,6 +69,11 @@ pub fn build(b: *std.Build) void {
             "use_32bit_draw_idx",
             "Use 32-bit draw index",
         ) orelse false,
+        .disable_obsolete = b.option(
+            bool,
+            "disable_obsolete",
+            "Disable obsolete imgui functions",
+        ) orelse true,
     };
 
     const options_step = b.addOptions();
@@ -107,7 +112,11 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
-    imgui.root_module.addCMacro("IMGUI_DISABLE_OBSOLETE_FUNCTIONS", "");
+    imgui.root_module.addCMacro("IMGUI_IMPL_API", "extern \"C\"");
+
+    if (options.disable_obsolete) {
+        imgui.root_module.addCMacro("IMGUI_DISABLE_OBSOLETE_FUNCTIONS", "");
+    }
 
     if (options.shared) {
         if (target.result.os.tag == .windows) {
@@ -436,6 +445,10 @@ pub fn build(b: *std.Build) void {
         if (b.lazyDependency("system_sdk", .{})) |system_sdk| {
             imgui.addSystemIncludePath(system_sdk.path("macos12/usr/include"));
             imgui.addFrameworkPath(system_sdk.path("macos12/System/Library/Frameworks"));
+        }
+    } else if (target.result.os.tag == .linux) {
+        if (b.lazyDependency("system_sdk", .{})) |system_sdk| {
+            imgui.addSystemIncludePath(system_sdk.path("linux/include"));
         }
     }
 

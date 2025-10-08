@@ -3890,7 +3890,45 @@ pub const tabItemButton = zguiTabItemButton;
 // Viewport
 //
 //--------------------------------------------------------------------------------------------------
-pub const Viewport = *opaque {
+pub const ViewportFlags = packed struct(c_int) {
+    none: bool = false,
+    is_platform_window: bool = false,
+    is_platform_monitor: bool = false,
+    owned_by_app: bool = false,
+    no_decoration: bool = false,
+    no_task_bar_icon: bool = false,
+    no_focus_on_appearing: bool = false,
+    no_focus_on_click: bool = false,
+    no_inputs: bool = false,
+    no_renderer_clear: bool = false,
+    no_auto_merge: bool = false,
+    top_most: bool = false,
+    can_host_other_windows: bool = false,
+    is_minimized: bool = false,
+    is_focused: bool = false,
+    _: u17 = 0,
+};
+
+pub const Viewport = extern struct {
+    id: Ident,
+    flags: ViewportFlags,
+    pos: [2]f32,
+    size: [2]f32,
+    framebuffer_scale: [2]f32,
+    work_pos: [2]f32,
+    work_size: [2]f32,
+    dpi_scale: f32,
+    parent_viewport_id: Ident,
+    draw_data: *DrawData,
+    renderer_user_data: *anyopaque,
+    platform_user_data: *anyopaque,
+    platform_handle: *anyopaque,
+    platform_handle_raw: *anyopaque,
+    platform_window_created: bool,
+    platform_request_move: bool,
+    platform_request_resize: bool,
+    platform_request_close: bool,
+
     pub fn getId(viewport: Viewport) Ident {
         return zguiViewport_GetId(viewport);
     }

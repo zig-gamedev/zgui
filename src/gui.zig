@@ -990,12 +990,12 @@ pub const DockNodeFlags = packed struct(c_int) {
 };
 extern fn zguiDockSpace(str_id: [*:0]const u8, size: *const [2]f32, flags: DockNodeFlags) Ident;
 
-pub fn DockSpace(str_id: [:0]const u8, size: [2]f32, flags: DockNodeFlags) Ident {
+pub fn dockSpace(str_id: [:0]const u8, size: [2]f32, flags: DockNodeFlags) Ident {
     return zguiDockSpace(str_id.ptr, &size, flags);
 }
 
 extern fn zguiDockSpaceOverViewport(dockspace_id: Ident, viewport: Viewport, flags: DockNodeFlags) Ident;
-pub const DockSpaceOverViewport = zguiDockSpaceOverViewport;
+pub const dockSpaceOverViewport = zguiDockSpaceOverViewport;
 
 //--------------------------------------------------------------------------------------------------
 //

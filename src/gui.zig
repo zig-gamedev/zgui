@@ -994,7 +994,7 @@ pub fn dockSpace(str_id: [:0]const u8, size: [2]f32, flags: DockNodeFlags) Ident
     return zguiDockSpace(str_id.ptr, &size, flags);
 }
 
-extern fn zguiDockSpaceOverViewport(dockspace_id: Ident, viewport: Viewport, flags: DockNodeFlags) Ident;
+extern fn zguiDockSpaceOverViewport(dockspace_id: Ident, viewport: *Viewport, flags: DockNodeFlags) Ident;
 pub const dockSpaceOverViewport = zguiDockSpaceOverViewport;
 
 //--------------------------------------------------------------------------------------------------
@@ -3929,40 +3929,40 @@ pub const Viewport = extern struct {
     platform_request_resize: bool,
     platform_request_close: bool,
 
-    pub fn getId(viewport: Viewport) Ident {
+    pub fn getId(viewport: *Viewport) Ident {
         return zguiViewport_GetId(viewport);
     }
-    extern fn zguiViewport_GetId(viewport: Viewport) Ident;
+    extern fn zguiViewport_GetId(viewport: *Viewport) Ident;
 
-    pub fn getPos(viewport: Viewport) [2]f32 {
+    pub fn getPos(viewport: *Viewport) [2]f32 {
         var pos: [2]f32 = undefined;
         zguiViewport_GetPos(viewport, &pos);
         return pos;
     }
-    extern fn zguiViewport_GetPos(viewport: Viewport, pos: *[2]f32) void;
+    extern fn zguiViewport_GetPos(viewport: *Viewport, pos: *[2]f32) void;
 
-    pub fn getSize(viewport: Viewport) [2]f32 {
+    pub fn getSize(viewport: *Viewport) [2]f32 {
         var pos: [2]f32 = undefined;
         zguiViewport_GetSize(viewport, &pos);
         return pos;
     }
-    extern fn zguiViewport_GetSize(viewport: Viewport, size: *[2]f32) void;
+    extern fn zguiViewport_GetSize(viewport: *Viewport, size: *[2]f32) void;
 
-    pub fn getWorkPos(viewport: Viewport) [2]f32 {
+    pub fn getWorkPos(viewport: *Viewport) [2]f32 {
         var pos: [2]f32 = undefined;
         zguiViewport_GetWorkPos(viewport, &pos);
         return pos;
     }
-    extern fn zguiViewport_GetWorkPos(viewport: Viewport, pos: *[2]f32) void;
+    extern fn zguiViewport_GetWorkPos(viewport: *Viewport, pos: *[2]f32) void;
 
-    pub fn getWorkSize(viewport: Viewport) [2]f32 {
+    pub fn getWorkSize(viewport: *Viewport) [2]f32 {
         var pos: [2]f32 = undefined;
         zguiViewport_GetWorkSize(viewport, &pos);
         return pos;
     }
-    extern fn zguiViewport_GetWorkSize(viewport: Viewport, size: *[2]f32) void;
+    extern fn zguiViewport_GetWorkSize(viewport: *Viewport, size: *[2]f32) void;
 
-    pub fn getCenter(viewport: Viewport) [2]f32 {
+    pub fn getCenter(viewport: *Viewport) [2]f32 {
         const pos = viewport.getPos();
         const size = viewport.getSize();
         return .{
@@ -3971,7 +3971,7 @@ pub const Viewport = extern struct {
         };
     }
 
-    pub fn getWorkCenter(viewport: Viewport) [2]f32 {
+    pub fn getWorkCenter(viewport: *Viewport) [2]f32 {
         const pos = viewport.getWorkPos();
         const size = viewport.getWorkSize();
         return .{
@@ -3981,7 +3981,7 @@ pub const Viewport = extern struct {
     }
 };
 pub const getMainViewport = zguiGetMainViewport;
-extern fn zguiGetMainViewport() Viewport;
+extern fn zguiGetMainViewport() *Viewport;
 
 pub const updatePlatformWindows = zguiUpdatePlatformWindows;
 extern fn zguiUpdatePlatformWindows() void;

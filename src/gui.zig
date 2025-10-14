@@ -72,7 +72,7 @@ pub fn initWithExistingContext(allocator: std.mem.Allocator, ctx: Context) void 
     zguiSetCurrentContext(ctx);
 
     temp_buffer = std.ArrayList(u8){};
-    temp_buffer.?.resize(3 * 1024 + 1) catch unreachable;
+    temp_buffer.?.resize(mem_allocator.?, 3 * 1024 + 1) catch unreachable;
 
     if (te_enabled) {
         te.init();

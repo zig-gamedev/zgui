@@ -72,7 +72,7 @@ pub fn initWithExistingContext(allocator: std.mem.Allocator, ctx: Context) void 
     zguiSetCurrentContext(ctx);
 
     temp_buffer = std.ArrayList(u8){};
-    temp_buffer.?.resize(3 * 1024 + 1) catch unreachable;
+    temp_buffer.?.resize(mem_allocator.?, 3 * 1024 + 1) catch unreachable;
 
     if (te_enabled) {
         te.init();
@@ -112,15 +112,16 @@ pub fn deinit() void {
         mem_allocator = null;
     }
 }
-pub fn initNoContext() void {
+pub fn initNoContext(allocator: std.mem.Allocator) void {
+    mem_allocator = allocator;
     if (temp_buffer == null) {
         temp_buffer = std.ArrayList(u8){};
-        temp_buffer.?.resize(3 * 1024 + 1) catch unreachable;
+        temp_buffer.?.resize(mem_allocator.?, 3 * 1024 + 1) catch unreachable;
     }
 }
 pub fn deinitNoContext() void {
-    if (temp_buffer) |buf| {
-        buf.deinit();
+    if (temp_buffer) |*buf| {
+        buf.deinit(mem_allocator.?);
     }
 }
 extern fn zguiCreateContext(shared_font_atlas: ?*const anyopaque) Context;

@@ -407,6 +407,11 @@ pub const io = struct {
     extern fn zguiIoAddCharacterEvent(char: c_int) void;
 };
 
+pub const platform_io = struct {
+    pub const getTextures = zguiPlatformIoGetTextures;
+    extern fn zguiPlatformIoGetTextures() *Vector(*TextureData);
+};
+
 pub fn setClipboardText(value: [:0]const u8) void {
     zguiSetClipboardText(value.ptr);
 }

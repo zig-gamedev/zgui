@@ -407,6 +407,11 @@ pub const io = struct {
     extern fn zguiIoAddCharacterEvent(char: c_int) void;
 };
 
+pub const platform_io = struct {
+    pub const getTextures = zguiPlatformIoGetTextures;
+    extern fn zguiPlatformIoGetTextures() *Vector(*TextureData);
+};
+
 pub fn setClipboardText(value: [:0]const u8) void {
     zguiSetClipboardText(value.ptr);
 }
@@ -428,15 +433,55 @@ pub const DrawData = *extern struct {
     display_size: [2]f32,
     framebuffer_scale: [2]f32,
     owner_viewport: ?*Viewport,
-    textures: *Vector(TextureIdent),
+    textures: *Vector(*TextureData),
 };
 pub const Font = *opaque {};
 pub const Ident = u32;
 pub const TextureIdent = enum(u64) { _ };
 pub const TextureRef = extern struct {
-    tex_data: ?*anyopaque,
+    tex_data: ?*TextureData,
     tex_id: TextureIdent,
 };
+
+pub const TextureStatus = enum(c_int) {
+    ok,
+    destroyed,
+    want_create,
+    want_updates,
+    want_destroy,
+};
+
+pub const TextureFormat = enum(c_int) {
+    rgba32,
+    alpha8,
+};
+
+pub const TextureRect = extern struct {
+    x: c_ushort,
+    y: c_ushort,
+    w: c_ushort,
+    h: c_ushort,
+};
+
+pub const TextureData = extern struct {
+    unique_id: c_int,
+    status: TextureStatus,
+    backend_user_data: ?*anyopaque,
+    tex_id: TextureIdent,
+    format: TextureFormat,
+    width: c_int,
+    height: c_int,
+    bytes_per_pixel: c_int,
+    pixels: [*]u8,
+    used_rect: TextureRect,
+    update_Rect: TextureRect,
+    updates: Vector(TextureRect),
+    unused_Frames: c_int,
+    ref_count: c_ushort,
+    use_colors: bool,
+    want_destroy_next_frame: bool,
+};
+
 pub const Wchar = if (@import("zgui_options").use_wchar32) u32 else u16;
 pub const Key = enum(c_int) {
     none = 0,

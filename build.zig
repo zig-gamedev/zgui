@@ -94,7 +94,7 @@ pub fn build(b: *std.Build) void {
         "-fno-sanitize=undefined",
         "-Wno-elaborated-enum-base",
         "-Wno-error=date-time",
-        if (options.use_32bit_draw_idx) "-DIMGUI_USE_32BIT_DRAW_INDEX" else "",
+        if (options.use_32bit_draw_idx) "-DImDrawIdx=unsigned int" else "",
     };
 
     const objcflags = &.{

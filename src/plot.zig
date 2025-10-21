@@ -306,6 +306,11 @@ extern fn zguiPlot_SetupAxisLimits(axis: Axis, min: f64, max: f64, cond: Conditi
 pub const setupFinish = zguiPlot_SetupFinish;
 extern fn zguiPlot_SetupFinish() void;
 //----------------------------------------------------------------------------------------------
+pub fn hideNextItem(hidden: bool, cond: Condition) void {
+    zguiPlot_HideNextItem(hidden, cond);
+}
+extern fn zguiPlot_HideNextItem(hidden: bool, cond: Condition) void;
+//----------------------------------------------------------------------------------------------
 pub const Flags = packed struct(u32) {
     no_title: bool = false,
     no_legend: bool = false,

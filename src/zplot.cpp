@@ -73,6 +73,11 @@ extern "C"
         ImPlot::PopStyleVar(count);
     }
 
+    ZGUI_API void zguiPlot_HideNextItem(bool hidden, ImPlotCond cond)
+    {
+        ImPlot::HideNextItem(hidden, cond);
+    }
+
     ZGUI_API void zguiPlot_SetupLegend(ImPlotLocation location, ImPlotLegendFlags flags)
     {
         ImPlot::SetupLegend(location, flags);

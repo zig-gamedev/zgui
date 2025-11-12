@@ -13,6 +13,7 @@ pub const VkPipelineRenderingCreateInfo = extern struct {
 };
 
 pub const ImGui_ImplVulkan_InitInfo = extern struct {
+    api_version: u32,
     instance: VkHandle, // VkInstance
     physical_device: VkHandle, // VkPhysicalDevice
     device: VkHandle, // VkDevice
@@ -42,18 +43,17 @@ pub fn init(init_info: ImGui_ImplVulkan_InitInfo) void {
     if (!ImGui_ImplVulkan_Init(&vk_init)) {
         @panic("failed to init Vulkan for ImGui");
     }
-    ImGui_ImplVulkan_CreateFontsTexture();
 }
 
 pub fn loadFunctions(
+    api_version: u32,
     loader: fn (function_name: [*:0]const u8, user_data: ?*anyopaque) callconv(.c) ?*anyopaque,
     user_data: ?*anyopaque,
 ) bool {
-    return ImGui_ImplVulkan_LoadFunctions(loader, user_data);
+    return ImGui_ImplVulkan_LoadFunctions(api_version, loader, user_data);
 }
 
 pub fn deinit() void {
-    ImGui_ImplVulkan_DestroyFontsTexture();
     ImGui_ImplVulkan_Shutdown();
 }
 
@@ -82,10 +82,9 @@ extern fn ImGui_ImplVulkan_RenderDrawData(
     command_buffer: VkHandle, // VkCommandBuffer
     pipeline: VkHandle,
 ) void;
-extern fn ImGui_ImplVulkan_CreateFontsTexture() void;
-extern fn ImGui_ImplVulkan_DestroyFontsTexture() void;
 extern fn ImGui_ImplVulkan_SetMinImageCount(min_image_count: u32) void;
 extern fn ImGui_ImplVulkan_LoadFunctions(
+    api_version: u32,
     loader_func: *const fn (function_name: [*:0]const u8, user_data: ?*anyopaque) callconv(.c) ?*anyopaque,
     user_data: ?*anyopaque,
 ) bool;

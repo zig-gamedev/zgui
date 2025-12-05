@@ -209,7 +209,7 @@ Zig wraper for [ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo).
 
 ### Node editor API
 
-Zig wraper for [ImGuiNodeEditor](https://github.com/thedmd/imgui-node-editor).
+Zig wraper for [ImGuiNodeEditor](https://github.com/cyberegoorg/imgui-node-editor).
 
 ```zig
 var node_editor = zgui.node_editor.EditorContext.create(.{ .enable_smooth_zoom = true }),

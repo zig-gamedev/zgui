@@ -1611,6 +1611,11 @@ extern "C"
         ImGui::GetIO().BackendFlags = flags;
     }
 
+    ZGUI_API ImGuiBackendFlags zguiIoGetBackendFlags()
+    {
+        return ImGui::GetIO().BackendFlags;
+    }
+
     ZGUI_API void zguiIoSetDisplaySize(float width, float height)
     {
         ImGui::GetIO().DisplaySize = {width, height};

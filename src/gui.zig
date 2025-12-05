@@ -370,6 +370,10 @@ pub const io = struct {
     pub const setConfigFlags = zguiIoSetConfigFlags;
     extern fn zguiIoSetConfigFlags(flags: ConfigFlags) void;
 
+    /// `pub fn getBackendFlags() BackendFlags`
+    pub const getBackendFlags = zguiIoGetBackendFlags;
+    extern fn zguiIoGetBackendFlags() BackendFlags;
+
     /// `pub fn setBackendFlags(flags: BackendFlags) void`
     pub const setBackendFlags = zguiIoSetBackendFlags;
     extern fn zguiIoSetBackendFlags(flags: BackendFlags) void;

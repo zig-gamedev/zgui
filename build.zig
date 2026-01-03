@@ -112,23 +112,26 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
-    imgui.root_module.addCMacro("IMGUI_IMPL_API", "extern \"C\"");
-
     if (options.disable_obsolete) {
         imgui.root_module.addCMacro("IMGUI_DISABLE_OBSOLETE_FUNCTIONS", "");
     }
 
+    const imgui_impl_api_default = "extern \"C\"";
+    var imgui_impl_api: []const u8 = imgui_impl_api_default;
     if (options.shared) {
         if (target.result.os.tag == .windows) {
             imgui.root_module.addCMacro("IMGUI_API", "__declspec(dllexport)");
             imgui.root_module.addCMacro("IMPLOT_API", "__declspec(dllexport)");
             imgui.root_module.addCMacro("ZGUI_API", "__declspec(dllexport)");
+            imgui_impl_api = "extern \"C\" __declspec(dllexport)";
         }
 
         if (target.result.os.tag == .macos) {
             imgui.linker_allow_shlib_undefined = true;
         }
     }
+
+    imgui.root_module.addCMacro("IMGUI_IMPL_API", imgui_impl_api);
 
     b.installArtifact(imgui);
 

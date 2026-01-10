@@ -1006,6 +1006,12 @@ extern fn zguiGetWindowSize(size: *[2]f32) void;
 extern fn zguiGetWindowWidth() f32;
 extern fn zguiGetWindowHeight() f32;
 extern fn zguiGetContentRegionAvail(size: *[2]f32) void;
+
+pub const Window = opaque {};
+/// `pub fn getCurrentWindow() *Window`
+pub const getCurrentWindow = zguiGetCurrentWindow;
+extern fn zguiGetCurrentWindow() *Window;
+
 //--------------------------------------------------------------------------------------------------
 //
 // Docking

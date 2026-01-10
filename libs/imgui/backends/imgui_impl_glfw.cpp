@@ -808,6 +808,13 @@ void ImGui_ImplGlfw_Shutdown()
     io.BackendFlags &= ~(ImGuiBackendFlags_HasMouseCursors | ImGuiBackendFlags_HasSetMousePos | ImGuiBackendFlags_HasGamepad | ImGuiBackendFlags_PlatformHasViewports | ImGuiBackendFlags_HasMouseHoveredViewport);
     ImGui_ImplGlfw_ContextMap_Remove(bd->Window);
     IM_DELETE(bd);
+
+    if (g_ContextMap.empty()) {
+        // zgui overrides the default allocator of imgui and memory allocated by g_ContextMap will belong to zgui.
+        // By freeing this memory now we avoid issues with the destructor freeing after zgui has been deinitialized.
+        g_ContextMap.clear();
+    }
+
 }
 
 static void ImGui_ImplGlfw_UpdateMouseData()

@@ -167,7 +167,13 @@ extern "C"
 
     ZGUI_API ImGuizmo::Style *zguiGizmo_GetStyle()
     {
+    
         return &ImGuizmo::GetStyle();
+    }
+    
+    ZGUI_API void zguiGizmo_SetAlternativeWindow(ImGuiWindow* window)
+    {   
+        ImGuizmo::SetAlternativeWindow(window);
     }
 
 } /* extern "C" */

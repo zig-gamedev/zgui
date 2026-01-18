@@ -238,6 +238,10 @@ pub fn getStyle() *Style {
     return zguiGizmo_GetStyle();
 }
 
+pub fn setAlternativeWindow(window: *gui.Window) void {
+    return zguiGizmo_SetAlternativeWindow(window);
+}
+
 //---------------------------------------------------------------------------------------------------------------------|
 
 extern fn zguiGizmo_SetDrawlist(draw_list: ?DrawList) void;
@@ -298,3 +302,4 @@ extern fn zguiGizmo_AllowAxisFlip(value: bool) void;
 extern fn zguiGizmo_SetAxisLimit(value: f32) void;
 extern fn zguiGizmo_SetPlaneLimit(value: f32) void;
 extern fn zguiGizmo_GetStyle() *Style;
+extern fn zguiGizmo_SetAlternativeWindow(window: *gui.Window) void;

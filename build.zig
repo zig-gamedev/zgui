@@ -441,7 +441,13 @@ pub fn build(b: *std.Build) void {
                 .flags = cflags,
             });
         },
-        .no_backend => {},
+        .no_backend => {
+            if (emscripten) {
+                imgui.root_module.addSystemIncludePath(.{
+                    .cwd_relative = b.pathJoin(&.{b.sysroot.?, "include"})
+                });
+            }
+        },
     }
 
     if (target.result.os.tag == .macos) {

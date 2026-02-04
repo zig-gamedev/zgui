@@ -21,7 +21,7 @@ Easy to use, hand-crafted API with default arguments, named parameters and Zig s
 * [ImGui test engine](https://github.com/ocornut/imgui_test_engine/tree/v1.91.8)  `1.91.8`
 * [ImPlot](https://github.com/epezent/implot) `O.17`
 * [ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo) `1.92.5 WIP`
-* [ImGuiNodeEditor](https://github.com/thedmd/imgui-node-editor/tree/v0.9.3) `O.9.3`
+* [ImGuiNodeEditor](https://codeberg.org/cyberegoorg/imgui-node-editor/src/tag/v0.9.3) `O.9.3`
 * [imgui-knobs](https://github.com/altschuler/imgui-knobs/commit/8a43bf7b31c4166ec50f3a52c382c2cc66a91516) `main - commit 8a43bf7b31c4166ec50f3a52c382c2cc66a91516`
 
 ## Getting started
@@ -209,7 +209,7 @@ Zig wraper for [ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo).
 
 ### Node editor API
 
-Zig wraper for [ImGuiNodeEditor](https://github.com/cyberegoorg/imgui-node-editor).
+Zig wraper for [ImGuiNodeEditor](https://codeberg.org/cyberegoorg/imgui-node-editor).
 
 ```zig
 var node_editor = zgui.node_editor.EditorContext.create(.{ .enable_smooth_zoom = true }),

@@ -14,6 +14,7 @@ pub const Backend = enum {
     sdl2_renderer,
     sdl3,
     sdl3_opengl3,
+    sdl3_vulkan,
     sdl3_renderer,
     sdl3_gpu,
 };
@@ -74,6 +75,11 @@ pub fn build(b: *std.Build) void {
             "disable_obsolete",
             "Disable obsolete imgui functions",
         ) orelse true,
+        .vulkan_include = b.option(
+            []const u8,
+            "vulkan_include",
+            "Path to Vulkan Headers",
+        ),
     };
 
     const options_step = b.addOptions();
@@ -325,6 +331,28 @@ pub fn build(b: *std.Build) void {
             if (b.lazyDependency("zglfw", .{})) |zglfw| {
                 imgui.root_module.addIncludePath(zglfw.path("libs/glfw/include"));
             }
+            const sdk_env = std.process.getEnvVarOwned(b.allocator, "VULKAN_SDK") catch |err| switch (err) {
+                error.EnvironmentVariableNotFound => null,
+                else => {
+                    std.debug.print("Failed to get VULKAN_SDK: {s}\n", .{@errorName(err)});
+                    @panic("Unexpected error reading environment variable");
+                },
+            };
+
+            if (options.vulkan_include) |path| {
+                imgui.root_module.addSystemIncludePath(.{ .cwd_relative = path });
+            } else if (sdk_env) |sdk| {
+                const vulkan_include = b.pathJoin(&.{ sdk, "include" });
+                imgui.root_module.addSystemIncludePath(.{ .cwd_relative = vulkan_include });
+            } else {
+                std.debug.print(
+                    \\Error: Vulkan headers not found for glfw_vulkan backend.
+                    \\Please either:
+                    \\  1. Set the VULKAN_SDK environment variable.
+                    \\  2. Pass the path: -Dvulkan_include="C:/path/to/vulkan/include"
+                , .{});
+                @panic("Vulkan SDK not found");
+            }
 
             imgui.root_module.addCSourceFiles(.{
                 .files = &.{
@@ -428,6 +456,41 @@ pub fn build(b: *std.Build) void {
                     "libs/imgui/backends/imgui_impl_opengl3.cpp",
                 },
                 .flags = &(cflags.* ++ .{"-DIMGUI_IMPL_OPENGL_LOADER_IMGL3W"}),
+            });
+        },
+        .sdl3_vulkan => {
+            if (b.lazyDependency("zsdl", .{})) |zsdl| {
+                imgui.root_module.addIncludePath(zsdl.path("libs/sdl3/include"));
+            }
+            const sdk_env = std.process.getEnvVarOwned(b.allocator, "VULKAN_SDK") catch |err| switch (err) {
+                error.EnvironmentVariableNotFound => null,
+                else => {
+                    std.debug.print("Failed to get VULKAN_SDK: {s}\n", .{@errorName(err)});
+                    @panic("Unexpected error reading environment variable");
+                },
+            };
+
+            if (options.vulkan_include) |path| {
+                imgui.root_module.addSystemIncludePath(.{ .cwd_relative = path });
+            } else if (sdk_env) |sdk| {
+                const vulkan_include = b.pathJoin(&.{ sdk, "include" });
+                imgui.root_module.addSystemIncludePath(.{ .cwd_relative = vulkan_include });
+            } else {
+                std.debug.print(
+                    \\Error: Vulkan headers not found for sdl3_vulkan backend.
+                    \\Please either:
+                    \\  1. Set the VULKAN_SDK environment variable.
+                    \\  2. Pass the path: -Dvulkan_include="C:/path/to/vulkan/include"
+                , .{});
+                @panic("Vulkan SDK not found");
+            }
+
+            imgui.root_module.addCSourceFiles(.{
+                .files = &.{
+                    "libs/imgui/backends/imgui_impl_sdl3.cpp",
+                    "libs/imgui/backends/imgui_impl_vulkan.cpp",
+                },
+                .flags = &(cflags.* ++ .{"-DVK_NO_PROTOTYPES"}),
             });
         },
         .sdl3 => {

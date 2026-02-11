@@ -35,7 +35,6 @@ pub fn newFrame(
 pub fn render(
     command_buffer: VkHandle,
 ) void {
-    gui.render();
     backend_vulkan.render(command_buffer);
 }
 
@@ -48,5 +47,9 @@ pub fn loadFunctions(
     loader: fn (function_name: [*:0]const u8, user_data: ?*anyopaque) callconv(.c) ?*anyopaque,
     user_data: ?*anyopaque,
 ) bool {
-    return backend_vulkan.loadFunctions(api_version, loader, user_data);
+    return backend_vulkan.loadFunctions(api_version, loader, user_data);  
+}  
+
+pub fn set_min_image_count(min_image_count: u32) void {  
+    backend_vulkan.set_min_image_count(min_image_count);
 }

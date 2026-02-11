@@ -331,6 +331,28 @@ pub fn build(b: *std.Build) void {
             if (b.lazyDependency("zglfw", .{})) |zglfw| {
                 imgui.root_module.addIncludePath(zglfw.path("libs/glfw/include"));
             }
+            const sdk_env = std.process.getEnvVarOwned(b.allocator, "VULKAN_SDK") catch |err| switch (err) {
+                error.EnvironmentVariableNotFound => null,
+                else => {
+                    std.debug.print("Failed to get VULKAN_SDK: {s}\n", .{@errorName(err)});
+                    @panic("Unexpected error reading environment variable");
+                },
+            };
+
+            if (options.vulkan_include) |path| {
+                imgui.root_module.addSystemIncludePath(.{ .cwd_relative = path });
+            } else if (sdk_env) |sdk| {
+                const vulkan_include = b.pathJoin(&.{ sdk, "include" });
+                imgui.root_module.addSystemIncludePath(.{ .cwd_relative = vulkan_include });
+            } else {
+                std.debug.print(
+                    \\Error: Vulkan headers not found for glfw_vulkan backend.
+                    \\Please either:
+                    \\  1. Set the VULKAN_SDK environment variable.
+                    \\  2. Pass the path: -Dvulkan_include="C:/path/to/vulkan/include"
+                , .{});
+                @panic("Vulkan SDK not found");
+            }
 
             imgui.root_module.addCSourceFiles(.{
                 .files = &.{
@@ -440,7 +462,13 @@ pub fn build(b: *std.Build) void {
             if (b.lazyDependency("zsdl", .{})) |zsdl| {
                 imgui.root_module.addIncludePath(zsdl.path("libs/sdl3/include"));
             }
-            const sdk_env = std.process.getEnvVarOwned(b.allocator, "VULKAN_SDK") catch null;
+            const sdk_env = std.process.getEnvVarOwned(b.allocator, "VULKAN_SDK") catch |err| switch (err) {
+                error.EnvironmentVariableNotFound => null,
+                else => {
+                    std.debug.print("Failed to get VULKAN_SDK: {s}\n", .{@errorName(err)});
+                    @panic("Unexpected error reading environment variable");
+                },
+            };
 
             if (options.vulkan_include) |path| {
                 imgui.root_module.addSystemIncludePath(.{ .cwd_relative = path });

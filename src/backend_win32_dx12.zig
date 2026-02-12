@@ -3,9 +3,13 @@ const std = @import("std");
 const gui = @import("gui.zig");
 const backend_dx12 = @import("backend_dx12.zig");
 
+pub const ImGui_ImplDX12_InitInfo = backend_dx12.ImGui_ImplDX12_InitInfo;
+pub const D3D12_CPU_DESCRIPTOR_HANDLE = backend_dx12.D3D12_CPU_DESCRIPTOR_HANDLE;
+pub const D3D12_GPU_DESCRIPTOR_HANDLE = backend_dx12.D3D12_GPU_DESCRIPTOR_HANDLE;
+
 pub fn init(
     hwnd: *const anyopaque, // HWND
-    init_info: backend_dx12.ImGui_ImplDX12_InitInfo,
+    init_info: ImGui_ImplDX12_InitInfo,
 ) void {
     std.debug.assert(ImGui_ImplWin32_Init(hwnd));
     backend_dx12.init(init_info);
@@ -31,6 +35,16 @@ pub fn draw(graphics_command_list: *const anyopaque) void {
     backend_dx12.render(gui.getDrawData(), graphics_command_list);
 }
 
+pub fn defaultWndProcHandler(hwnd: *const anyopaque, msg: u32, wparam: usize, lparam: isize) i32 {
+    return ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam);
+}
+
+pub fn enableDpiAwareness() void {
+    ImGui_ImplWin32_EnableDpiAwareness();
+}
+
 extern fn ImGui_ImplWin32_Init(hwnd: *const anyopaque) bool;
 extern fn ImGui_ImplWin32_Shutdown() void;
 extern fn ImGui_ImplWin32_NewFrame() void;
+extern fn ImGui_ImplWin32_WndProcHandler(hwnd: *const anyopaque, msg: u32, wparam: usize, lparam: isize) i32;
+extern fn ImGui_ImplWin32_EnableDpiAwareness() void;

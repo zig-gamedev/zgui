@@ -74,6 +74,32 @@ extern "C"
         ImPlot::PopStyleVar(count);
     }
 
+    ZGUI_API void zguiPlot_SetNextLineStyle(const float col[4], float weight)
+    {
+        ImPlot::SetNextLineStyle({col[0], col[1], col[2], col[3]}, weight);
+    }
+
+    ZGUI_API void zguiPlot_SetNextFillStyle(const float col[4], float alpha_mod)
+    {
+        ImPlot::SetNextFillStyle({col[0], col[1], col[2], col[3]}, alpha_mod);
+    }
+
+    ZGUI_API void zguiPlot_SetNextMarkerStyle(
+        ImPlotMarker marker,
+        float size,
+        const float fill[4],
+        float weight,
+        const float outline[4])
+    {
+        ImPlot::SetNextMarkerStyle(marker, size, {fill[0], fill[1], fill[2], fill[3]}, weight,
+            {outline[0], outline[1], outline[2], outline[3]});
+    }
+
+    ZGUI_API void zguiPlot_SetNextErrorBarStyle(const float col[4], float size, float weight)
+    {
+        ImPlot::SetNextErrorBarStyle({col[0], col[1], col[2], col[3]}, size, weight);
+    }
+
     ZGUI_API void zguiPlot_SetupLegend(ImPlotLocation location, ImPlotLegendFlags flags)
     {
         ImPlot::SetupLegend(location, flags);

@@ -212,6 +212,48 @@ extern fn zguiPlot_PushStyleVar1f(idx: StyleVar, v: f32) void;
 extern fn zguiPlot_PushStyleVar2f(idx: StyleVar, v: *const [2]f32) void;
 extern fn zguiPlot_PopStyleVar(count: i32) void;
 //--------------------------------------------------------------------------------------------------
+pub const SetNextLineStyle = struct {
+    col: [4]f32 = .{ 0, 0, 0, -1 },
+    weight: f32 = -1,
+};
+pub fn setNextLineStyle(args: SetNextLineStyle) void {
+    zguiPlot_SetNextLineStyle(&args.col, args.weight);
+}
+extern fn zguiPlot_SetNextLineStyle(col: *const [4]f32, weight: f32) void;
+//--------------------------------------------------------------------------------------------------
+// Special color used to indicate that a color should be deduced automatically.
+pub const auto_col = [4]f32{ 0, 0, 0, -1 };
+pub const SetNextFillStyle = struct {
+    col: [4]f32 = auto_col,
+    alpha_mod: f32 = -1,
+};
+pub fn setNextFillStyle(args: SetNextFillStyle) void {
+    zguiPlot_SetNextFillStyle(&args.col, args.alpha_mod);
+}
+extern fn zguiPlot_SetNextFillStyle(col: *const [4]f32, alpha_mod: f32) void;
+//--------------------------------------------------------------------------------------------------
+pub const SetNextMarkerStyle = struct {
+    marker: Marker = .none,
+    size: f32 = -1,
+    fill: [4]f32 = auto_col,
+    weight: f32 = -1,
+    outline: [4]f32 = auto_col,
+};
+pub fn setNextMarkerStyle(args: SetNextMarkerStyle) void {
+    zguiPlot_SetNextMarkerStyle(args.marker, args.size, &args.fill, args.weight, &args.outline);
+}
+extern fn zguiPlot_SetNextMarkerStyle(marker: Marker, size: f32, fill: *const [4]f32, weight: f32, outline: *const [4]f32) void;
+//--------------------------------------------------------------------------------------------------
+pub const SetNextErrorBarStyle = struct {
+    col: [4]f32 = auto_col,
+    size: f32 = -1,
+    weight: f32 = -1,
+};
+pub fn setNextErrorBarStyle(args: SetNextErrorBarStyle) void {
+    zguiPlot_SetNextErrorBarStyle(&args.col, args.size, args.weight);
+}
+extern fn zguiPlot_SetNextErrorBarStyle(col: *const [4]f32, size: f32, weight: f32) void;
+//--------------------------------------------------------------------------------------------------
 pub fn getLastItemColor() [4]f32 {
     var color: [4]f32 = undefined;
     zguiPlot_GetLastItemColor(&color);

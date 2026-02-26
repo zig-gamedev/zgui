@@ -444,6 +444,11 @@ extern "C"
         color[3] = col.w;
     }
 
+    ZGUI_API ImDrawList* zguiPlot_GetPlotDrawList()
+    {
+        return ImPlot::GetPlotDrawList();
+    }
+
     ZGUI_API void zguiPlot_PushPlotClipRect(float expand)
     {
         ImPlot::PushPlotClipRect(expand);

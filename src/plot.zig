@@ -104,8 +104,7 @@ pub const getStyle = zguiPlot_GetStyle;
 extern fn zguiPlot_GetStyle() *Style;
 //--------------------------------------------------------------------------------------------------
 pub const StyleCol = enum(i32) {
-    auto = -1,
-    line = 0,
+    line,
     fill,
     marker_outline,
     marker_fill,
@@ -443,20 +442,29 @@ extern fn zguiPlot_SetupAxisFormat(axis: Axis, formatter: ImPlotFormatter, user_
 //----------------------------------------------------------------------------------------------
 pub const SetupAxisTicks = struct {
     values: []const f64,
-    labels: [][*:0]const u8 = &.{},
+    labels: ?[][*:0]const u8 = null,
     keep_default: bool = false,
 };
 pub fn setupAxisTicks(axis: Axis, args: SetupAxisTicks) void {
     const n_ticks = std.math.cast(i32, args.values.len) orelse {
         @panic("Too many tick values!");
     };
-    zguiPlot_SetupAxisTicks(axis, args.values.ptr, n_ticks, args.labels.ptr, args.keep_default);
+
+    const labels_ptr = blk: {
+        if (args.labels) |labels| {
+            break :blk if (labels.len != 0) labels.ptr else null;
+        } else {
+            break :blk null;
+        }
+    };
+
+    zguiPlot_SetupAxisTicks(axis, args.values.ptr, n_ticks, labels_ptr, args.keep_default);
 }
 extern fn zguiPlot_SetupAxisTicks(
     axis: Axis,
     values: [*]const f64,
     n_ticks: i32,
-    labels: [*][*:0]const u8,
+    labels: ?[*][*:0]const u8,
     keep_default: bool,
 ) void;
 //----------------------------------------------------------------------------------------------
@@ -912,8 +920,9 @@ extern fn zguiPlot_PlotText(
 ) void;
 
 //----------------------------------------------------------------------------------------------
-/// Get the plot draw list for custom rendering to the current plot area. Call between begin/endPlot.
-pub const getPlotDrawList = gui.getWindowDrawList;
+/// `pub fn getPlotDrawList() DrawList`
+pub const getPlotDrawList = zguiPlot_GetPlotDrawList;
+extern fn zguiPlot_GetPlotDrawList() gui.DrawList;
 //----------------------------------------------------------------------------------------------
 pub fn isPlotHovered() bool {
     return zguiPlot_IsPlotHovered();
@@ -946,12 +955,13 @@ pub const ItemFlags = packed struct(u32) {
 };
 pub const BeginItem = struct {
     flags: ItemFlags = .{},
-    recolor_from: StyleCol = .auto,
+    recolor_from: ?StyleCol = null,
 };
 pub fn beginItem(label_id: [:0]const u8, args: BeginItem) bool {
-    return zguiPlot_BeginItem(label_id.ptr, args.flags, args.recolor_from);
+    const recolor_from: i32 = if (args.recolor_from) |c| @intFromEnum(c) else -1; // IMPLOT_AUTO
+    return zguiPlot_BeginItem(label_id.ptr, args.flags, recolor_from);
 }
-extern fn zguiPlot_BeginItem(label_id: [*:0]const u8, flags: ItemFlags, recolor_from: StyleCol) bool;
+extern fn zguiPlot_BeginItem(label_id: [*:0]const u8, flags: ItemFlags, recolor_from: i32) bool;
 /// `pub fn endItem() void`
 pub const endItem = zguiPlot_EndItem;
 extern fn zguiPlot_EndItem() void;

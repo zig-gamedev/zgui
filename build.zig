@@ -270,7 +270,9 @@ pub fn build(b: *std.Build) void {
                 imgui_mod.addIncludePath(zglfw.path("libs/glfw/include"));
             }
             if (b.lazyDependency("zgpu", .{})) |zgpu| {
-                imgui_mod.addIncludePath(zgpu.path("libs/dawn/include"));
+                if (target.result.os.tag != .emscripten) {
+                    imgui_mod.addIncludePath(zgpu.path("libs/dawn/include"));
+                }
             }
             imgui_mod.addCSourceFiles(.{
                 .files = &.{

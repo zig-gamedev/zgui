@@ -419,7 +419,8 @@ pub fn setupAxisFormat(
 ) void {
     const wrapper = struct {
         pub fn format(value: f64, buff: [*]u8, int_size: i32, data: ?*anyopaque) callconv(.c) i32 {
-            const size: u32 = @intCast(int_size); // ImPlot always passes positive value
+            assert(int_size > 0); // ImPlot always passes positive value
+            const size: usize = @intCast(int_size);
             const printed = formatter(value, buff[0..size], data);
 
             return std.math.cast(i32, printed.len) orelse {
@@ -452,7 +453,8 @@ pub fn setupAxisTicks(axis: Axis, args: SetupAxisTicks) void {
 
     const labels_ptr = blk: {
         if (args.labels) |labels| {
-            break :blk if (labels.len != 0) labels.ptr else null;
+            assert(labels.len == args.values.len);
+            break :blk labels.ptr;
         } else {
             break :blk null;
         }
@@ -534,11 +536,13 @@ pub const BeginSubplots = struct {
     row_ratios: ?[*]f32 = null,
     col_ratios: ?[*]f32 = null,
 };
-pub fn beginSubplots(title_id: [*:0]const u8, args: BeginSubplots) bool {
+pub fn beginSubplots(title_id: [:0]const u8, args: BeginSubplots) bool {
     // Both must be greater than 0 according to ImPlot docs.
-    const rs: i32 = @intCast(args.rows);
-    const cs: i32 = @intCast(args.cols);
-    return zguiPlot_BeginSubplots(title_id, rs, cs, args.width, args.height, args.flags, args.row_ratios, args.col_ratios);
+    assert(args.rows > 0);
+    assert(args.cols > 0);
+    const rs = std.math.cast(i32, args.rows) orelse @panic("BeginSubplots: rows value does not fit into i32");
+    const cs = std.math.cast(i32, args.cols) orelse @panic("BeginSubplots: cols value does not fit into i32");
+    return zguiPlot_BeginSubplots(title_id.ptr, rs, cs, args.width, args.height, args.flags, args.row_ratios, args.col_ratios);
 }
 extern fn zguiPlot_BeginSubplots(
     title_id: [*:0]const u8,

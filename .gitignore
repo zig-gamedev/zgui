@@ -4,3 +4,7 @@ zig-out
 
 # Ignore some special OS files
 *.DS_Store
+
+# Ignore some IDE folders
+*.vscode
+*.idea

@@ -1,5 +1,6 @@
 //--------------------------------------------------------------------------------------------------
-const assert = @import("std").debug.assert;
+const std = @import("std");
+const assert = std.debug.assert;
 const gui = @import("gui.zig");
 //--------------------------------------------------------------------------------------------------
 pub fn init() void {
@@ -102,7 +103,7 @@ pub const Style = extern struct {
 pub const getStyle = zguiPlot_GetStyle;
 extern fn zguiPlot_GetStyle() *Style;
 //--------------------------------------------------------------------------------------------------
-pub const StyleCol = enum(u32) {
+pub const StyleCol = enum(i32) {
     line,
     fill,
     marker_outline,
@@ -210,6 +211,48 @@ extern fn zguiPlot_PushStyleVar1f(idx: StyleVar, v: f32) void;
 extern fn zguiPlot_PushStyleVar2f(idx: StyleVar, v: *const [2]f32) void;
 extern fn zguiPlot_PopStyleVar(count: i32) void;
 //--------------------------------------------------------------------------------------------------
+pub const SetNextLineStyle = struct {
+    col: [4]f32 = .{ 0, 0, 0, -1 },
+    weight: f32 = -1,
+};
+pub fn setNextLineStyle(args: SetNextLineStyle) void {
+    zguiPlot_SetNextLineStyle(&args.col, args.weight);
+}
+extern fn zguiPlot_SetNextLineStyle(col: *const [4]f32, weight: f32) void;
+//--------------------------------------------------------------------------------------------------
+// Special color used to indicate that a color should be deduced automatically.
+pub const auto_col = [4]f32{ 0, 0, 0, -1 };
+pub const SetNextFillStyle = struct {
+    col: [4]f32 = auto_col,
+    alpha_mod: f32 = -1,
+};
+pub fn setNextFillStyle(args: SetNextFillStyle) void {
+    zguiPlot_SetNextFillStyle(&args.col, args.alpha_mod);
+}
+extern fn zguiPlot_SetNextFillStyle(col: *const [4]f32, alpha_mod: f32) void;
+//--------------------------------------------------------------------------------------------------
+pub const SetNextMarkerStyle = struct {
+    marker: Marker = .none,
+    size: f32 = -1,
+    fill: [4]f32 = auto_col,
+    weight: f32 = -1,
+    outline: [4]f32 = auto_col,
+};
+pub fn setNextMarkerStyle(args: SetNextMarkerStyle) void {
+    zguiPlot_SetNextMarkerStyle(args.marker, args.size, &args.fill, args.weight, &args.outline);
+}
+extern fn zguiPlot_SetNextMarkerStyle(marker: Marker, size: f32, fill: *const [4]f32, weight: f32, outline: *const [4]f32) void;
+//--------------------------------------------------------------------------------------------------
+pub const SetNextErrorBarStyle = struct {
+    col: [4]f32 = auto_col,
+    size: f32 = -1,
+    weight: f32 = -1,
+};
+pub fn setNextErrorBarStyle(args: SetNextErrorBarStyle) void {
+    zguiPlot_SetNextErrorBarStyle(&args.col, args.size, args.weight);
+}
+extern fn zguiPlot_SetNextErrorBarStyle(col: *const [4]f32, size: f32, weight: f32) void;
+//--------------------------------------------------------------------------------------------------
 pub fn getLastItemColor() [4]f32 {
     var color: [4]f32 = undefined;
     zguiPlot_GetLastItemColor(&color);
@@ -277,7 +320,8 @@ pub const AxisFlags = packed struct(u32) {
         .opposite = true,
     };
 };
-pub const Axis = enum(u32) { x1, x2, x3, y1, y2, y3 };
+pub const Axis = enum(i32) { x1, x2, x3, y1, y2, y3 };
+pub const AxisOrAuto = enum(i32) { auto = -1, x1 = 0, x2, x3, y1, y2, y3 };
 pub const SetupAxis = struct {
     label: ?[:0]const u8 = null,
     flags: AxisFlags = .{},
@@ -290,6 +334,66 @@ pub fn setAxis(axis: Axis) void {
     zguiPlot_SetAxis(axis);
 }
 extern fn zguiPlot_SetAxis(axis: Axis) void;
+pub const PixelsToPlot = struct {
+    x_axis: AxisOrAuto = .auto,
+    y_axis: AxisOrAuto = .auto,
+};
+/// Convert pixels to a position in the current plot's coordinate system
+pub fn pixelsToPlot(x: f32, y: f32, args: PixelsToPlot) [2]f64 {
+    var result: [2]f64 = undefined;
+    zguiPlot_PixelsToPlot(x, y, args.x_axis, args.y_axis, &result);
+    return result;
+}
+extern fn zguiPlot_PixelsToPlot(
+    x: f32,
+    y: f32,
+    x_axis: AxisOrAuto,
+    y_axis: AxisOrAuto,
+    out: *[2]f64,
+) void;
+pub const PlotToPixels = struct {
+    x_axis: AxisOrAuto = .auto,
+    y_axis: AxisOrAuto = .auto,
+};
+/// Convert a position in the current plot's coordinate system to pixels.
+pub fn plotToPixels(x: f64, y: f64, args: PlotToPixels) [2]f32 {
+    var result: [2]f32 = undefined;
+    zguiPlot_PlotToPixels(x, y, args.x_axis, args.y_axis, &result);
+    return result;
+}
+extern fn zguiPlot_PlotToPixels(
+    x: f64,
+    y: f64,
+    x_axis: AxisOrAuto,
+    y_axis: AxisOrAuto,
+    out: *[2]f32,
+) void;
+//----------------------------------------------------------------------------------------------
+/// Get the current plot position (top-left) in pixels.
+pub fn getPlotPos() [2]f32 {
+    var pos: [2]f32 = undefined;
+    zguiPlot_GetPlotPos(&pos);
+    return pos;
+}
+extern fn zguiPlot_GetPlotPos(out: *[2]f32) void;
+/// Get the current plot size in pixels.
+pub fn getPlotSize() [2]f32 {
+    var size: [2]f32 = undefined;
+    zguiPlot_GetPlotSize(&size);
+    return size;
+}
+extern fn zguiPlot_GetPlotSize(out: *[2]f32) void;
+pub const GetPlotMousePos = struct {
+    x_axis: AxisOrAuto = .auto,
+    y_axis: AxisOrAuto = .auto,
+};
+/// Returns the mouse position in x,y coordinates of the current plot.
+pub fn getPlotMousePos(args: GetPlotMousePos) [2]f64 {
+    var pos: [2]f64 = undefined;
+    zguiPlot_GetPlotMousePos(args.x_axis, args.y_axis, &pos);
+    return pos;
+}
+extern fn zguiPlot_GetPlotMousePos(x_axis: AxisOrAuto, y_axis: AxisOrAuto, out: *[2]f64) void;
 //----------------------------------------------------------------------------------------------
 pub const Condition = enum(u32) {
     none = @intFromEnum(gui.Condition.none),
@@ -306,9 +410,78 @@ pub fn setupAxisLimits(axis: Axis, args: SetupAxisLimits) void {
 }
 extern fn zguiPlot_SetupAxisLimits(axis: Axis, min: f64, max: f64, cond: Condition) void;
 //----------------------------------------------------------------------------------------------
+/// Formatter should print null-terminated label corresponding to the given value into the buffer
+/// and return a slice with printed label.
+pub fn setupAxisFormat(
+    axis: Axis,
+    formatter: fn (value: f64, buff: []u8, user_data: ?*anyopaque) [:0]u8,
+    user_data: ?*anyopaque,
+) void {
+    const wrapper = struct {
+        pub fn format(value: f64, buff: [*]u8, int_size: i32, data: ?*anyopaque) callconv(.c) i32 {
+            assert(int_size > 0); // ImPlot always passes positive value
+            const size: usize = @intCast(int_size);
+            const printed = formatter(value, buff[0..size], data);
+
+            return std.math.cast(i32, printed.len) orelse {
+                @panic("Formatter result is too long!");
+            };
+        }
+    }.format;
+
+    zguiPlot_SetupAxisFormat(axis, wrapper, user_data);
+}
+
+const ImPlotFormatter = *const fn (
+    value: f64,
+    buff: [*]u8,
+    size: i32,
+    user_data: ?*anyopaque,
+) callconv(.c) i32;
+
+extern fn zguiPlot_SetupAxisFormat(axis: Axis, formatter: ImPlotFormatter, user_data: ?*anyopaque) void;
+//----------------------------------------------------------------------------------------------
+pub const SetupAxisTicks = struct {
+    values: []const f64,
+    labels: ?[][*:0]const u8 = null,
+    keep_default: bool = false,
+};
+pub fn setupAxisTicks(axis: Axis, args: SetupAxisTicks) void {
+    const n_ticks = std.math.cast(i32, args.values.len) orelse {
+        @panic("Too many tick values!");
+    };
+
+    const labels_ptr = blk: {
+        if (args.labels) |labels| {
+            assert(labels.len == args.values.len);
+            break :blk labels.ptr;
+        } else {
+            break :blk null;
+        }
+    };
+
+    zguiPlot_SetupAxisTicks(axis, args.values.ptr, n_ticks, labels_ptr, args.keep_default);
+}
+extern fn zguiPlot_SetupAxisTicks(
+    axis: Axis,
+    values: [*]const f64,
+    n_ticks: i32,
+    labels: ?[*][*:0]const u8,
+    keep_default: bool,
+) void;
+//----------------------------------------------------------------------------------------------
+/// `pub fn setupAxisLimitsConstraints(axis: Axis, v_min: f64, v_max: f64) void`
+pub const setupAxisLimitsConstraints = zguiPlot_SetupAxisLimitsConstraints;
+extern fn zguiPlot_SetupAxisLimitsConstraints(axis: Axis, v_min: f64, v_max: f64) void;
+/// `extern fn setupAxisZoomConstraints(axis: Axis, z_min: f64, z_max: f64) void`
+pub const setupAxisZoomConstraints = zguiPlot_SetupAxisZoomConstraints;
+extern fn zguiPlot_SetupAxisZoomConstraints(axis: Axis, z_min: f64, z_max: f64) void;
 /// `pub fn setupFinish() void`
 pub const setupFinish = zguiPlot_SetupFinish;
 extern fn zguiPlot_SetupFinish() void;
+/// `pub fn setNextAxesToFit() void`
+pub const setNextAxesToFit = zguiPlot_SetNextAxesToFit;
+extern fn zguiPlot_SetNextAxesToFit() void;
 //----------------------------------------------------------------------------------------------
 pub const Flags = packed struct(u32) {
     no_title: bool = false,
@@ -339,6 +512,52 @@ pub fn beginPlot(title_id: [:0]const u8, args: BeginPlot) bool {
     return zguiPlot_BeginPlot(title_id, args.w, args.h, args.flags);
 }
 extern fn zguiPlot_BeginPlot(title_id: [*:0]const u8, width: f32, height: f32, flags: Flags) bool;
+//----------------------------------------------------------------------------------------------
+pub const SubplotFlags = packed struct(u32) {
+    no_title: bool = false,
+    no_legend: bool = false,
+    no_menus: bool = false,
+    no_resize: bool = false,
+    no_align: bool = false,
+    share_items: bool = false,
+    link_rows: bool = false,
+    link_cols: bool = false,
+    link_all_x: bool = false,
+    link_all_y: bool = false,
+    col_major: bool = false,
+    _padding: u21 = 0,
+};
+pub const BeginSubplots = struct {
+    rows: u32,
+    cols: u32,
+    width: f32 = -1.0,
+    height: f32 = -1.0,
+    flags: SubplotFlags = .{},
+    row_ratios: ?[*]f32 = null,
+    col_ratios: ?[*]f32 = null,
+};
+pub fn beginSubplots(title_id: [:0]const u8, args: BeginSubplots) bool {
+    // Both must be greater than 0 according to ImPlot docs.
+    assert(args.rows > 0);
+    assert(args.cols > 0);
+    const rs = std.math.cast(i32, args.rows) orelse @panic("BeginSubplots: rows value does not fit into i32");
+    const cs = std.math.cast(i32, args.cols) orelse @panic("BeginSubplots: cols value does not fit into i32");
+    return zguiPlot_BeginSubplots(title_id.ptr, rs, cs, args.width, args.height, args.flags, args.row_ratios, args.col_ratios);
+}
+extern fn zguiPlot_BeginSubplots(
+    title_id: [*:0]const u8,
+    rows: i32,
+    cols: i32,
+    width: f32,
+    height: f32,
+    flags: SubplotFlags,
+    row_ratios: ?[*]f32,
+    col_ratios: ?[*]f32,
+) bool;
+pub fn endSubplots() void {
+    zguiPlot_EndSubplots();
+}
+extern fn zguiPlot_EndSubplots() void;
 //----------------------------------------------------------------------------------------------
 pub const LineFlags = packed struct(u32) {
     _reserved0: bool = false,
@@ -705,10 +924,25 @@ extern fn zguiPlot_PlotText(
 ) void;
 
 //----------------------------------------------------------------------------------------------
+/// `pub fn getPlotDrawList() DrawList`
+pub const getPlotDrawList = zguiPlot_GetPlotDrawList;
+extern fn zguiPlot_GetPlotDrawList() gui.DrawList;
+//----------------------------------------------------------------------------------------------
 pub fn isPlotHovered() bool {
     return zguiPlot_IsPlotHovered();
 }
 extern fn zguiPlot_IsPlotHovered() bool;
+//----------------------------------------------------------------------------------------------
+pub const PushPlotClipRect = struct {
+    expand: f32 = 0,
+};
+pub fn pushPlotClipRect(args: PushPlotClipRect) void {
+    zguiPlot_PushPlotClipRect(args.expand);
+}
+extern fn zguiPlot_PushPlotClipRect(expand: f32) void;
+/// `pub fn popPlotClipRect() void`
+pub const popPlotClipRect = zguiPlot_PopPlotClipRect;
+extern fn zguiPlot_PopPlotClipRect() void;
 //----------------------------------------------------------------------------------------------
 /// `pub fn showDemoWindow(popen: ?*bool) void`
 pub const showDemoWindow = zguiPlot_ShowDemoWindow;
@@ -717,4 +951,32 @@ extern fn zguiPlot_ShowDemoWindow(popen: ?*bool) void;
 /// `pub fn endPlot() void`
 pub const endPlot = zguiPlot_EndPlot;
 extern fn zguiPlot_EndPlot() void;
+//----------------------------------------------------------------------------------------------
+pub const ItemFlags = packed struct(u32) {
+    no_legend: bool = false,
+    no_fit: bool = false,
+    _padding: u30 = 0,
+};
+pub const BeginItem = struct {
+    flags: ItemFlags = .{},
+    recolor_from: ?StyleCol = null,
+};
+pub fn beginItem(label_id: [:0]const u8, args: BeginItem) bool {
+    const recolor_from: i32 = if (args.recolor_from) |c| @intFromEnum(c) else -1; // IMPLOT_AUTO
+    return zguiPlot_BeginItem(label_id.ptr, args.flags, recolor_from);
+}
+extern fn zguiPlot_BeginItem(label_id: [*:0]const u8, flags: ItemFlags, recolor_from: i32) bool;
+/// `pub fn endItem() void`
+pub const endItem = zguiPlot_EndItem;
+extern fn zguiPlot_EndItem() void;
+//----------------------------------------------------------------------------------------------
+/// `pub fn fitPointX(x: f64) void`
+pub const fitPointX = zguiPlot_FitPointX;
+extern fn zguiPlot_FitPointX(x: f64) void;
+/// `pub fn fitPointY(y: f64) void`
+pub const fitPointY = zguiPlot_FitPointY;
+extern fn zguiPlot_FitPointY(y: f64) void;
+/// `pub fn fitPoint(x: f64, y: f64) void`
+pub const fitPoint = zguiPlot_FitPoint;
+extern fn zguiPlot_FitPoint(x: f64, y: f64) void;
 //----------------------------------------------------------------------------------------------

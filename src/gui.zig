@@ -4357,7 +4357,7 @@ pub const DrawList = *opaque {
         p1: [2]f32,
         p2: [2]f32,
         col: u32,
-        thickness: f32,
+        thickness: f32 = 1.0,
     }) void {
         zguiDrawList_AddLine(draw_list, &args.p1, &args.p2, args.col, args.thickness);
     }

@@ -38,6 +38,16 @@ Index of this file:
 #include "imgui_te_utils.h"         // ImPathFindFilename, ImPathFindExtension, ImPathFixSeparatorsForCurrentOS, ImFileCreateDirectoryChain, ImOsOpenInShell
 #include "thirdparty/Str/Str.h"
 
+// Warnings
+#if defined(__clang__)
+#if __has_warning("-Wunknown-warning-option")
+#pragma clang diagnostic ignored "-Wunknown-warning-option"         // warning: unknown warning group 'xxx'                      // not all warnings are known by all Clang versions and they tend to be rename-happy.. so ignoring warnings triggers new warnings on some configuration. Great!
+#endif
+#pragma clang diagnostic ignored "-Wsign-conversion"                // warning: implicit conversion changes signedness
+#elif defined(__GNUC__)
+#pragma GCC diagnostic ignored "-Wsign-conversion"                  // warning: conversion to 'xxxx' from 'xxxx' may change the sign of the result
+#endif
+
 //-----------------------------------------------------------------------------
 // [SECTION] Link stb_image_write.h
 //-----------------------------------------------------------------------------
@@ -389,7 +399,7 @@ ImGuiCaptureStatus ImGuiCaptureContext::CaptureUpdate(ImGuiCaptureArgs* args)
     }
     else
     {
-        IM_ASSERT(args == _CaptureArgs); // Capture args can not change mid-capture.
+        IM_ASSERT(!_CaptureArgs || args == _CaptureArgs); // Capture may be cancelled, but args can not otherwise change mid-capture.
     }
 
     //-----------------------------------------------------------------
@@ -639,7 +649,7 @@ bool ImGuiCaptureContext::IsCapturing()
 ImGuiCaptureToolUI::ImGuiCaptureToolUI()
 {
     // Filename template for where screenshots will be saved. May contain directories or variation of %d format.
-    ImStrncpy(_OutputFileTemplate, "output/captures/imgui_capture_%04d.png", IM_ARRAYSIZE(_OutputFileTemplate));
+    ImStrncpy(_OutputFileTemplate, "output/captures/imgui_capture_%04d.png", IM_COUNTOF(_OutputFileTemplate));
 }
 
 // Interactively pick a single window
@@ -866,7 +876,7 @@ void ImGuiCaptureToolUI::ShowCaptureToolWindow(ImGuiCaptureContext* context, boo
         if (status != ImGuiCaptureStatus_InProgress)
         {
             if (status == ImGuiCaptureStatus_Done)
-                ImStrncpy(OutputLastFilename, args->InOutputFile, IM_ARRAYSIZE(OutputLastFilename));
+                ImStrncpy(OutputLastFilename, args->InOutputFile, IM_COUNTOF(OutputLastFilename));
             _StateIsCapturing = false;
             _FileCounter++;
         }
@@ -927,7 +937,7 @@ void ImGuiCaptureToolUI::ShowCaptureToolWindow(ImGuiCaptureContext* context, boo
         const float BUTTON_WIDTH = (float)(int)-(TEXT_BASE_WIDTH * 26);
 
         ImGui::PushItemWidth(BUTTON_WIDTH);
-        ImGui::InputText("Output template", _OutputFileTemplate, IM_ARRAYSIZE(_OutputFileTemplate));
+        ImGui::InputText("Output template", _OutputFileTemplate, IM_COUNTOF(_OutputFileTemplate));
         ImGui::SetItemTooltip(
             "Output template should contain one %%d (or variation of it) format variable. "
             "Multiple captures will be saved with an increasing number to avoid overwriting same file.");
@@ -1006,7 +1016,7 @@ void ImGuiCaptureToolUI::_SnapWindowsToGrid(float cell_size)
 bool ImGuiCaptureToolUI::_InitializeOutputFile()
 {
     // Create output folder and decide of output filename
-    ImFormatString(_CaptureArgs.InOutputFile, IM_ARRAYSIZE(_CaptureArgs.InOutputFile), _OutputFileTemplate,
+    ImFormatString(_CaptureArgs.InOutputFile, IM_COUNTOF(_CaptureArgs.InOutputFile), _OutputFileTemplate,
                    _FileCounter + 1);
     ImPathFixSeparatorsForCurrentOS(_CaptureArgs.InOutputFile);
     if (!ImFileCreateDirectoryChain(_CaptureArgs.InOutputFile, ImPathFindFilename(_CaptureArgs.InOutputFile)))

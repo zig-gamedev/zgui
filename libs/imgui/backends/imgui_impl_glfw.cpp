@@ -499,6 +499,17 @@ void ImGui_ImplGlfw_WindowFocusCallback(GLFWwindow* window, int focused)
     io.AddFocusEvent(focused != 0);
 }
 
+static void ImGui_ImplGlfw_SetMousePosWithScaling(ImGui_ImplGlfw_Data* bd, GLFWwindow* window, ImGuiIO& io, double x, double y)
+{
+    float scale = ImGui_ImplGlfw_GetContentScaleForWindow(window);
+
+    x *= scale;
+    y *= scale;
+
+    io.AddMousePosEvent((float)x, (float)y);
+    bd->LastValidMousePos = ImVec2((float)x, (float)y);
+}
+
 void ImGui_ImplGlfw_CursorPosCallback(GLFWwindow* window, double x, double y)
 {
     ImGui_ImplGlfw_Data* bd = ImGui_ImplGlfw_GetBackendData(window);
@@ -513,8 +524,7 @@ void ImGui_ImplGlfw_CursorPosCallback(GLFWwindow* window, double x, double y)
         x += window_x;
         y += window_y;
     }
-    io.AddMousePosEvent((float)x, (float)y);
-    bd->LastValidMousePos = ImVec2((float)x, (float)y);
+    ImGui_ImplGlfw_SetMousePosWithScaling(bd, window, io, x, y);
 }
 
 // Workaround: X11 seems to send spurious Leave/Enter events which would make us lose our position,
@@ -856,8 +866,7 @@ static void ImGui_ImplGlfw_UpdateMouseData()
                     mouse_x += window_x;
                     mouse_y += window_y;
                 }
-                bd->LastValidMousePos = ImVec2((float)mouse_x, (float)mouse_y);
-                io.AddMousePosEvent((float)mouse_x, (float)mouse_y);
+                ImGui_ImplGlfw_SetMousePosWithScaling(bd, window, io, mouse_x, mouse_y);
             }
         }
 
@@ -1006,6 +1015,7 @@ static void ImGui_ImplGlfw_UpdateMonitors()
     }
 }
 
+
 // - On Windows the process needs to be marked DPI-aware!! SDL2 doesn't do it by default. You can call ::SetProcessDPIAware() or call ImGui_ImplWin32_EnableDpiAwareness() from Win32 backend.
 // - Apple platforms use FramebufferScale so we always return 1.0f.
 // - Some accessibility applications are declaring virtual monitors with a DPI of 0.0f, see #7902. We preserve this value for caller to handle.
@@ -1019,6 +1029,19 @@ float ImGui_ImplGlfw_GetContentScaleForWindow(GLFWwindow* window)
     IM_UNUSED(window);
     return 1.0f;
 #endif
+}
+
+
+static float ImGui_ImplGlfw_GetWindowDpiScale(ImGuiViewport* vp)
+{
+    if(vp == nullptr) {
+        return 1.0;
+    }
+    GLFWwindow * const  window = static_cast<GLFWwindow *>(vp->PlatformHandle);
+    if(window == nullptr) {
+        return 1.0;
+    }
+    return ImGui_ImplGlfw_GetContentScaleForWindow(window);
 }
 
 float ImGui_ImplGlfw_GetContentScaleForMonitor(GLFWmonitor* monitor)
@@ -1472,6 +1495,7 @@ static void ImGui_ImplGlfw_InitMultiViewportSupport()
 #if GLFW_HAS_VULKAN
     platform_io.Platform_CreateVkSurface = ImGui_ImplGlfw_CreateVkSurface;
 #endif
+    platform_io.Platform_GetWindowDpiScale = ImGui_ImplGlfw_GetWindowDpiScale; // FIXME-DPI
 
     // Register main window handle (which is owned by the main application, not by us)
     // This is mostly for simplicity and consistency, so that our code (e.g. mouse handling etc.) can use same logic for main and secondary viewports.

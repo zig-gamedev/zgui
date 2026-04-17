@@ -43,9 +43,10 @@ pub const DrawVert = extern struct {
     color: u32,
 };
 //--------------------------------------------------------------------------------------------------
-
-pub fn init(allocator: std.mem.Allocator) void {
+var io_main: std.Io = undefined;
+pub fn init(io_: std.Io, allocator: std.mem.Allocator) void {
     if (zguiGetCurrentContext() == null) {
+        io_main = io_;
         mem_allocator = allocator;
         mem_allocations = std.AutoHashMap(usize, usize).init(allocator);
         mem_allocations.?.ensureTotalCapacity(32) catch @panic("zgui: out of memory");
@@ -53,7 +54,7 @@ pub fn init(allocator: std.mem.Allocator) void {
 
         _ = zguiCreateContext(null);
 
-        temp_buffer = std.ArrayList(u8){};
+        temp_buffer = std.ArrayList(u8).empty;
         temp_buffer.?.resize(allocator, 3 * 1024 + 1) catch unreachable;
 
         if (te_enabled) {
@@ -64,7 +65,8 @@ pub fn init(allocator: std.mem.Allocator) void {
 /// Allows sharing a context across static/DLL boundaries. This is useful for
 /// hot-reloading mechanisms which rely on shared libraries.
 /// See "CONTEXT AND MEMORY ALLOCATORS" section of ImGui docs.
-pub fn initWithExistingContext(allocator: std.mem.Allocator, ctx: Context) void {
+pub fn initWithExistingContext(io_: std.Io, allocator: std.mem.Allocator, ctx: Context) void {
+    io_main = io_;
     mem_allocator = allocator;
     mem_allocations = std.AutoHashMap(usize, usize).init(allocator);
     mem_allocations.?.ensureTotalCapacity(32) catch @panic("zgui: out of memory");
@@ -72,7 +74,7 @@ pub fn initWithExistingContext(allocator: std.mem.Allocator, ctx: Context) void 
 
     zguiSetCurrentContext(ctx);
 
-    temp_buffer = std.ArrayList(u8){};
+    temp_buffer = std.ArrayList(u8).empty;
     temp_buffer.?.resize(mem_allocator.?, 3 * 1024 + 1) catch unreachable;
 
     if (te_enabled) {
@@ -116,7 +118,7 @@ pub fn deinit() void {
 pub fn initNoContext(allocator: std.mem.Allocator) void {
     mem_allocator = allocator;
     if (temp_buffer == null) {
-        temp_buffer = std.ArrayList(u8){};
+        temp_buffer = std.ArrayList(u8).empty;
         temp_buffer.?.resize(mem_allocator.?, 3 * 1024 + 1) catch unreachable;
     }
 }
@@ -132,12 +134,12 @@ extern fn zguiSetCurrentContext(ctx: ?Context) void;
 //--------------------------------------------------------------------------------------------------
 var mem_allocator: ?std.mem.Allocator = null;
 var mem_allocations: ?std.AutoHashMap(usize, usize) = null;
-var mem_mutex: std.Thread.Mutex = .{};
+var mem_mutex: std.Io.Mutex = .init;
 const mem_alignment: std.mem.Alignment = .@"16";
 
 fn zguiMemAlloc(size: usize, _: ?*anyopaque) callconv(.c) ?*anyopaque {
-    mem_mutex.lock();
-    defer mem_mutex.unlock();
+    mem_mutex.lock(io_main) catch undefined;
+    defer mem_mutex.unlock(io_main);
 
     const mem = mem_allocator.?.alignedAlloc(
         u8,
@@ -152,8 +154,8 @@ fn zguiMemAlloc(size: usize, _: ?*anyopaque) callconv(.c) ?*anyopaque {
 
 fn zguiMemFree(maybe_ptr: ?*anyopaque, _: ?*anyopaque) callconv(.c) void {
     if (maybe_ptr) |ptr| {
-        mem_mutex.lock();
-        defer mem_mutex.unlock();
+        mem_mutex.lock(io_main) catch undefined;
+        defer mem_mutex.unlock(io_main);
 
         if (mem_allocations != null) {
             if (mem_allocations.?.fetchRemove(@intFromPtr(ptr))) |kv| {
@@ -5255,7 +5257,7 @@ test {
 
     if (@import("zgui_options").with_gizmo) _ = gizmo;
 
-    init(testing.allocator);
+    init(testing.io, testing.allocator);
     defer deinit();
 
     io.setIniFilename(null);

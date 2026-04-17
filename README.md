@@ -110,7 +110,7 @@ When built this way, the ImGui context will be located in the shared library. Ho
 In your executable:
 ```zig
 const zgui = @import("zgui");
-zgui.init(allocator);
+zgui.init(io, allocator);
 defer zgui.deinit();
 ```
 

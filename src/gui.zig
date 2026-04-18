@@ -32,6 +32,7 @@ const te_enabled = @import("zgui_options").with_te;
 //--------------------------------------------------------------------------------------------------
 const std = @import("std");
 const assert = std.debug.assert;
+var global_io: ?std.Io = null;
 //--------------------------------------------------------------------------------------------------
 pub const f32_min: f32 = 1.17549435082228750796873653722225e-38;
 pub const f32_max: f32 = 3.40282346638528859811704183484517e+38;
@@ -44,7 +45,19 @@ pub const DrawVert = extern struct {
 };
 //--------------------------------------------------------------------------------------------------
 
-pub fn init(allocator: std.mem.Allocator) void {
+/// Initializes the library and creates a context. This should be called before any other function.
+/// You can obtain an std.mem.Allocator and std.Io instance from the main function i.e.
+///
+/// ```
+/// pub fn main(init: std.process.Init) !void {
+///    const gpa = init.gpa;
+///    const io = init.io;
+///
+///    zgui.init(gpa, io);
+/// }
+/// ```
+pub fn init(allocator: std.mem.Allocator, std_io: std.Io) void {
+    global_io = std_io;
     if (zguiGetCurrentContext() == null) {
         mem_allocator = allocator;
         mem_allocations = std.AutoHashMap(usize, usize).init(allocator);
@@ -53,8 +66,7 @@ pub fn init(allocator: std.mem.Allocator) void {
 
         _ = zguiCreateContext(null);
 
-        temp_buffer = std.ArrayList(u8){};
-        temp_buffer.?.resize(allocator, 3 * 1024 + 1) catch unreachable;
+        temp_buffer = std.ArrayList(u8).initCapacity(allocator, 3 * 1024 + 1) catch unreachable;
 
         if (te_enabled) {
             te.init();
@@ -132,12 +144,16 @@ extern fn zguiSetCurrentContext(ctx: ?Context) void;
 //--------------------------------------------------------------------------------------------------
 var mem_allocator: ?std.mem.Allocator = null;
 var mem_allocations: ?std.AutoHashMap(usize, usize) = null;
-var mem_mutex: std.Thread.Mutex = .{};
+var mem_mutex: std.Io.Mutex = std.Io.Mutex.init;
 const mem_alignment: std.mem.Alignment = .@"16";
 
 fn zguiMemAlloc(size: usize, _: ?*anyopaque) callconv(.c) ?*anyopaque {
-    mem_mutex.lock();
-    defer mem_mutex.unlock();
+    const std_io = global_io orelse @panic("zgui: not initialized, call zgui.init() before using any other function.");
+    mem_mutex.lock(std_io) catch |err| {
+        std.log.err("zgui: failed to acquire memory mutex ({})", .{err});
+        return null;
+    };
+    defer mem_mutex.unlock(std_io);
 
     const mem = mem_allocator.?.alignedAlloc(
         u8,
@@ -152,8 +168,12 @@ fn zguiMemAlloc(size: usize, _: ?*anyopaque) callconv(.c) ?*anyopaque {
 
 fn zguiMemFree(maybe_ptr: ?*anyopaque, _: ?*anyopaque) callconv(.c) void {
     if (maybe_ptr) |ptr| {
-        mem_mutex.lock();
-        defer mem_mutex.unlock();
+        const std_io = global_io orelse @panic("zgui: not initialized, call zgui.init() before using any other function.");
+        mem_mutex.lock(std_io) catch |err| {
+            std.log.err("zgui: failed to acquire memory mutex ({})", .{err});
+            return;
+        };
+        defer mem_mutex.unlock(std_io);
 
         if (mem_allocations != null) {
             if (mem_allocations.?.fetchRemove(@intFromPtr(ptr))) |kv| {
@@ -5221,7 +5241,7 @@ test {
 
     if (@import("zgui_options").with_gizmo) _ = gizmo;
 
-    init(testing.allocator);
+    init(testing.allocator, testing.io);
     defer deinit();
 
     io.setIniFilename(null);

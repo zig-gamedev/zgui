@@ -327,14 +327,7 @@ pub fn build(b: *std.Build) void {
             if (b.lazyDependency("zglfw", .{})) |zglfw| {
                 imgui_mod.addIncludePath(zglfw.path("libs/glfw/include"));
             }
-            const sdk_env = std.process.getEnvVarOwned(b.allocator, "VULKAN_SDK") catch |err| switch (err) {
-                error.EnvironmentVariableNotFound => null,
-                else => {
-                    std.debug.print("Failed to get VULKAN_SDK: {s}\n", .{@errorName(err)});
-                    @panic("Unexpected error reading environment variable");
-                },
-            };
-
+            const sdk_env = b.graph.environ_map.get("VULKAN_SDK");
             if (options.vulkan_include) |path| {
                 imgui_mod.addSystemIncludePath(.{ .cwd_relative = path });
             } else if (sdk_env) |sdk| {
@@ -458,14 +451,7 @@ pub fn build(b: *std.Build) void {
             if (b.lazyDependency("zsdl", .{})) |zsdl| {
                 imgui_mod.addIncludePath(zsdl.path("libs/sdl3/include"));
             }
-            const sdk_env = std.process.getEnvVarOwned(b.allocator, "VULKAN_SDK") catch |err| switch (err) {
-                error.EnvironmentVariableNotFound => null,
-                else => {
-                    std.debug.print("Failed to get VULKAN_SDK: {s}\n", .{@errorName(err)});
-                    @panic("Unexpected error reading environment variable");
-                },
-            };
-
+            const sdk_env = b.graph.environ_map.get("VULKAN_SDK");
             if (options.vulkan_include) |path| {
                 imgui_mod.addSystemIncludePath(.{ .cwd_relative = path });
             } else if (sdk_env) |sdk| {

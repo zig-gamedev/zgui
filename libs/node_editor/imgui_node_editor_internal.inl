@@ -54,6 +54,12 @@ inline ImVec2 ImGui_GetMouseClickPos(ImGuiMouseButton buttonIndex)
         return ImGui::GetMousePos();
 }
 
+void ImRect_Floor(ImRect &rect) {
+    rect.Min.x = IM_TRUNC(rect.Min.x);
+    rect.Min.y = IM_TRUNC(rect.Min.y);
+    rect.Max.x = IM_TRUNC(rect.Max.x);
+    rect.Max.y = IM_TRUNC(rect.Max.y);
+}
 
 //------------------------------------------------------------------------------
 } // namespace Detail

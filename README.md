@@ -17,11 +17,11 @@ Easy to use, hand-crafted API with default arguments, named parameters and Zig s
 
 ## Versions
 
-* [ImGui](https://github.com/ocornut/imgui/tree/v1.91.8-docking) `1.92.1-docking`
-* [ImGui test engine](https://github.com/ocornut/imgui_test_engine/tree/v1.91.8)  `1.91.8`
+* [ImGui](https://github.com/ocornut/imgui/tree/v1.92.6-docking) `1.92.6-docking`
+* [ImGui test engine](https://github.com/ocornut/imgui_test_engine/tree/v1.92.6)  `1.92.6`
 * [ImPlot](https://github.com/epezent/implot) `O.17`
 * [ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo) `1.92.5 WIP`
-* [ImGuiNodeEditor](https://codeberg.org/cyberegoorg/imgui-node-editor/src/tag/v0.9.3) `O.9.3`
+* [ImGuiNodeEditor](https://codeberg.org/cyberegoorg/imgui-node-editor/src/tag/v0.9.4) `O.9.4`
 * [imgui-knobs](https://github.com/altschuler/imgui-knobs/commit/8a43bf7b31c4166ec50f3a52c382c2cc66a91516) `main - commit 8a43bf7b31c4166ec50f3a52c382c2cc66a91516`
 
 ## Getting started
@@ -110,7 +110,7 @@ When built this way, the ImGui context will be located in the shared library. Ho
 In your executable:
 ```zig
 const zgui = @import("zgui");
-zgui.init(allocator);
+zgui.init(io, allocator);
 defer zgui.deinit();
 ```
 

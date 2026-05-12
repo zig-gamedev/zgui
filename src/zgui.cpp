@@ -1521,6 +1521,16 @@ extern "C"
         return ImGui::GetIO().Fonts->AddFontDefault(config);
     }
 
+    ZGUI_API ImFont *zguiIoAddFontDefaultVector(const ImFontConfig *config)
+    {
+        return ImGui::GetIO().Fonts->AddFontDefaultVector(config);
+    }
+
+    ZGUI_API ImFont *zguiIoAddFontDefaultBitmap(const ImFontConfig *config)
+    {
+        return ImGui::GetIO().Fonts->AddFontDefaultBitmap(config);
+    }
+
     ZGUI_API ImFont *zguiIoAddFontFromFileWithConfig(
         const char *filename,
         float size_pixels,

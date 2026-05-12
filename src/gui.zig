@@ -43,9 +43,10 @@ pub const DrawVert = extern struct {
     color: u32,
 };
 //--------------------------------------------------------------------------------------------------
-
-pub fn init(allocator: std.mem.Allocator) void {
+var io_main: std.Io = undefined;
+pub fn init(io_: std.Io, allocator: std.mem.Allocator) void {
     if (zguiGetCurrentContext() == null) {
+        io_main = io_;
         mem_allocator = allocator;
         mem_allocations = std.AutoHashMap(usize, usize).init(allocator);
         mem_allocations.?.ensureTotalCapacity(32) catch @panic("zgui: out of memory");
@@ -53,7 +54,7 @@ pub fn init(allocator: std.mem.Allocator) void {
 
         _ = zguiCreateContext(null);
 
-        temp_buffer = std.ArrayList(u8){};
+        temp_buffer = std.ArrayList(u8).empty;
         temp_buffer.?.resize(allocator, 3 * 1024 + 1) catch unreachable;
 
         if (te_enabled) {
@@ -64,7 +65,8 @@ pub fn init(allocator: std.mem.Allocator) void {
 /// Allows sharing a context across static/DLL boundaries. This is useful for
 /// hot-reloading mechanisms which rely on shared libraries.
 /// See "CONTEXT AND MEMORY ALLOCATORS" section of ImGui docs.
-pub fn initWithExistingContext(allocator: std.mem.Allocator, ctx: Context) void {
+pub fn initWithExistingContext(io_: std.Io, allocator: std.mem.Allocator, ctx: Context) void {
+    io_main = io_;
     mem_allocator = allocator;
     mem_allocations = std.AutoHashMap(usize, usize).init(allocator);
     mem_allocations.?.ensureTotalCapacity(32) catch @panic("zgui: out of memory");
@@ -72,7 +74,7 @@ pub fn initWithExistingContext(allocator: std.mem.Allocator, ctx: Context) void 
 
     zguiSetCurrentContext(ctx);
 
-    temp_buffer = std.ArrayList(u8){};
+    temp_buffer = std.ArrayList(u8).empty;
     temp_buffer.?.resize(mem_allocator.?, 3 * 1024 + 1) catch unreachable;
 
     if (te_enabled) {
@@ -116,7 +118,7 @@ pub fn deinit() void {
 pub fn initNoContext(allocator: std.mem.Allocator) void {
     mem_allocator = allocator;
     if (temp_buffer == null) {
-        temp_buffer = std.ArrayList(u8){};
+        temp_buffer = std.ArrayList(u8).empty;
         temp_buffer.?.resize(mem_allocator.?, 3 * 1024 + 1) catch unreachable;
     }
 }
@@ -132,12 +134,12 @@ extern fn zguiSetCurrentContext(ctx: ?Context) void;
 //--------------------------------------------------------------------------------------------------
 var mem_allocator: ?std.mem.Allocator = null;
 var mem_allocations: ?std.AutoHashMap(usize, usize) = null;
-var mem_mutex: std.Thread.Mutex = .{};
+var mem_mutex: std.Io.Mutex = .init;
 const mem_alignment: std.mem.Alignment = .@"16";
 
 fn zguiMemAlloc(size: usize, _: ?*anyopaque) callconv(.c) ?*anyopaque {
-    mem_mutex.lock();
-    defer mem_mutex.unlock();
+    mem_mutex.lock(io_main) catch undefined;
+    defer mem_mutex.unlock(io_main);
 
     const mem = mem_allocator.?.alignedAlloc(
         u8,
@@ -152,8 +154,8 @@ fn zguiMemAlloc(size: usize, _: ?*anyopaque) callconv(.c) ?*anyopaque {
 
 fn zguiMemFree(maybe_ptr: ?*anyopaque, _: ?*anyopaque) callconv(.c) void {
     if (maybe_ptr) |ptr| {
-        mem_mutex.lock();
-        defer mem_mutex.unlock();
+        mem_mutex.lock(io_main) catch undefined;
+        defer mem_mutex.unlock(io_main);
 
         if (mem_allocations != null) {
             if (mem_allocations.?.fetchRemove(@intFromPtr(ptr))) |kv| {
@@ -197,10 +199,11 @@ pub const BackendFlags = packed struct(c_int) {
     renderer_has_vtx_offset: bool = false,
     renderer_has_textures: bool = false,
     _pading0: u5 = 0,
+    renderer_has_viewports: bool = false,
     platform_has_viewports: bool = false,
     has_mouse_hovered_viewports: bool = false,
-    renderer_has_viewports: bool = false,
-    _padding: u19 = 0,
+    has_parent_viewport: bool = false,
+    _padding: u18 = 0,
 };
 
 pub const FreeTypeLoaderFlags = packed struct(c_uint) {
@@ -231,7 +234,7 @@ pub const FontConfig = extern struct {
     font_data_owned_by_atlas: bool,
     merge_mode: bool,
     pixel_snap_h: bool,
-    pixel_snap_v: bool,
+    // pixel_snap_v: bool,
     oversample_h: i8,
     oversample_v: i8,
     ellipsis_char: Wchar,
@@ -246,6 +249,7 @@ pub const FontConfig = extern struct {
     font_loader_flags: c_uint,
     rasterizer_multiply: f32,
     rasterizer_density: f32,
+    extra_size_scale: f32,
     flags: FontFlags,
     dst_font: ?*Font,
     font_loader: ?*anyopaque,
@@ -263,6 +267,16 @@ pub const io = struct {
         return zguiIoAddFontDefault(if (config) |c| &c else null);
     }
     extern fn zguiIoAddFontDefault(config: ?*const FontConfig) Font;
+
+    pub fn addFontDefaultVector(config: ?FontConfig) Font {
+        return zguiIoAddFontDefaultVector(if (config) |c| &c else null);
+    }
+    extern fn zguiIoAddFontDefaultVector(config: ?*const FontConfig) Font;
+
+    pub fn addFontDefaultBitmap(config: ?FontConfig) Font {
+        return zguiIoAddFontDefaultBitmap(if (config) |c| &c else null);
+    }
+    extern fn zguiIoAddFontDefaultBitmap(config: ?*const FontConfig) Font;
 
     pub fn addFontFromFile(filename: [:0]const u8, size_pixels: f32) Font {
         return zguiIoAddFontFromFile(filename, size_pixels);
@@ -714,7 +728,11 @@ pub const SliderFlags = packed struct(c_int) {
     no_round_to_format: bool = false,
     no_input: bool = false,
     wrap_around: bool = false,
-    _padding: u23 = 0,
+    clamp_in_out: bool = false,
+    clamp_zero_range: bool = false,
+    no_speed_tweaks: bool = false,
+    color_markers: bool = false,
+    _padding: u19 = 0,
 };
 //--------------------------------------------------------------------------------------------------
 pub const ButtonFlags = packed struct(c_int) {
@@ -1163,12 +1181,16 @@ pub const Style = extern struct {
     columns_min_spacing: f32,
     scrollbar_size: f32,
     scrollbar_rounding: f32,
+    scrollbar_padding: f32,
     grab_min_size: f32,
     grab_rounding: f32,
     log_slider_deadzone: f32,
+    image_rounding: f32,
     image_border_size: f32,
     tab_rounding: f32,
     tab_border_size: f32,
+    tab_min_width_base: f32,
+    tab_min_width_shrink: f32,
     tab_close_button_min_width_selected: f32,
     tab_close_button_min_width_unselected: f32,
     tab_bar_border_size: f32,
@@ -1178,6 +1200,10 @@ pub const Style = extern struct {
     tree_lines_flags: TreeNodeFlags,
     tree_lines_size: f32,
     tree_lines_rounding: f32,
+    drag_drop_target_rounding: f32,
+    drag_drop_target_border_size: f32,
+    drag_drop_target_padding: f32,
+    color_marker_size: f32,
     color_button_position: Direction,
     button_text_align: [2]f32,
     selectable_text_align: [2]f32,
@@ -1186,6 +1212,7 @@ pub const Style = extern struct {
     separator_text_padding: [2]f32,
     display_window_padding: [2]f32,
     display_safe_area_padding: [2]f32,
+    docking_node_has_close_button: bool,
     docking_separator_size: f32,
     mouse_cursor_scale: f32,
     anti_aliased_lines: bool,
@@ -1316,6 +1343,8 @@ pub const StyleCol = enum(c_int) {
     text_selected_bg,
     tree_lines,
     drag_drop_target,
+    drag_drop_target_bg,
+    unsaved_marker,
     nav_cursor,
     nav_windowing_highlight,
     nav_windowing_dim_bg,
@@ -1376,10 +1405,15 @@ pub const StyleVar = enum(c_int) {
     cell_padding, // 2f
     scrollbar_size, // 1f
     scrollbar_rounding, // 1f
+    scrollbar_padding, // 1f
     grab_min_size, // 1f
     grab_rounding, // 1f
+    image_rounding, // 1f
+    image_border_size, // 1f
     tab_rounding, // 1f
     tab_border_size, // 1f
+    tab_min_width_base, // 1f
+    tab_min_width_shrink, // 1f
     tab_bar_border_size, // 1f
     tab_bar_overline_size, // 1f
     table_angled_headers_angle, // 1f
@@ -2697,7 +2731,8 @@ pub const InputTextFlags = packed struct(c_int) {
     callback_char_filter: bool = false,
     callback_resize: bool = false,
     callback_edit: bool = false,
-    _padding: u8 = 0,
+    world_wrap: bool = false,
+    _padding: u7 = 0,
 };
 //--------------------------------------------------------------------------------------------------
 pub const InputTextCallbackData = extern struct {
@@ -3038,16 +3073,14 @@ pub const ColorEditFlags = packed struct(c_int) {
     no_side_preview: bool = false,
     no_drag_drop: bool = false,
     no_border: bool = false,
-
+    no_color_markers: bool = false,
+    alpha_opaque: bool = false,
+    alpha_no_bg: bool = false,
+    alpha_preview_half: bool = false,
     _reserved1: bool = false,
     _reserved2: bool = false,
     _reserved3: bool = false,
-    _reserved4: bool = false,
-    _reserved5: bool = false,
-
     alpha_bar: bool = false,
-    alpha_preview: bool = false,
-    alpha_preview_half: bool = false,
     hdr: bool = false,
     display_rgb: bool = false,
     display_hsv: bool = false,
@@ -3846,15 +3879,16 @@ pub const beginPopupContextWindow = zguiBeginPopupContextWindow;
 /// `pub fn beginPopupContextItem() bool`
 pub const beginPopupContextItem = zguiBeginPopupContextItem;
 pub const PopupFlags = packed struct(c_int) {
-    mouse_button_left: bool = false,
-    mouse_button_right: bool = false,
-    mouse_button_middle: bool = false,
-
     _reserved0: bool = false,
     _reserved1: bool = false,
+    mouse_button_left: bool = false,
+    mouse_button_right: bool = false,
+    // mouse_button_middle == left and right true
 
-    no_reopen: bool = false,
     _reserved2: bool = false,
+    no_reopen: bool = false,
+    _reserved3: bool = false,
+
     no_open_over_existing_popup: bool = false,
     no_open_over_items: bool = false,
     any_popup_id: bool = false,
@@ -3899,9 +3933,10 @@ pub const TabBarFlags = packed struct(c_int) {
     no_tab_list_scrolling_buttons: bool = false,
     no_tooltip: bool = false,
     draw_selected_overline: bool = false,
-    fitting_policy_resize_down: bool = false,
+    fitting_policy_mixed: bool = false,
+    fitting_policy_shrink: bool = false,
     fitting_policy_scroll: bool = false,
-    _padding: u23 = 0,
+    _padding: u22 = 0,
 };
 pub const TabItemFlags = packed struct(c_int) {
     unsaved_document: bool = false,
@@ -4081,8 +4116,9 @@ pub const DragDropFlags = packed struct(c_int) {
     accept_before_delivery: bool = false,
     accept_no_draw_default_rect: bool = false,
     accept_no_preview_tooltip: bool = false,
+    accept_draw_as_hovered: bool = false,
 
-    _padding1: u19 = 0,
+    _padding1: u18 = 0,
 
     pub const accept_peek_only = @This(){ .accept_before_delivery = true, .accept_no_draw_default_rect = true };
 };
@@ -5221,7 +5257,7 @@ test {
 
     if (@import("zgui_options").with_gizmo) _ = gizmo;
 
-    init(testing.allocator);
+    init(testing.io, testing.allocator);
     defer deinit();
 
     io.setIniFilename(null);

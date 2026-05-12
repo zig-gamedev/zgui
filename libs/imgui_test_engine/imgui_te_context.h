@@ -157,6 +157,7 @@ struct IMGUI_API ImGuiTestGenericItemStatus
 {
     int     RetValue;               // return value
     int     Hovered;                // result of IsItemHovered()
+    int     HoveredAllowDisabled;   // result of IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)
     int     Active;                 // result of IsItemActive()
     int     Focused;                // result of IsItemFocused()
     int     Clicked;                // result of IsItemClicked()
@@ -169,7 +170,7 @@ struct IMGUI_API ImGuiTestGenericItemStatus
     ImGuiTestGenericItemStatus()        { Clear(); }
     void Clear()                        { memset(this, 0, sizeof(*this)); }
     void QuerySet(bool ret_val = false) { Clear(); QueryInc(ret_val); }
-    void QueryInc(bool ret_val = false) { RetValue += ret_val; Hovered += ImGui::IsItemHovered(); Active += ImGui::IsItemActive(); Focused += ImGui::IsItemFocused(); Clicked += ImGui::IsItemClicked(); Visible += ImGui::IsItemVisible(); Edited += ImGui::IsItemEdited(); Activated += ImGui::IsItemActivated(); Deactivated += ImGui::IsItemDeactivated(); DeactivatedAfterEdit += ImGui::IsItemDeactivatedAfterEdit(); }
+    void QueryInc(bool ret_val = false) { RetValue += ret_val; Hovered += ImGui::IsItemHovered(); HoveredAllowDisabled += ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled); Active += ImGui::IsItemActive(); Focused += ImGui::IsItemFocused(); Clicked += ImGui::IsItemClicked(); Visible += ImGui::IsItemVisible(); Edited += ImGui::IsItemEdited(); Activated += ImGui::IsItemActivated(); Deactivated += ImGui::IsItemDeactivated(); DeactivatedAfterEdit += ImGui::IsItemDeactivatedAfterEdit(); }
     void Draw()                         { ImGui::Text("Ret: %d, Hovered: %d, Active: %d, Focused: %d\nClicked: %d, Visible: %d, Edited: %d\nActivated: %d, Deactivated: %d, DeactivatedAfterEdit: %d", RetValue, Hovered, Active, Focused, Clicked, Visible, Edited, Activated, Deactivated, DeactivatedAfterEdit); }
 };
 
@@ -187,6 +188,7 @@ struct IMGUI_API ImGuiTestGenericVars
     ImGuiWindowFlags        WindowFlags;
     ImGuiTableFlags         TableFlags;
     ImGuiPopupFlags         PopupFlags;
+    ImGuiInputTextFlags     InputTextFlags;
     ImGuiTestGenericItemStatus  Status;
     bool                    ShowWindow1, ShowWindow2;
     bool                    UseClipper;
@@ -224,7 +226,7 @@ struct IMGUI_API ImGuiTestContext
     ImGuiContext*           UiContext = nullptr;                    // UI context
     ImGuiTestEngineIO*      EngineIO = nullptr;                     // Test Engine IO/settings
     ImGuiTest*              Test = nullptr;                         // Test currently running
-    ImGuiTestOutput*        TestOutput = nullptr;                   // Test output (generally == &Test->Output)
+    ImGuiTestOutput*        TestOutput = nullptr;                   // Test output (generally == &Test->Output while executing TestFunc)
     ImGuiTestOpFlags        OpFlags = ImGuiTestOpFlags_None;        // Flags affecting all operation (supported: ImGuiTestOpFlags_NoAutoUncollapse)
     int                     PerfStressAmount = 0;                   // Convenience copy of engine->IO.PerfStressAmount
     int                     FrameCount = 0;                         // Test frame count (restarts from zero every time)
@@ -334,7 +336,7 @@ struct IMGUI_API ImGuiTestContext
 
     // Miscellaneous helpers
     ImVec2      GetPosOnVoid(ImGuiViewport* viewport);                              // Find a point that has no windows // FIXME: This needs error return and flag to enable/disable forcefully finding void.
-    ImVec2      GetWindowTitlebarPoint(ImGuiTestRef window_ref);                    // Return a clickable point on window title-bar (window tab for docked windows).
+    ImVec2      GetWindowTitlebarPoint(ImGuiTestRef window_ref);                    // Return a clickable point on window title-bar (window tab for docked windows) that will e.g. move this single window.
     ImVec2      GetMainMonitorWorkPos();                                            // Work pos and size of main viewport when viewports are disabled, or work pos and size of monitor containing main viewport when viewports are enabled.
     ImVec2      GetMainMonitorWorkSize();
 
@@ -400,12 +402,13 @@ struct IMGUI_API ImGuiTestContext
     void        ScrollToY(ImGuiTestRef ref, float scroll_y) { ScrollTo(ref, ImGuiAxis_Y, scroll_y); }
     void        ScrollToTop(ImGuiTestRef ref);
     void        ScrollToBottom(ImGuiTestRef ref);
+    void        ScrollToPos(ImGuiTestRef window_ref, float pos_v, ImGuiAxis axis, ImGuiTestOpFlags flags = ImGuiTestOpFlags_None);
+    void        ScrollToPosX(ImGuiTestRef window_ref, float pos_x);
+    void        ScrollToPosY(ImGuiTestRef window_ref, float pos_y);
     void        ScrollToItem(ImGuiTestRef ref, ImGuiAxis axis, ImGuiTestOpFlags flags = ImGuiTestOpFlags_None);
     void        ScrollToItemX(ImGuiTestRef ref);
     void        ScrollToItemY(ImGuiTestRef ref);
     void        ScrollToTabItem(ImGuiTabBar* tab_bar, ImGuiID tab_id);
-    bool        ScrollErrorCheck(ImGuiAxis axis, float expected, float actual, int* remaining_attempts);
-    void        ScrollVerifyScrollMax(ImGuiTestRef ref);
 
     // Low-level queries
     // - ItemInfo queries never returns nullptr! Instead they return an empty instance (info->IsEmpty(), info->ID == 0) and set contexted as errored.
@@ -482,6 +485,7 @@ struct IMGUI_API ImGuiTestContext
     // Helpers for Tables
     void                        TableOpenContextMenu(ImGuiTestRef ref, int column_n = -1);
     ImGuiSortDirection          TableClickHeader(ImGuiTestRef ref, const char* label, ImGuiKeyChord key_mods = 0);
+    void                        TableSetColumnEnabled(ImGuiTestRef ref, int column_n, bool enabled);
     void                        TableSetColumnEnabled(ImGuiTestRef ref, const char* label, bool enabled);
     void                        TableResizeColumn(ImGuiTestRef ref, int column_n, float width);
     const ImGuiTableSortSpecs*  TableGetSortSpecs(ImGuiTestRef ref);
@@ -505,6 +509,7 @@ struct IMGUI_API ImGuiTestContext
     bool        WindowIsUndockedOrStandalone(ImGuiWindow* window);
     bool        DockIdIsUndockedOrStandalone(ImGuiID dock_id);
     void        DockNodeHideTabBar(ImGuiDockNode* node, bool hidden);
+    //ImVec2    GetDockNodeTitlebarPos(ImGuiDockNode* node);
 #endif
 
     // Performances Measurement (use along with Dear ImGui Perf Tool)
@@ -531,6 +536,7 @@ struct IMGUI_API ImGuiTestContext
 #endif
 
     // [Internal]
+    void        _ScrollVerifyScrollMax(ImGuiTestRef ref);
     void        _MakeAimingSpaceOverPos(ImGuiViewport* viewport, ImGuiWindow* over_window, const ImVec2& over_pos); // Move windows covering 'window' at pos.
     void        _ForeignWindowsHideOverPos(const ImVec2& pos, ImGuiWindow** ignore_list);  // FIXME: Aim to remove this system...
     void        _ForeignWindowsUnhideAll();                                                // FIXME: Aim to remove this system...
@@ -550,7 +556,7 @@ struct IMGUI_API ImGuiTestContext
 // Helpers used by IM_CHECK_OP() macros.
 // ImGuiTestEngine_GetTempStringBuilder() returns a shared instance of ImGuiTextBuffer to recycle memory allocations
 template<typename T> void ImGuiTestEngineUtil_appendf_auto(ImGuiTextBuffer* buf, T v) { buf->append("???"); IM_UNUSED(v); } // FIXME-TESTS: Could improve with some template magic
-template<> inline void ImGuiTestEngineUtil_appendf_auto(ImGuiTextBuffer* buf, const char* v) { buf->appendf("\"%s\"", v); }
+template<> inline void ImGuiTestEngineUtil_appendf_auto(ImGuiTextBuffer* buf, const char* v) { if (v) buf->appendf("\"%s\"", v); else buf->append("nullptr"); }
 template<> inline void ImGuiTestEngineUtil_appendf_auto(ImGuiTextBuffer* buf, bool v)        { buf->append(v ? "true" : "false"); }
 template<> inline void ImGuiTestEngineUtil_appendf_auto(ImGuiTextBuffer* buf, ImS8 v)        { buf->appendf("%d", v); }
 template<> inline void ImGuiTestEngineUtil_appendf_auto(ImGuiTextBuffer* buf, ImU8 v)        { buf->appendf("%u", v); }
@@ -599,11 +605,30 @@ template<> inline void ImGuiTestEngineUtil_appendf_auto(ImGuiTextBuffer* buf, Im
     do                                                          \
     {                                                           \
         bool __res;                                             \
-        if (ImGuiTestEngine_CheckStrOp(__FILE__, __func__, __LINE__, _FLAGS, #_OP, #_LHS, _LHS, #_RHS, _RHS, &__res)) \
+        if (ImGuiTestEngine_CheckOpStr(__FILE__, __func__, __LINE__, _FLAGS, #_OP, #_LHS, _LHS, #_RHS, _RHS, &__res)) \
             IM_ASSERT(__res);                                   \
         if (_RETURN && !__res)                                  \
             return;                                             \
     } while (0)
+
+#define IM_CHECK_FLOAT_OP_CUSTOM(_LHS, _RHS, _DISPLAY_OP, _ACTUAL_COMPARE, _RETURN) \
+    do                                                                              \
+    {                                                                               \
+        auto __lhs = _LHS; /* Cache to avoid side effects */                        \
+        auto __rhs = _RHS;                                                          \
+        bool __res = _ACTUAL_COMPARE;                                               \
+        ImGuiTextBuffer* expr_buf = ImGuiTestEngine_GetTempStringBuilder();         \
+        expr_buf->append(#_LHS " [");                                               \
+        ImGuiTestEngineUtil_appendf_auto(expr_buf, __lhs);                          \
+        expr_buf->append("] " #_DISPLAY_OP " " #_RHS " [");                         \
+        ImGuiTestEngineUtil_appendf_auto(expr_buf, __rhs);                          \
+        expr_buf->append("] (using epsilon)");                                      \
+        if (ImGuiTestEngine_Check(__FILE__, __func__, __LINE__, ImGuiTestCheckFlags_None, __res, expr_buf->c_str())) \
+            IM_ASSERT(__res);                                                       \
+        if (_RETURN && !__res)                                                      \
+            return;                                                                 \
+    } while(0)
+
 
 // Scalar compares
 #define IM_CHECK_EQ(_LHS, _RHS)                     IM_CHECK_OP(_LHS, _RHS, ==, true)   // Equal
@@ -628,11 +653,22 @@ template<> inline void ImGuiTestEngineUtil_appendf_auto(ImGuiTextBuffer* buf, Im
 #define IM_CHECK_STR_NE_NO_RET(_LHS, _RHS)          IM_CHECK_STR_OP(_LHS, _RHS, !=, false, ImGuiTestCheckFlags_None)
 #define IM_CHECK_STR_EQ_SILENT(_LHS, _RHS)          IM_CHECK_STR_OP(_LHS, _RHS, ==, true, ImGuiTestCheckFlags_SilentSuccess)
 
-// Floating point compares
-#define IM_CHECK_FLOAT_EQ_EPS(_LHS, _RHS)           IM_CHECK_LE(ImFabs(_LHS - (_RHS)), FLT_EPSILON)   // Float Equal
-#define IM_CHECK_FLOAT_NE_EPS(_LHS, _RHS)           IM_CHECK_GT(ImFabs(_LHS - (_RHS)), FLT_EPSILON)   // Float Not Equal
-#define IM_CHECK_FLOAT_NEAR(_LHS, _RHS, _EPS)       IM_CHECK_LE(ImFabs(_LHS - (_RHS)), _EPS)
-#define IM_CHECK_FLOAT_NEAR_NO_RET(_LHS, _RHS, _E)  IM_CHECK_LE_NO_RET(ImFabs(_LHS - (_RHS)), _E)
+// Floating point compares using an epsilon
+#define IM_CHECK_FLOAT_EQ(_LHS, _RHS)               IM_CHECK_FLOAT_OP_CUSTOM(_LHS, _RHS, ==, ((__lhs-__rhs) <= FLT_EPSILON && (__lhs-__rhs) >= -FLT_EPSILON), true) // Float Equal (w/ epsilon)
+#define IM_CHECK_FLOAT_NE(_LHS, _RHS)               IM_CHECK_FLOAT_OP_CUSTOM(_LHS, _RHS, !=, ((__lhs-__rhs) >  FLT_EPSILON || (__lhs-__rhs) <  -FLT_EPSILON), true) // Float Not Equal (w/ epsilon)
+#define IM_CHECK_FLOAT_NEAR_EQ(_LHS, _RHS, _EPS)    IM_CHECK_FLOAT_OP_CUSTOM(_LHS, _RHS, ==, ((__lhs-__rhs) <= _EPS        && (__lhs-__rhs) >= -_EPS),        true) // Float Equal (w/ custom epsilon)
+#define IM_CHECK_DOUBLE_EQ(_LHS, _RHS)              IM_CHECK_FLOAT_OP_CUSTOM(_LHS, _RHS, ==, ((__lhs-__rhs) <= DBL_EPSILON && (__lhs-__rhs) >= -DBL_EPSILON), true) // Double Equal (w/ epsilon)
+#define IM_CHECK_DOUBLE_NE(_LHS, _RHS)              IM_CHECK_FLOAT_OP_CUSTOM(_LHS, _RHS, !=, ((__lhs-__rhs) >  DBL_EPSILON || (__lhs-__rhs) <  -DBL_EPSILON), true) // Double Not Equal (w/ epsilon)
+
+#ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+// Obsoleted in favor of simpler names
+#define IM_CHECK_FLOAT_EQ_EPS   IM_CHECK_FLOAT_EQ
+#define IM_CHECK_FLOAT_NE_EPS   IM_CHECK_FLOAT_NE
+
+// Obsoleted because ambiguous/confusing
+#define IM_CHECK_FLOAT_NEAR(_LHS,_RHS,_EPS)         IM_CHECK_LE(ImFabs(_LHS - (_RHS)), _EPS)         // Float Near a value (custom epsilon)
+#define IM_CHECK_FLOAT_NEAR_NO_RET(_LHS,_RHS,_EPS)  IM_CHECK_LE_NO_RET(ImFabs(_LHS - (_RHS)), _EPS)  // Float Near a value (custom epsilon)
+#endif
 
 //-------------------------------------------------------------------------
 

@@ -381,6 +381,7 @@ pub fn build(b: *std.Build) void {
             imgui_mod.linkFramework("Metal", .{});
             imgui_mod.linkFramework("Cocoa", .{});
             imgui_mod.linkFramework("QuartzCore", .{});
+            imgui_mod.linkFramework("GameController", .{});
             imgui_mod.addCSourceFiles(.{
                 .files = &.{
                     "libs/imgui/backends/imgui_impl_osx.mm",

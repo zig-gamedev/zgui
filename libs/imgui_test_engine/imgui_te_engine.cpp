@@ -36,6 +36,13 @@
 // Warnings
 #ifdef _MSC_VER
 #pragma warning (disable: 4127) // conditional expression is constant
+#elif defined(__clang__)
+#if __has_warning("-Wunknown-warning-option")
+#pragma clang diagnostic ignored "-Wunknown-warning-option"         // warning: unknown warning group 'xxx'                      // not all warnings are known by all Clang versions and they tend to be rename-happy.. so ignoring warnings triggers new warnings on some configuration. Great!
+#endif
+#pragma clang diagnostic ignored "-Wsign-conversion"                // warning: implicit conversion changes signedness
+#elif defined(__GNUC__)
+#pragma GCC diagnostic ignored "-Wsign-conversion"                  // warning: conversion to 'xxxx' from 'xxxx' may change the sign of the result
 #endif
 
 /*
@@ -197,6 +204,7 @@ void ImGuiTestEngine_BindImGuiContext(ImGuiTestEngine* engine, ImGuiContext* ui_
         GImGuiTestEngine = engine;
     IM_ASSERT(ui_ctx->TestEngine == nullptr);
     ui_ctx->TestEngine = engine;
+    engine->UiContextHasHooks = false;
 }
 
 void    ImGuiTestEngine_UnbindImGuiContext(ImGuiTestEngine* engine, ImGuiContext* ui_ctx)
@@ -230,6 +238,7 @@ void    ImGuiTestEngine_UnbindImGuiContext(ImGuiTestEngine* engine, ImGuiContext
 // Create test context (not bound to any dear imgui context yet)
 ImGuiTestEngine*    ImGuiTestEngine_CreateContext()
 {
+    IMGUI_CHECKVERSION(); // <--- If you get a crash here: mismatching config, check that both imgui and imgui_test_engine are using same defines (e.g. using the same imconfig file)
     ImGuiTestEngine* engine = IM_NEW(ImGuiTestEngine)();
     return engine;
 }
@@ -392,13 +401,13 @@ void    ImGuiTestEngine_PostSwap(ImGuiTestEngine* engine)
     engine->CaptureContext.ScreenCaptureFunc = engine->IO.ScreenCaptureFunc;
     engine->CaptureContext.ScreenCaptureUserData = engine->IO.ScreenCaptureUserData;
     engine->CaptureContext.VideoCaptureEncoderPath = engine->IO.VideoCaptureEncoderPath;
-    engine->CaptureContext.VideoCaptureEncoderPathSize = IM_ARRAYSIZE(engine->IO.VideoCaptureEncoderPath);
+    engine->CaptureContext.VideoCaptureEncoderPathSize = IM_COUNTOF(engine->IO.VideoCaptureEncoderPath);
     engine->CaptureContext.VideoCaptureEncoderParams = engine->IO.VideoCaptureEncoderParams;
-    engine->CaptureContext.VideoCaptureEncoderParamsSize = IM_ARRAYSIZE(engine->IO.VideoCaptureEncoderParams);
+    engine->CaptureContext.VideoCaptureEncoderParamsSize = IM_COUNTOF(engine->IO.VideoCaptureEncoderParams);
     engine->CaptureContext.GifCaptureEncoderParams = engine->IO.GifCaptureEncoderParams;
-    engine->CaptureContext.GifCaptureEncoderParamsSize = IM_ARRAYSIZE(engine->IO.GifCaptureEncoderParams);
+    engine->CaptureContext.GifCaptureEncoderParamsSize = IM_COUNTOF(engine->IO.GifCaptureEncoderParams);
     engine->CaptureTool.VideoCaptureExtension = engine->IO.VideoCaptureExtension;
-    engine->CaptureTool.VideoCaptureExtensionSize = IM_ARRAYSIZE(engine->IO.VideoCaptureExtension);
+    engine->CaptureTool.VideoCaptureExtensionSize = IM_COUNTOF(engine->IO.VideoCaptureExtension);
 
     // Capture a screenshot from main thread while coroutine waits
     if (engine->CaptureCurrentArgs != nullptr)
@@ -407,7 +416,7 @@ void    ImGuiTestEngine_PostSwap(ImGuiTestEngine* engine)
         if (status != ImGuiCaptureStatus_InProgress)
         {
             if (status == ImGuiCaptureStatus_Done)
-                ImStrncpy(engine->CaptureTool.OutputLastFilename, engine->CaptureCurrentArgs->InOutputFile, IM_ARRAYSIZE(engine->CaptureTool.OutputLastFilename));
+                ImStrncpy(engine->CaptureTool.OutputLastFilename, engine->CaptureCurrentArgs->InOutputFile, IM_COUNTOF(engine->CaptureTool.OutputLastFilename));
             engine->CaptureCurrentArgs = nullptr;
         }
     }
@@ -486,16 +495,16 @@ ImGuiTestItemInfo* ImGuiTestEngine_FindItemInfo(ImGuiTestEngine* engine, ImGuiID
     if (debug_id)
     {
         size_t debug_id_sz = strlen(debug_id);
-        if (debug_id_sz < IM_ARRAYSIZE(task->DebugName) - 1)
+        if (debug_id_sz < IM_COUNTOF(task->DebugName) - 1)
         {
             memcpy(task->DebugName, debug_id, debug_id_sz + 1);
         }
         else
         {
-            size_t header_sz = (size_t)(IM_ARRAYSIZE(task->DebugName) * 0.30f);
-            size_t footer_sz = IM_ARRAYSIZE(task->DebugName) - 2 - header_sz;
+            size_t header_sz = (size_t)(IM_COUNTOF(task->DebugName) * 0.30f);
+            size_t footer_sz = IM_COUNTOF(task->DebugName) - 2 - header_sz;
             IM_ASSERT(header_sz > 0 && footer_sz > 0);
-            ImFormatString(task->DebugName, IM_ARRAYSIZE(task->DebugName), "%.*s..%.*s", (int)header_sz, debug_id, (int)footer_sz, debug_id + debug_id_sz - footer_sz);
+            ImFormatString(task->DebugName, IM_COUNTOF(task->DebugName), "%.*s..%.*s", (int)header_sz, debug_id, (int)footer_sz, debug_id + debug_id_sz - footer_sz);
         }
     }
     engine->InfoTasks.push_back(task);
@@ -580,9 +589,8 @@ void ImGuiTestEngine_ApplyInputToImGuiContext(ImGuiTestEngine* engine)
         mouse_hovered_viewport = ImGui::FindHoveredViewportFromPlatformWindowStack(engine->Inputs.MousePosValue); // Rarely used, some tests rely on this (e.g. "docking_dockspace_passthru_hover") may make it a opt-in feature instead?
     if (mouse_hovered_viewport && (mouse_hovered_viewport->Flags & ImGuiViewportFlags_NoInputs))
         mouse_hovered_viewport = nullptr;
-    //if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-        if (io.BackendFlags & ImGuiBackendFlags_HasMouseHoveredViewport)
-            io.AddMouseViewportEvent(mouse_hovered_viewport ? mouse_hovered_viewport->ID : 0);
+    if (io.BackendFlags & ImGuiBackendFlags_HasMouseHoveredViewport)
+        io.AddMouseViewportEvent(mouse_hovered_viewport ? mouse_hovered_viewport->ID : 0);
     bool mouse_hovered_viewport_focused = mouse_hovered_viewport && (mouse_hovered_viewport->Flags & ImGuiViewportFlags_IsFocused) != 0;
 #endif
 
@@ -847,8 +855,12 @@ static void ImGuiTestEngine_PreNewFrame(ImGuiTestEngine* engine, ImGuiContext* u
         // When running GuiFunc only main_io == simulated_io we test for a long hold.
         ImGuiIO& main_io = g.IO;
         for (auto& e : g.InputEventsQueue)
-            if (e.Type == ImGuiInputEventType_Key && e.Key.Key == ImGuiKey_Escape)
+        {
+            if (!e.AddedByTestEngine && e.Type == ImGuiInputEventType_Key && e.Key.Key == ImGuiKey_Escape)
                 engine->Inputs.HostEscDown = e.Key.Down;
+            if (!e.AddedByTestEngine && e.Type == ImGuiInputEventType_MousePos)
+                engine->Inputs.HostMousePos = ImVec2(e.MousePos.PosX, e.MousePos.PosY);
+        }
         engine->Inputs.HostEscDownDuration = engine->Inputs.HostEscDown ? (ImMax(engine->Inputs.HostEscDownDuration, 0.0f) + main_io.DeltaTime) : -1.0f;
         const bool abort = engine->Inputs.HostEscDownDuration >= 0.20f;
         if (abort)
@@ -1018,7 +1030,7 @@ void ImGuiTestEngine_Yield(ImGuiTestEngine* engine)
     // Can only yield in the test func!
     if (ctx)
     {
-        IM_ASSERT(ctx->ActiveFunc == ImGuiTestActiveFunc_TestFunc && "Can only yield inside TestFunc()!");
+        IM_ASSERT(ctx->ActiveFunc != ImGuiTestActiveFunc_GuiFunc && "Can only yield inside a TestFunc()!");
         for (ImGuiWindow* window : ctx->ForeignWindowsToHide)
         {
             window->HiddenFramesForRenderOnly = 2;          // Hide root window
@@ -1043,8 +1055,8 @@ int ImGuiTestEngine_GetFrameCount(ImGuiTestEngine* engine)
 const char* ImGuiTestEngine_GetStatusName(ImGuiTestStatus v)
 {
     static const char* names[ImGuiTestStatus_COUNT] = { "Unknown", "Success", "Queued", "Running", "Error", "Suspended" };
-    IM_STATIC_ASSERT(IM_ARRAYSIZE(names) == ImGuiTestStatus_COUNT);
-    if (v >= 0 && v < IM_ARRAYSIZE(names))
+    IM_STATIC_ASSERT(IM_COUNTOF(names) == ImGuiTestStatus_COUNT);
+    if (v >= 0 && v < IM_COUNTOF(names))
         return names[v];
     return "N/A";
 }
@@ -1052,8 +1064,8 @@ const char* ImGuiTestEngine_GetStatusName(ImGuiTestStatus v)
 const char* ImGuiTestEngine_GetRunSpeedName(ImGuiTestRunSpeed v)
 {
     static const char* names[ImGuiTestRunSpeed_COUNT] = { "Fast", "Normal", "Cinematic" };
-    IM_STATIC_ASSERT(IM_ARRAYSIZE(names) == ImGuiTestRunSpeed_COUNT);
-    if (v >= 0 && v < IM_ARRAYSIZE(names))
+    IM_STATIC_ASSERT(IM_COUNTOF(names) == ImGuiTestRunSpeed_COUNT);
+    if (v >= 0 && v < IM_COUNTOF(names))
         return names[v];
     return "N/A";
 }
@@ -1061,8 +1073,8 @@ const char* ImGuiTestEngine_GetRunSpeedName(ImGuiTestRunSpeed v)
 const char* ImGuiTestEngine_GetVerboseLevelName(ImGuiTestVerboseLevel v)
 {
     static const char* names[ImGuiTestVerboseLevel_COUNT] = { "Silent", "Error", "Warning", "Info", "Debug", "Trace" };
-    IM_STATIC_ASSERT(IM_ARRAYSIZE(names) == ImGuiTestVerboseLevel_COUNT);
-    if (v >= 0 && v < IM_ARRAYSIZE(names))
+    IM_STATIC_ASSERT(IM_COUNTOF(names) == ImGuiTestVerboseLevel_COUNT);
+    if (v >= 0 && v < IM_COUNTOF(names))
         return names[v];
     return "N/A";
 }
@@ -1083,6 +1095,7 @@ bool ImGuiTestEngine_CaptureScreenshot(ImGuiTestEngine* engine, ImGuiCaptureArgs
     engine->IO.ConfigRunSpeed = ImGuiTestRunSpeed_Fast;
 
     const int frame_count = engine->FrameCount;
+    IM_UNUSED(frame_count); // only used when IM_ASSERT is enabled
 
     // Because we rely on window->ContentSize for stitching, let 1 extra frame elapse to make sure any
     // windows which contents have changed in the last frame get a correct window->ContentSize value.
@@ -1273,6 +1286,7 @@ void ImGuiTestEngine_UnregisterTest(ImGuiTestEngine* engine, ImGuiTest* test)
 
     // Remove from lists
     bool found = engine->TestsAll.find_erase(test);
+    IM_UNUSED(found); // Only used when IM_ASSERT enabled
     IM_ASSERT(found); // Calling ImGuiTestEngine_UnregisterTest() on an unknown test.
     for (int n = 0; n < engine->TestsQueue.Size; n++)
     {
@@ -1560,7 +1574,7 @@ struct ImGuiTestContextUiContextBackup
         ErrorCallbackUserData = g.ErrorCallbackUserData;
 #endif
         memset(IO.MouseDown, 0, sizeof(IO.MouseDown));
-        for (int n = 0; n < IM_ARRAYSIZE(IO.KeysData); n++)
+        for (int n = 0; n < IM_COUNTOF(IO.KeysData); n++)
             IO.KeysData[n].Down = false;
     }
 
@@ -1803,10 +1817,11 @@ void ImGuiTestEngine_RunTest(ImGuiTestEngine* engine, ImGuiTestContext* parent_c
     }
     else
     {
-        if (test->TestFunc)
+        if (test->TestFunc != nullptr)
         {
             // Test function
             test->TestFunc(ctx);
+            ImGui::SetCurrentContext(ctx->UiContext);
 
             // In case test failed without finishing gif capture - finish it here. This may trigger due to user error or
             // due to IM_SUSPEND_TESTFUNC() terminating TestFunc() early.
@@ -1834,7 +1849,7 @@ void ImGuiTestEngine_RunTest(ImGuiTestEngine* engine, ImGuiTestContext* parent_c
             args.InFlags = ImGuiCaptureFlags_Instant;
             args.InCaptureRect.Min = ImGui::GetMainViewport()->Pos;
             args.InCaptureRect.Max = args.InCaptureRect.Min + ImGui::GetMainViewport()->Size;
-            ImFormatString(args.InOutputFile, IM_ARRAYSIZE(args.InOutputFile), "output/failures/%s_%04d.png", ctx->Test->Name, ctx->ErrorCounter);
+            ImFormatString(args.InOutputFile, IM_COUNTOF(args.InOutputFile), "output/failures/%s_%04d.png", ctx->Test->Name, ctx->ErrorCounter);
             if (ImGuiTestEngine_CaptureScreenshot(engine, &args))
                 ctx->LogDebug("Saved '%s' (%d*%d pixels)", args.InOutputFile, (int)args.OutImageSize.x, (int)args.OutImageSize.y);
         }
@@ -1877,6 +1892,24 @@ void ImGuiTestEngine_RunTest(ImGuiTestEngine* engine, ImGuiTestContext* parent_c
         }
     }
 
+    // Call test shutdown function (optional)
+    if (test->TeardownFunc != nullptr)
+    {
+        ctx->LogInfo("Running TestShutdownFunc:");
+        IM_ASSERT(ctx->ActiveFunc == ImGuiTestActiveFunc_GuiFunc || ctx->ActiveFunc == ImGuiTestActiveFunc_TestFunc);
+        ctx->ActiveFunc = ImGuiTestActiveFunc_TeardownFunc;
+
+        // Backup and clear status
+        // - This allow us to store temporary status during the TestShutdownFunc(), so an error in it will stop the function.
+        // - An alternative would be to test for (ActiveFunc != ImGuiTestActiveFunc_TestShutdownFunc) inside ctx->IsError() if we want to keep running.
+        // - A crash during TestShutdownFunc() would not be reported as a failed test status but well, the crash itself will be reported.
+        ImGuiTestStatus backup_status = ctx->TestOutput->Status;
+        ctx->TestOutput->Status = ImGuiTestStatus_Running;
+        test->TeardownFunc(ctx);
+        ctx->TestOutput->Status = backup_status;
+        ImGui::SetCurrentContext(ctx->UiContext);
+    }
+
     IM_ASSERT(engine->CaptureCurrentArgs == nullptr && "Active capture was not terminated in the test code.");
 
     // Process and display result/status
@@ -1910,6 +1943,8 @@ void ImGuiTestEngine_RunTest(ImGuiTestEngine* engine, ImGuiTestContext* parent_c
 
     // Restore backed up IO and style
     backup_ui_context.Restore(*ctx->UiContext);
+    ctx->UiContext->IO.ClearEventsQueue();
+    ctx->UiContext->IO.AddMousePosEvent(engine->Inputs.HostMousePos.x, engine->Inputs.HostMousePos.y);
 
     if (run_flags & ImGuiTestRunFlags_ShareVars)
     {
@@ -1995,6 +2030,7 @@ void ImGuiTestEngine_ErrorRecoverySetup(ImGuiTestEngine* engine)
         ctx->UiContext->ErrorCallbackUserData = ctx;
     }
     ctx->UiContext->IO.ConfigErrorRecoveryEnableAssert = ((ctx->Test->Flags & ImGuiTestFlags_NoRecoveryWarnings) == 0 && ctx->TestOutput->Status != ImGuiTestStatus_Error);
+    ctx->UiContext->IO.ConfigErrorRecoveryEnableDebugLog = ((ctx->Test->Flags & ImGuiTestFlags_NoRecoveryWarnings) == 0);
 #else
     IM_UNUSED(ctx);
 #endif
@@ -2015,6 +2051,7 @@ void ImGuiTestEngine_ErrorRecoveryRun(ImGuiTestEngine* engine)
     else
         ImGui::ErrorCheckEndFrameRecover(LogAsDebugFunc, ctx);
 #else
+    IM_UNUSED(ctx); // Only used when IM_ASSERT enabled
     // This would automatically be done in EndFrame() but doing it here means we get a report earlier and in the right co-routine.
     // And the state we entered in happens to be the NewFrame() state (hence using g.StackSizesInNewFrame)
     ImGuiContext& g = *GImGui;
@@ -2177,6 +2214,7 @@ static void ImGuiTestEngineHook_ItemAdd_GatherTask(ImGuiContext* ui_ctx, ImGuiTe
 void ImGuiTestEngineHook_ItemAdd(ImGuiContext* ui_ctx, ImGuiID id, const ImRect& bb, const ImGuiLastItemData* item_data)
 {
     ImGuiTestEngine* engine = (ImGuiTestEngine*)ui_ctx->TestEngine;
+    engine->UiContextHasHooks = true;
 
     IM_ASSERT(id != 0);
     ImGuiContext& g = *ui_ctx;
@@ -2317,7 +2355,7 @@ void ImGuiTestEngineHook_ItemInfo(ImGuiContext* ui_ctx, ImGuiID id, const char* 
         item->TimestampStatus = g.FrameCount;
         item->StatusFlags = flags;
         if (label)
-            ImStrncpy(item->DebugLabel, label, IM_ARRAYSIZE(item->DebugLabel));
+            ImStrncpy(item->DebugLabel, label, IM_COUNTOF(item->DebugLabel));
     }
 
     // Update Gather Task status flags
@@ -2327,7 +2365,7 @@ void ImGuiTestEngineHook_ItemInfo(ImGuiContext* ui_ctx, ImGuiID id, const char* 
         item->TimestampStatus = g.FrameCount;
         item->StatusFlags = flags;
         if (label)
-            ImStrncpy(item->DebugLabel, label, IM_ARRAYSIZE(item->DebugLabel));
+            ImStrncpy(item->DebugLabel, label, IM_COUNTOF(item->DebugLabel));
     }
 
     // Update Find by Label Task
@@ -2374,10 +2412,10 @@ void ImGuiTestEngine_AssertLog(const char* expr, const char* file, const char* f
 // Used by IM_CHECK_OP() macros
 ImGuiTextBuffer* ImGuiTestEngine_GetTempStringBuilder()
 {
-    static ImGuiTextBuffer builder;
-    builder.Buf.resize(1);
-    builder.Buf[0] = 0;
-    return &builder;
+    ImGuiTestEngine* engine = GImGuiTestEngine;
+    engine->StringBuilderForChecks.Buf.resize(1);
+    engine->StringBuilderForChecks.Buf[0] = 0;
+    return &engine->StringBuilderForChecks;
 }
 
 // Out of convenience for main library we allow this to be called before TestEngine is initialized.
@@ -2403,17 +2441,16 @@ bool ImGuiTestEngine_Check(const char* file, const char* func, int line, ImGuiTe
     ImGuiTestEngine* engine = GImGuiTestEngine;
     (void)func;
 
-    // Removed absolute path from output so we have deterministic output (otherwise __FILE__ gives us machine dending output)
+    // Removed absolute path from output so we have deterministic output (otherwise __FILE__ gives us compiling machine specific output)
     const char* file_without_path = file ? ImPathFindFilename(file) : "";
 
     if (ImGuiTestContext* ctx = engine->TestContext)
     {
-        ImGuiTest* test = ctx->Test;
         //ctx->LogDebug("IM_CHECK(%s)", expr);
         if (!result)
         {
             if (!(ctx->RunFlags & ImGuiTestRunFlags_GuiFuncOnly))
-                test->Output.Status = ImGuiTestStatus_Error;
+                ctx->TestOutput->Status = ImGuiTestStatus_Error;
 
             if (file)
                 ctx->LogError("Error %s:%d '%s'", file_without_path, line, expr);
@@ -2442,7 +2479,7 @@ bool ImGuiTestEngine_Check(const char* file, const char* func, int line, ImGuiTe
     return false;
 }
 
-bool ImGuiTestEngine_CheckStrOp(const char* file, const char* func, int line, ImGuiTestCheckFlags flags, const char* op, const char* lhs_var, const char* lhs_value, const char* rhs_var, const char* rhs_value, bool* out_res)
+bool ImGuiTestEngine_CheckOpStr(const char* file, const char* func, int line, ImGuiTestCheckFlags flags, const char* op, const char* lhs_desc, const char* lhs_value, const char* rhs_desc, const char* rhs_value, bool* out_res)
 {
     int res_strcmp = strcmp(lhs_value, rhs_value);
     bool res = 0;
@@ -2454,10 +2491,10 @@ bool ImGuiTestEngine_CheckStrOp(const char* file, const char* func, int line, Im
         IM_ASSERT(0);
     *out_res = res;
 
-    ImGuiTextBuffer buf; // FIXME-OPT: Now we can probably remove that allocation
+    ImGuiTextBuffer* buf = ImGuiTestEngine_GetTempStringBuilder();
 
-    bool lhs_is_literal = lhs_var[0] == '\"';
-    bool rhs_is_literal = rhs_var[0] == '\"';
+    bool lhs_is_literal = lhs_desc[0] == '\"';
+    bool rhs_is_literal = rhs_desc[0] == '\"';
     if (strchr(lhs_value, '\n') != nullptr || strchr(rhs_value, '\n') != nullptr)
     {
         // Multi line strings
@@ -2467,31 +2504,29 @@ bool ImGuiTestEngine_CheckStrOp(const char* file, const char* func, int line, Im
             lhs_value_len--;
         if (rhs_value_len > 0 && rhs_value[rhs_value_len - 1] == '\n')
             rhs_value_len--;
-        buf.appendf(
+        buf->appendf(
             "\n"
             "---------------------------------------- // lhs: %s\n"
             "%.*s\n"
             "---------------------------------------- // rhs: %s, compare op: %s\n"
             "%.*s\n"
             "----------------------------------------\n",
-            lhs_is_literal ? "literal" : lhs_var,
+            lhs_is_literal ? "literal" : lhs_desc,
             (int)lhs_value_len, lhs_value,
-            rhs_is_literal ? "literal" : rhs_var,
+            rhs_is_literal ? "literal" : rhs_desc,
             op,
             (int)rhs_value_len, rhs_value);
     }
     else
     {
         // Single line strings
-        buf.appendf(
+        buf->appendf(
             "%s [\"%s\"] %s %s [\"%s\"]",
-            lhs_is_literal ? "" : lhs_var, lhs_value,
+            lhs_is_literal ? "" : lhs_desc, lhs_value,
             op,
-            rhs_is_literal ? "" : rhs_var, rhs_value);
+            rhs_is_literal ? "" : rhs_desc, rhs_value);
     }
-
-
-    return ImGuiTestEngine_Check(file, func, line, flags, res, buf.c_str());
+    return ImGuiTestEngine_Check(file, func, line, flags, res, buf->c_str());
 }
 
 bool ImGuiTestEngine_Error(const char* file, const char* func, int line, ImGuiTestCheckFlags flags, const char* fmt, ...)
@@ -2562,10 +2597,10 @@ static void     ImGuiTestEngine_SettingsReadLine(ImGuiContext* ui_ctx, ImGuiSett
     else if (sscanf(line, "StackTool=%d", &n) == 1)                                                                                 { e->UiStackToolOpen = (n != 0); }
     else if (sscanf(line, "CaptureEnabled=%d", &n) == 1)                                                                            { e->IO.ConfigCaptureEnabled = (n != 0); }
     else if (sscanf(line, "CaptureOnError=%d", &n) == 1)                                                                            { e->IO.ConfigCaptureOnError = (n != 0); }
-    else if (SettingsTryReadString(line, "VideoCapturePathToEncoder=", e->IO.VideoCaptureEncoderPath, IM_ARRAYSIZE(e->IO.VideoCaptureEncoderPath))) { }
-    else if (SettingsTryReadString(line, "VideoCaptureParamsToEncoder=", e->IO.VideoCaptureEncoderParams, IM_ARRAYSIZE(e->IO.VideoCaptureEncoderParams))) { }
-    else if (SettingsTryReadString(line, "GifCaptureParamsToEncoder=", e->IO.GifCaptureEncoderParams, IM_ARRAYSIZE(e->IO.GifCaptureEncoderParams))) { }
-    else if (SettingsTryReadString(line, "VideoCaptureExtension=", e->IO.VideoCaptureExtension, IM_ARRAYSIZE(e->IO.VideoCaptureExtension))) { }
+    else if (SettingsTryReadString(line, "VideoCapturePathToEncoder=", e->IO.VideoCaptureEncoderPath, IM_COUNTOF(e->IO.VideoCaptureEncoderPath))) { }
+    else if (SettingsTryReadString(line, "VideoCaptureParamsToEncoder=", e->IO.VideoCaptureEncoderParams, IM_COUNTOF(e->IO.VideoCaptureEncoderParams))) { }
+    else if (SettingsTryReadString(line, "GifCaptureParamsToEncoder=", e->IO.GifCaptureEncoderParams, IM_COUNTOF(e->IO.GifCaptureEncoderParams))) { }
+    else if (SettingsTryReadString(line, "VideoCaptureExtension=", e->IO.VideoCaptureExtension, IM_COUNTOF(e->IO.VideoCaptureExtension))) { }
 }
 
 static void     ImGuiTestEngine_SettingsWriteAll(ImGuiContext* ui_ctx, ImGuiSettingsHandler* handler, ImGuiTextBuffer* buf)

@@ -146,6 +146,7 @@ struct ImGuiTestInputs
     ImVector<ImGuiTestInput>    Queue;
     bool                        HostEscDown = false;
     float                       HostEscDownDuration = -1.0f;    // Maintain our own DownDuration for host/backend ESC key so we can abort.
+    ImVec2                      HostMousePos;
 };
 
 // [Internal] Test Engine Context
@@ -156,6 +157,7 @@ struct ImGuiTestEngine
     ImGuiContext*               UiContextActive = nullptr;      // imgui context for testing == UiContextTarget or nullptr
 
     bool                        Started = false;
+    bool                        UiContextHasHooks = false;
     ImU64                       BatchStartTime = 0;
     ImU64                       BatchEndTime = 0;
     int                         FrameCount = 0;
@@ -169,6 +171,7 @@ struct ImGuiTestEngine
     ImGuiTestFindByLabelTask    FindByLabelTask;
     ImGuiTestCoroutineHandle    TestQueueCoroutine = nullptr;   // Coroutine to run the test queue
     bool                        TestQueueCoroutineShouldExit = false; // Flag to indicate that we are shutting down and the test queue coroutine should stop
+    ImGuiTextBuffer             StringBuilderForChecks;
 
     // Inputs
     ImGuiTestInputs             Inputs;

@@ -39,6 +39,17 @@
 #include <chrono>       // high_resolution_clock::now()
 #include <thread>       // this_thread::sleep_for()
 
+// Warnings
+#if defined(__clang__)
+#if __has_warning("-Wunknown-warning-option")
+#pragma clang diagnostic ignored "-Wunknown-warning-option"         // warning: unknown warning group 'xxx'                      // not all warnings are known by all Clang versions and they tend to be rename-happy.. so ignoring warnings triggers new warnings on some configuration. Great!
+#endif
+#pragma clang diagnostic ignored "-Wsign-conversion"                // warning: implicit conversion changes signedness
+#elif defined(__GNUC__)
+#pragma GCC diagnostic ignored "-Wsign-conversion"                  // warning: conversion to 'xxxx' from 'xxxx' may change the sign of the result
+#pragma GCC diagnostic ignored "-Wunused-result"                    // warning: ignoring return value of 'xxxx' declared with attribute 'warn_unused_result'
+#endif
+
 //-----------------------------------------------------------------------------
 // Hashing Helpers
 //-----------------------------------------------------------------------------
@@ -210,7 +221,14 @@ ImGuiID ImHashDecoratedPath(const char* str, const char* str_end, ImGuiID seed)
 
         // Reset the hash when encountering ###
         if (c == '#' && current[0] == '#' && current[1] == '#')
+        {
             crc = seed;
+#if IMGUI_VERSION_NUM >= 19255
+            current += 2;
+            inhibit_one = new_section = false;
+            continue;
+#endif
+        }
 
         // Hash byte
         crc = (crc >> 8) ^ crc32_lut[(crc & 0xFF) ^ c];
@@ -860,7 +878,7 @@ const ImBuildInfo* ImBuildGetCompilationInfo()
 #endif
 
         // Date/Time
-        ImBuildParseDateFromCompilerIntoYMD(__DATE__, build_info.Date, IM_ARRAYSIZE(build_info.Date));
+        ImBuildParseDateFromCompilerIntoYMD(__DATE__, build_info.Date, IM_COUNTOF(build_info.Date));
         build_info.Time = __TIME__;
     }
 
@@ -877,7 +895,7 @@ bool ImBuildFindGitBranchName(const char* git_repo_path, Str* branch_name)
     if (char* git_head = (char*)ImFileLoadToMemory(head_path.c_str(), "r", &head_size, 1))
     {
         const char prefix[] = "ref: refs/heads/";       // Branch name is prefixed with this in HEAD file.
-        const int prefix_length = IM_ARRAYSIZE(prefix) - 1;
+        const int prefix_length = IM_COUNTOF(prefix) - 1;
         strtok(git_head, "\r\n");                       // Trim new line
         if (head_size > prefix_length && strncmp(git_head, prefix, prefix_length) == 0)
         {
@@ -1042,9 +1060,9 @@ bool    ImOsIsDebuggerPresent()
     FILE* fp = fopen("/proc/self/status", "rb");    // Can not use ImFileLoadToMemory because size detection of /proc/self/status would fail.
     if (fp == nullptr)
         return false;
-    fread(buf, 1, IM_ARRAYSIZE(buf), fp);
+    fread(buf, 1, IM_COUNTOF(buf), fp);
     fclose(fp);
-    buf[IM_ARRAYSIZE(buf) - 1] = 0;
+    buf[IM_COUNTOF(buf) - 1] = 0;
     if (char* tracer_pid = strstr(buf, "TracerPid:"))
     {
         tracer_pid += 10;   // Skip label
@@ -1070,6 +1088,7 @@ bool    ImOsIsDebuggerPresent()
 
     size = sizeof(info);
     junk = sysctl(mib, sizeof(mib) / sizeof(*mib), &info, &size, nullptr, 0);
+    IM_UNUSED(junk); // Only used when IM_ASSERT enabled
     IM_ASSERT(junk == 0);
 
     // We're being debugged if the P_TRACED flag is set.
@@ -1279,6 +1298,7 @@ ImGuiID TableGetHeaderID(ImGuiTable* table, int column_n, int instance_no)
 void TableDiscardInstanceAndSettings(ImGuiID table_id)
 {
     ImGuiContext& g = *GImGui;
+    IM_UNUSED(g); // Only used when IM_ASSERT enabled
     IM_ASSERT(g.CurrentTable == nullptr);
     if (ImGuiTableSettings* settings = ImGui::TableSettingsFindByID(table_id))
         settings->ID = 0;

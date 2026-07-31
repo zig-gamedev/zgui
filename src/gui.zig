@@ -3039,15 +3039,18 @@ pub const ColorEditFlags = packed struct(c_int) {
     no_drag_drop: bool = false,
     no_border: bool = false,
 
+    alpha_opaque: bool = false,
+    alpha_no_bg: bool = false,
+    alpha_preview_half: bool = false,
+
     _reserved1: bool = false,
     _reserved2: bool = false,
-    _reserved3: bool = false,
-    _reserved4: bool = false,
-    _reserved5: bool = false,
 
     alpha_bar: bool = false,
-    alpha_preview: bool = false,
-    alpha_preview_half: bool = false,
+
+    _reserved3: bool = false,
+    _reserved4: bool = false,
+
     hdr: bool = false,
     display_rgb: bool = false,
     display_hsv: bool = false,

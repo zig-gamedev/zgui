@@ -19,12 +19,12 @@ pub fn deinit() void {
     backend_glfw.deinit();
 }
 
-pub fn newFrame(fb_width: u32, fb_height: u32) void {
+pub fn newFrame(fb_width: u32, fb_height: u32, fb_sx: f32, fb_sy: f32) void {
     backend_glfw.newFrame();
     backend_dx12.newFrame();
 
     gui.io.setDisplaySize(@as(f32, @floatFromInt(fb_width)), @as(f32, @floatFromInt(fb_height)));
-    gui.io.setDisplayFramebufferScale(1.0, 1.0);
+    gui.io.setDisplayFramebufferScale(fb_sx, fb_sy);
 
     gui.newFrame();
 }

@@ -27,12 +27,12 @@ pub fn processEvent(event: *const anyopaque) bool {
     return backend_sdl3.processEvent(event);
 }
 
-pub fn newFrame(fb_width: u32, fb_height: u32, fb_scale: f32) void {
+pub fn newFrame(fb_width: u32, fb_height: u32, fb_sx: f32, fb_sy: f32) void {
     ImGui_ImplSDLGPU3_NewFrame();
     backend_sdl3.newFrame();
 
     gui.io.setDisplaySize(@as(f32, @floatFromInt(fb_width)), @as(f32, @floatFromInt(fb_height)));
-    gui.io.setDisplayFramebufferScale(fb_scale, fb_scale);
+    gui.io.setDisplayFramebufferScale(fb_sx, fb_sy);
 
     gui.newFrame();
 }

@@ -3,10 +3,10 @@ const backend_sdl2 = @import("backend_sdl2.zig");
 
 pub fn init(
     window: *const anyopaque, // SDL_Window
-    renderer: *const anyopaque, // SDL_Renderer 
+    renderer: *const anyopaque, // SDL_Renderer
 ) void {
     backend_sdl2.initRenderer(window, renderer);
-    if(!ImGui_ImplSDLRenderer2_Init(renderer)){
+    if (!ImGui_ImplSDLRenderer2_Init(renderer)) {
         unreachable;
     }
 }
@@ -22,12 +22,12 @@ pub fn deinit() void {
     backend_sdl2.deinit();
 }
 
-pub fn newFrame(fb_width: u32, fb_height: u32) void {
+pub fn newFrame(fb_width: u32, fb_height: u32, fb_sx: f32, fb_sy: f32) void {
     ImGui_ImplSDLRenderer2_NewFrame();
     backend_sdl2.newFrame();
 
     gui.io.setDisplaySize(@as(f32, @floatFromInt(fb_width)), @as(f32, @floatFromInt(fb_height)));
-    gui.io.setDisplayFramebufferScale(1.0, 1.0);
+    gui.io.setDisplayFramebufferScale(fb_sx, fb_sy);
 
     gui.newFrame();
 }
@@ -48,4 +48,3 @@ extern fn ImGui_ImplSDLRenderer2_RenderDrawData(draw_data: gui.DrawData, rendere
 //TODO: extern fn ImGui_ImplSDLRenderer2_DestroyFontsTexture() void;
 //TODO: extern fn ImGui_ImplSDLRenderer2_CreateDeviceObjects() bool;
 //TODO: extern fn ImGui_ImplSDLRenderer2_DestroyDeviceObjects() void;
-

@@ -162,11 +162,6 @@ bool     ImGui_ImplSDL2_ProcessEvent(const SDL_Event* event);
 
 }
 
-// FIX(zig-gamedev):
-// We need these forward declarations as we aren't importing imgui_impl_sdl2.h
-enum ImGui_ImplSDL2_GamepadMode { ImGui_ImplSDL2_GamepadMode_AutoFirst, ImGui_ImplSDL2_GamepadMode_AutoAll, ImGui_ImplSDL2_GamepadMode_Manual };
-IMGUI_IMPL_API void     ImGui_ImplSDL2_SetGamepadMode(ImGui_ImplSDL2_GamepadMode mode, struct _SDL_GameController** manual_gamepads_array = nullptr, int manual_gamepads_count = -1);
-
 // SDL Data
 struct ImGui_ImplSDL2_Data
 {

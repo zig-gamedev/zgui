@@ -116,7 +116,7 @@ pub fn deinit() void {
 pub fn initNoContext(allocator: std.mem.Allocator) void {
     mem_allocator = allocator;
     if (temp_buffer == null) {
-        temp_buffer = std.ArrayList(u8).empty;
+        temp_buffer = .empty;
         temp_buffer.?.resize(mem_allocator.?, 3 * 1024 + 1) catch unreachable;
     }
 }
@@ -2012,16 +2012,20 @@ pub fn comboFromEnum(
         @compileError("Error: current_item must be a pointer-to-an-enum, not a " ++ @TypeOf(EnumType));
     };
 
-    const FieldNameIndex = std.meta.Tuple(&.{ []const u8, i32 });
+    const FieldNameIndex = @Tuple(&.{ []const u8, i32 });
     comptime var item_names: [:0]const u8 = "";
-    comptime var field_name_to_index_list: [enum_type_info.fields.len]FieldNameIndex = undefined;
-    comptime var index_to_enum: [enum_type_info.fields.len]EnumType = undefined;
+    comptime var field_name_to_index_list: [enum_type_info.field_names.len]FieldNameIndex = undefined;
+    comptime var index_to_enum: [enum_type_info.field_names.len]EnumType = undefined;
 
     comptime {
-        for (enum_type_info.fields, 0..) |f, i| {
-            item_names = item_names ++ f.name ++ "\x00";
-            const e: EnumType = @enumFromInt(f.value);
-            field_name_to_index_list[i] = .{ f.name, @intCast(i) };
+        for (
+            enum_type_info.field_names,
+            enum_type_info.field_values,
+            0..,
+        ) |name, value, i| {
+            item_names = item_names ++ name ++ "\x00";
+            const e: EnumType = @enumFromInt(value);
+            field_name_to_index_list[i] = .{ name, @intCast(i) };
             index_to_enum[i] = e;
         }
     }
@@ -3761,7 +3765,7 @@ pub fn format(comptime fmt: []const u8, args: anytype) []const u8 {
 pub fn formatZ(comptime fmt: []const u8, args: anytype) [:0]const u8 {
     const len = std.fmt.count(fmt ++ "\x00", args);
     if (len > temp_buffer.?.items.len) temp_buffer.?.resize(mem_allocator.?, @intCast(len + 64)) catch unreachable;
-    return std.fmt.bufPrintZ(temp_buffer.?.items, fmt, args) catch unreachable;
+    return std.fmt.bufPrintSentinel(temp_buffer.?.items, fmt, args, 0) catch unreachable;
 }
 //--------------------------------------------------------------------------------------------------
 pub fn typeToDataTypeEnum(comptime T: type) DataType {

@@ -3844,6 +3844,18 @@ pub const endTooltip = zguiEndTooltip;
 extern fn zguiBeginTooltip() bool;
 extern fn zguiEndTooltip() void;
 
+pub fn setTooltip(comptime fmt: []const u8, args: anytype) void {
+    zguiSetTooltip("%s", formatZ(fmt, args).ptr);
+}
+extern fn zguiSetTooltip(fmt: [*:0]const u8, ...) void;
+
+pub const beginItemTooltip = zguiBeginItemTooltip;
+extern fn zguiBeginItemTooltip() bool;
+pub fn setItemTooltip(comptime fmt: []const u8, args: anytype) void {
+    zguiSetItemTooltip("%s", formatZ(fmt, args).ptr);
+}
+extern fn zguiSetItemTooltip(fmt: [*:0]const u8, ...) void;
+
 /// `pub fn beginPopupContextWindow() bool`
 pub const beginPopupContextWindow = zguiBeginPopupContextWindow;
 /// `pub fn beginPopupContextItem() bool`

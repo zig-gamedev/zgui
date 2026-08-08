@@ -1889,6 +1889,27 @@ extern "C"
     {
         ImGui::EndTooltip();
     }
+    
+    ZGUI_API void zguiSetTooltip(const char* fmt, ...)
+    {
+        va_list args;
+        va_start(args, fmt);
+        ImGui::SetTooltipV(fmt, args);
+        va_end(args);
+    }
+
+    ZGUI_API bool zguiBeginItemTooltip(void)
+    {
+        return ImGui::BeginItemTooltip();
+    }
+
+    ZGUI_API void zguiSetItemTooltip(const char* fmt, ...)
+    {
+        va_list args;
+        va_start(args, fmt);
+        ImGui::SetItemTooltipV(fmt, args);
+        va_end(args);
+    }
 
     ZGUI_API bool zguiBeginPopup(const char *str_id, ImGuiWindowFlags flags)
     {

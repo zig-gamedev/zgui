@@ -307,6 +307,11 @@ pub fn build(b: *std.Build) void {
                 },
                 .flags = cflags,
             });
+            switch (target.result.os.tag) {
+                .windows => imgui_mod.linkSystemLibrary("opengl32", .{}),
+                .macos => imgui_mod.linkFramework("OpenGL", .{}),
+                else => imgui_mod.linkSystemLibrary("GL", .{}),
+            }
         },
         .glfw_dx12 => {
             if (b.lazyDependency("zglfw", .{})) |zglfw| {

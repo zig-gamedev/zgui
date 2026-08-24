@@ -3,6 +3,7 @@ const std = @import("std");
 pub const Backend = enum {
     no_backend,
     glfw_wgpu,
+    glfw_opengl2,
     glfw_opengl3,
     glfw_vulkan,
     glfw_dx12,
@@ -293,6 +294,18 @@ pub fn build(b: *std.Build) void {
                     "libs/imgui/backends/imgui_impl_opengl3.cpp",
                 },
                 .flags = &(cflags.* ++ .{"-DIMGUI_IMPL_OPENGL_LOADER_CUSTOM"}),
+            });
+        },
+        .glfw_opengl2 => {
+            if (b.lazyDependency("zglfw", .{})) |zglfw| {
+                imgui_mod.addIncludePath(zglfw.path("libs/glfw/include"));
+            }
+            imgui_mod.addCSourceFiles(.{
+                .files = &.{
+                    "libs/imgui/backends/imgui_impl_glfw.cpp",
+                    "libs/imgui/backends/imgui_impl_opengl2.cpp",
+                },
+                .flags = cflags,
             });
         },
         .glfw_dx12 => {

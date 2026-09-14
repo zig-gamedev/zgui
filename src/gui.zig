@@ -1002,10 +1002,15 @@ pub fn getContentRegionAvail() [2]f32 {
 pub const getWindowWidth = zguiGetWindowWidth;
 /// `pub fn getWindowHeight() f32`
 pub const getWindowHeight = zguiGetWindowHeight;
+/// `pub fn getWindowDockID() Ident`
+pub const getWindowDockID = zguiGetWindowDockID;
+
 extern fn zguiGetWindowPos(pos: *[2]f32) void;
 extern fn zguiGetWindowSize(size: *[2]f32) void;
 extern fn zguiGetWindowWidth() f32;
 extern fn zguiGetWindowHeight() f32;
+extern fn zguiGetWindowDockID() Ident;
+
 extern fn zguiGetContentRegionAvail(size: *[2]f32) void;
 
 pub const Window = opaque {};

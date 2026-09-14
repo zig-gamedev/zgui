@@ -213,6 +213,11 @@ extern "C"
         return ImGui::GetWindowHeight();
     }
 
+    ZGUI_API ImGuiID zguiGetWindowDockID(void)
+    {
+        return ImGui::GetWindowDockID();
+    }
+
     ZGUI_API void* zguiGetCurrentWindow(void)
     {
         return ImGui::GetCurrentWindow();

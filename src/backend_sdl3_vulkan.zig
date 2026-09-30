@@ -6,11 +6,8 @@ pub const VkHandle = backend_vulkan.VkHandle;
 pub const VkPipelineRenderingCreateInfo = backend_vulkan.VkPipelineRenderingCreateInfo;
 pub const ImGui_ImplVulkan_InitInfo = backend_vulkan.ImGui_ImplVulkan_InitInfo;
 
-pub fn init(
-    init_info: ImGui_ImplVulkan_InitInfo, 
-    window: *const anyopaque
-    ) void {
-    backend_sdl3.initVulkan(window); 
+pub fn init(init_info: ImGui_ImplVulkan_InitInfo, window: *const anyopaque) void {
+    backend_sdl3.initVulkan(window);
     backend_vulkan.init(init_info);
 }
 
@@ -19,15 +16,12 @@ pub fn deinit() void {
     backend_sdl3.deinit();
 }
 
-pub fn newFrame(
-    fb_width: u32,
-    fb_height: u32,
-) void {
+pub fn newFrame(fb_width: u32, fb_height: u32, fb_sx: f32, fb_sy: f32) void {
     backend_vulkan.newFrame();
     backend_sdl3.newFrame();
 
     gui.io.setDisplaySize(@as(f32, @floatFromInt(fb_width)), @as(f32, @floatFromInt(fb_height)));
-    gui.io.setDisplayFramebufferScale(1.0, 1.0);
+    gui.io.setDisplayFramebufferScale(fb_sx, fb_sy);
 
     gui.newFrame();
 }
@@ -47,9 +41,9 @@ pub fn loadFunctions(
     loader: fn (function_name: [*:0]const u8, user_data: ?*anyopaque) callconv(.c) ?*anyopaque,
     user_data: ?*anyopaque,
 ) bool {
-    return backend_vulkan.loadFunctions(api_version, loader, user_data);  
-}  
+    return backend_vulkan.loadFunctions(api_version, loader, user_data);
+}
 
-pub fn set_min_image_count(min_image_count: u32) void {  
+pub fn set_min_image_count(min_image_count: u32) void {
     backend_vulkan.set_min_image_count(min_image_count);
 }

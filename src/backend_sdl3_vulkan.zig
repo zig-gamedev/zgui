@@ -6,11 +6,8 @@ pub const VkHandle = backend_vulkan.VkHandle;
 pub const VkPipelineRenderingCreateInfo = backend_vulkan.VkPipelineRenderingCreateInfo;
 pub const ImGui_ImplVulkan_InitInfo = backend_vulkan.ImGui_ImplVulkan_InitInfo;
 
-pub fn init(
-    init_info: ImGui_ImplVulkan_InitInfo, 
-    window: *const anyopaque
-    ) void {
-    backend_sdl3.initVulkan(window); 
+pub fn init(init_info: ImGui_ImplVulkan_InitInfo, window: *const anyopaque) void {
+    backend_sdl3.initVulkan(window);
     backend_vulkan.init(init_info);
 }
 
@@ -47,9 +44,9 @@ pub fn loadFunctions(
     loader: fn (function_name: [*:0]const u8, user_data: ?*anyopaque) callconv(.c) ?*anyopaque,
     user_data: ?*anyopaque,
 ) bool {
-    return backend_vulkan.loadFunctions(api_version, loader, user_data);  
-}  
+    return backend_vulkan.loadFunctions(api_version, loader, user_data);
+}
 
-pub fn set_min_image_count(min_image_count: u32) void {  
+pub fn set_min_image_count(min_image_count: u32) void {
     backend_vulkan.set_min_image_count(min_image_count);
 }

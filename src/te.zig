@@ -237,7 +237,7 @@ pub fn checkTestError(
     err: anyerror,
 ) void {
     var buff: [128:0]u8 = undefined;
-    const msg = std.fmt.bufPrintZ(&buff, "Assert error: {}", .{err}) catch undefined;
+    const msg = std.fmt.bufPrintSentinel(&buff, "Assert error: {}", .{err}, 0) catch undefined;
     _ = zguiTe_Check(src.file.ptr, src.fn_name.ptr, src.line, .{}, false, msg.ptr);
 }
 

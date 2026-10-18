@@ -3,10 +3,10 @@ const backend_sdl3 = @import("backend_sdl3.zig");
 
 pub fn init(
     window: *const anyopaque, // SDL_Window
-    renderer: *const anyopaque, // SDL_Renderer 
+    renderer: *const anyopaque, // SDL_Renderer
 ) void {
     backend_sdl3.initRenderer(window, renderer);
-    if(!ImGui_ImplSDLRenderer3_Init(renderer)){
+    if (!ImGui_ImplSDLRenderer3_Init(renderer)) {
         unreachable;
     }
 }
@@ -48,4 +48,3 @@ extern fn ImGui_ImplSDLRenderer3_RenderDrawData(draw_data: gui.DrawData, rendere
 //TODO extern fn ImGui_ImplSDLRenderer3_DestroyFontsTexture() void;
 //TODO extern fn ImGui_ImplSDLRenderer3_CreateDeviceObjects() bool;
 //TODO extern fn ImGui_ImplSDLRenderer3_DestroyDeviceObjects() void;
-

@@ -81,7 +81,7 @@ pub const Style = extern struct {
     plot_default_size: [2]f32,
     plot_min_size: [2]f32,
 
-    colors: [@typeInfo(StyleCol).@"enum".fields.len][4]f32,
+    colors: [@typeInfo(StyleCol).@"enum".field_names.len][4]f32,
     colormap: Colormap,
 
     use_local_time: bool,
@@ -93,10 +93,10 @@ pub const Style = extern struct {
     extern fn zguiPlotStyle_Init() Style;
 
     pub fn getColor(style: Style, idx: StyleCol) [4]f32 {
-        return style.colors[@intFromEnum(idx)];
+        return style.colors[@backingInt(idx)];
     }
     pub fn setColor(style: *Style, idx: StyleCol, color: [4]f32) void {
-        style.colors[@intFromEnum(idx)] = color;
+        style.colors[@backingInt(idx)] = color;
     }
 };
 /// `pub fn getStyle() *Style`
@@ -396,9 +396,9 @@ pub fn getPlotMousePos(args: GetPlotMousePos) [2]f64 {
 extern fn zguiPlot_GetPlotMousePos(x_axis: AxisOrAuto, y_axis: AxisOrAuto, out: *[2]f64) void;
 //----------------------------------------------------------------------------------------------
 pub const Condition = enum(u32) {
-    none = @intFromEnum(gui.Condition.none),
-    always = @intFromEnum(gui.Condition.always),
-    once = @intFromEnum(gui.Condition.once),
+    none = @backingInt(gui.Condition.none),
+    always = @backingInt(gui.Condition.always),
+    once = @backingInt(gui.Condition.once),
 };
 const SetupAxisLimits = struct {
     min: f64,
@@ -962,7 +962,7 @@ pub const BeginItem = struct {
     recolor_from: ?StyleCol = null,
 };
 pub fn beginItem(label_id: [:0]const u8, args: BeginItem) bool {
-    const recolor_from: i32 = if (args.recolor_from) |c| @intFromEnum(c) else -1; // IMPLOT_AUTO
+    const recolor_from: i32 = if (args.recolor_from) |c| @backingInt(c) else -1; // IMPLOT_AUTO
     return zguiPlot_BeginItem(label_id.ptr, args.flags, recolor_from);
 }
 extern fn zguiPlot_BeginItem(label_id: [*:0]const u8, flags: ItemFlags, recolor_from: i32) bool;

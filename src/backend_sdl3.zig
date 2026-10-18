@@ -1,10 +1,7 @@
 const gui = @import("gui.zig");
 
-pub fn initRenderer(
-    window: *const anyopaque,
-    sdl_gl_context: *const anyopaque
-) void {
-    if (!ImGui_ImplSDL3_InitForSDLRenderer(window, sdl_gl_context)){
+pub fn initRenderer(window: *const anyopaque, sdl_gl_context: *const anyopaque) void {
+    if (!ImGui_ImplSDL3_InitForSDLRenderer(window, sdl_gl_context)) {
         unreachable;
     }
 }

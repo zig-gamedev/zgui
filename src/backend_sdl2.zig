@@ -19,9 +19,9 @@ pub fn initOpenGL(
 
 pub fn initRenderer(
     window: *const anyopaque, // SDL_Window
-    renderer: *const anyopaque, // SDL_Renderer 
-) void { 
-    if (!ImGui_ImplSDL2_InitForSDLRenderer(window, renderer)){
+    renderer: *const anyopaque, // SDL_Renderer
+) void {
+    if (!ImGui_ImplSDL2_InitForSDLRenderer(window, renderer)) {
         unreachable;
     }
 }

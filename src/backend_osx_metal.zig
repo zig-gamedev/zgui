@@ -20,7 +20,7 @@ pub fn newFrame(
     fb_width: u32,
     fb_height: u32,
     view: *const anyopaque, // NSView*
-    render_pass_descriptor: *const anyopaque // MTL::RenderPassDescriptor*
+    render_pass_descriptor: *const anyopaque, // MTL::RenderPassDescriptor*
 ) void {
     backend_osx.newFrame(view);
     ImGui_ImplMetal_NewFrame(render_pass_descriptor);
@@ -43,6 +43,4 @@ pub fn draw(
 extern fn ImGui_ImplMetal_Init(device: *const anyopaque) bool;
 extern fn ImGui_ImplMetal_Shutdown() void;
 extern fn ImGui_ImplMetal_NewFrame(renderPassDescriptor: *const anyopaque) void;
-extern fn ImGui_ImplMetal_RenderDrawData(draw_data: *const anyopaque,
-    commandBuffer: *const anyopaque,
-    commandEncoder: *const anyopaque) void;
+extern fn ImGui_ImplMetal_RenderDrawData(draw_data: *const anyopaque, commandBuffer: *const anyopaque, commandEncoder: *const anyopaque) void;

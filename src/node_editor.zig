@@ -29,13 +29,13 @@ const Style = extern struct {
     highlight_connected_links: f32 = 0,
     snap_link_to_pin_dir: f32 = 0,
 
-    colors: [@typeInfo(StyleColor).@"enum".fields.len][4]f32,
+    colors: [@typeInfo(StyleColor).@"enum".field_names.len][4]f32,
 
     pub fn getColor(style: Style, idx: StyleColor) [4]f32 {
-        return style.colors[@intCast(@intFromEnum(idx))];
+        return style.colors[@intCast(@backingInt(idx))];
     }
     pub fn setColor(style: *Style, idx: StyleColor, color: [4]f32) void {
-        style.colors[@intCast(@intFromEnum(idx))] = color;
+        style.colors[@intCast(@backingInt(idx))] = color;
     }
 };
 

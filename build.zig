@@ -75,16 +75,18 @@ pub fn build(b: *std.Build) void {
             "disable_obsolete",
             "Disable obsolete imgui functions",
         ) orelse true,
-        .vulkan_include = b.option(
-            []const u8,
-            "vulkan_include",
-            "Path to Vulkan Headers",
-        ),
     };
 
+    // The Vulkan backends need the Vulkan headers. Kept out of `options` (which is reflected into
+    // the zgui_options module for the Zig sources) because it is a build-time path, not a source
+    // option. As a LazyPath it can be a package dependency's path on Zig 0.17+ (where
+    // LazyPath.getPath was removed), or a plain path from the command line.
+    const vulkan_include = b.option(std.Build.LazyPath, "vulkan_include", "Path to Vulkan Headers");
+
     const options_step = b.addOptions();
-    inline for (std.meta.fields(@TypeOf(options))) |field| {
-        options_step.addOption(field.type, field.name, @field(options, field.name));
+    const options_info = @typeInfo(@TypeOf(options)).@"struct";
+    inline for (options_info.field_names, options_info.field_types) |name, FieldType| {
+        options_step.addOption(FieldType, name, @field(options, name));
     }
 
     const options_module = options_step.createModule();
@@ -328,21 +330,7 @@ pub fn build(b: *std.Build) void {
             if (b.lazyDependency("zglfw", .{})) |zglfw| {
                 imgui_mod.addIncludePath(zglfw.path("libs/glfw/include"));
             }
-            const sdk_env: ?[]const u8 = b.graph.environ_map.get("VULKAN_SDK");
-
-            if (options.vulkan_include) |path| {
-                imgui_mod.addSystemIncludePath(.{ .cwd_relative = path });
-            } else if (sdk_env) |sdk| {
-                const vulkan_include = b.pathJoin(&.{ sdk, "include" });
-                imgui_mod.addSystemIncludePath(.{ .cwd_relative = vulkan_include });
-            } else {
-                std.debug.print(
-                    \\Please either:
-                    \\  1. Set the VULKAN_SDK environment variable.
-                    \\  2. Pass the path: -Dvulkan_include="C:/path/to/vulkan/include"
-                , .{});
-                @panic("Vulkan SDK not found");
-            }
+            addVulkanInclude(b, imgui_mod, vulkan_include);
 
             imgui_mod.addCSourceFiles(.{
                 .files = &.{
@@ -452,22 +440,7 @@ pub fn build(b: *std.Build) void {
             if (b.lazyDependency("zsdl", .{})) |zsdl| {
                 imgui_mod.addIncludePath(zsdl.path("libs/sdl3/include"));
             }
-            const sdk_env: ?[]const u8 = b.graph.environ_map.get("VULKAN_SDK");
-
-            if (options.vulkan_include) |path| {
-                imgui_mod.addSystemIncludePath(.{ .cwd_relative = path });
-            } else if (sdk_env) |sdk| {
-                const vulkan_include = b.pathJoin(&.{ sdk, "include" });
-                imgui_mod.addSystemIncludePath(.{ .cwd_relative = vulkan_include });
-            } else {
-                std.debug.print(
-                    \\Error: Vulkan headers not found for sdl3_vulkan backend.
-                    \\Please either:
-                    \\  1. Set the VULKAN_SDK environment variable.
-                    \\  2. Pass the path: -Dvulkan_include="C:/path/to/vulkan/include"
-                , .{});
-                @panic("Vulkan SDK not found");
-            }
+            addVulkanInclude(b, imgui_mod, vulkan_include);
 
             imgui_mod.addCSourceFiles(.{
                 .files = &.{
@@ -507,4 +480,23 @@ pub fn build(b: *std.Build) void {
     tests.root_module.linkLibrary(imgui);
 
     test_step.dependOn(&b.addRunArtifact(tests).step);
+}
+
+/// Adds the Vulkan headers include path to a module for the Vulkan backends: from the
+/// `vulkan_include` option if given (a LazyPath, e.g. a package dependency's path), else from the
+/// `VULKAN_SDK` environment variable, else panics with guidance.
+fn addVulkanInclude(b: *std.Build, mod: *std.Build.Module, vulkan_include: ?std.Build.LazyPath) void {
+    if (vulkan_include) |path| {
+        mod.addSystemIncludePath(path);
+    } else if (b.graph.environ_map.get("VULKAN_SDK")) |sdk| {
+        mod.addSystemIncludePath(.{ .cwd_relative = b.pathJoin(&.{ sdk, "include" }) });
+    } else {
+        std.debug.print(
+            \\Vulkan headers not found for the selected backend. Please either:
+            \\  1. Set the VULKAN_SDK environment variable.
+            \\  2. Pass the headers path: -Dvulkan_include=/path/to/vulkan/include
+            \\
+        , .{});
+        @panic("Vulkan headers not found");
+    }
 }
